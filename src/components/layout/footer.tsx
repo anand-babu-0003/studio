@@ -88,6 +88,10 @@ export default function Footer() {
         <div className="mt-10 border-t border-border pt-8 text-center">
           <p className="text-sm text-muted-foreground">
             &copy; {currentYear} AnandVerse. All rights reserved.
+            <span className="mx-1">|</span>
+            <Link href="/admin/dashboard" className="hover:text-primary transition-colors">
+              Admin
+            </Link>
           </p>
         </div>
       </div>
