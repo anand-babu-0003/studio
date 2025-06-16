@@ -24,7 +24,7 @@ const initialState: UpdateAboutDataFormState = {
   message: '',
   status: 'idle',
   errors: {},
-  data: undefined, // Ensure data is part of the initial state
+  data: undefined, 
 };
 
 function SubmitButton() {
@@ -50,7 +50,12 @@ export default function AdminAboutPage() {
 
   const form = useForm<AboutMeData>({
     resolver: zodResolver(aboutMeSchema),
-    defaultValues: initialAboutMeData, 
+    defaultValues: {
+      ...initialAboutMeData,
+      // Ensure experience and education are always arrays, even if empty in initial data
+      experience: initialAboutMeData.experience || [], 
+      education: initialAboutMeData.education || [],
+    },
   });
 
   useEffect(() => {
@@ -60,8 +65,6 @@ export default function AdminAboutPage() {
         description: state.message,
       });
       if (state.data) {
-        // Reset the form with the "saved" data
-        // This ensures all fields, including dynamic ones like experience/education, are updated
         const transformedData = {
           ...state.data,
           experience: state.data.experience || [],
@@ -78,7 +81,6 @@ export default function AdminAboutPage() {
       if (state.errors) {
         const allErrors = { ...state.errors };
         
-        // Handle top-level errors
         (Object.keys(form.getValues()) as Array<keyof AboutMeData>).forEach(key => {
           if (allErrors[key]) {
             form.setError(key, { type: 'server', message: (allErrors[key] as string[]).join(', ') });
@@ -86,10 +88,9 @@ export default function AdminAboutPage() {
           }
         });
 
-        // Handle nested errors (experience, education)
         Object.entries(allErrors).forEach(([key, value]) => {
           if (value && value.length > 0) {
-            // @ts-ignore - This handles nested field errors like 'experience.0.role'
+            // @ts-ignore 
             form.setError(key as any, { type: 'server', message: value.join(', ') });
           }
         });
@@ -226,9 +227,9 @@ export default function AdminAboutPage() {
                 <CardDescription>Manage your professional experience.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {form.watch('experience', []).map((exp, index) => (
-                  <Card key={exp.id || `exp-${index}`} className="p-4 space-y-3">
-                    <input type="hidden" {...form.register(`experience.${index}.id`)} />
+                {(form.watch('experience') || []).map((exp, index) => (
+                  <Card key={exp.id || `exp-idx-${index}`} className="p-4 space-y-3">
+                    <input type="hidden" {...form.register(`experience.${index}.id`)} defaultValue={exp.id} />
                     <FormField
                         control={form.control}
                         name={`experience.${index}.role`}
@@ -286,9 +287,9 @@ export default function AdminAboutPage() {
                 <CardDescription>Manage your academic background.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {form.watch('education', []).map((edu, index) => (
-                  <Card key={edu.id || `edu-${index}`} className="p-4 space-y-3">
-                     <input type="hidden" {...form.register(`education.${index}.id`)} />
+                {(form.watch('education') || []).map((edu, index) => (
+                  <Card key={edu.id || `edu-idx-${index}`} className="p-4 space-y-3">
+                     <input type="hidden" {...form.register(`education.${index}.id`)} defaultValue={edu.id} />
                      <FormField
                         control={form.control}
                         name={`education.${index}.degree`}

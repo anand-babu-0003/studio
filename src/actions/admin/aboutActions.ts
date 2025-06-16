@@ -51,7 +51,7 @@ export async function updateAboutDataAction(
       const parts = key.split('.');
       const index = parseInt(parts[1]);
       const field = parts[2] as keyof Experience;
-      if (!acc[index]) acc[index] = { id: formData.get(`experience.${index}.id`) || `exp_${index}`}; // Ensure id is present
+      if (!acc[index]) acc[index] = { id: formData.get(`experience.${index}.id`) as string || `exp_temp_${index}`}; 
       // @ts-ignore
       acc[index][field] = value;
       return acc;
@@ -63,7 +63,7 @@ export async function updateAboutDataAction(
       const parts = key.split('.');
       const index = parseInt(parts[1]);
       const field = parts[2] as keyof Education;
-      if (!acc[index]) acc[index] = { id: formData.get(`education.${index}.id`) || `edu_${index}` }; // Ensure id is present
+      if (!acc[index]) acc[index] = { id: formData.get(`education.${index}.id`) as string || `edu_temp_${index}` }; 
       // @ts-ignore
       acc[index][field] = value;
       return acc;
@@ -76,15 +76,14 @@ export async function updateAboutDataAction(
     bio: formData.get('bio'),
     profileImage: formData.get('profileImage'),
     dataAiHint: formData.get('dataAiHint'),
-    experience: experienceEntries.filter(e => e), // Filter out potential undefined entries if form has gaps
-    education: educationEntries.filter(e => e),   // Filter out potential undefined entries
+    experience: experienceEntries.filter(e => e && e.role && e.company && e.period && e.description), // Filter out potentially incomplete entries
+    education: educationEntries.filter(e => e && e.degree && e.institution && e.period),   // Filter out potentially incomplete entries
   };
   
   const validatedFields = aboutMeSchema.safeParse(rawData);
 
   if (!validatedFields.success) {
     const fieldErrors = validatedFields.error.flatten().fieldErrors;
-    // console.log("Validation errors:", JSON.stringify(fieldErrors, null, 2));
     return {
       message: "Failed to update data. Please check the errors below.",
       status: 'error',
@@ -116,5 +115,3 @@ export async function updateAboutDataAction(
     };
   }
 }
-
-    
