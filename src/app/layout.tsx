@@ -1,11 +1,16 @@
+"use client"; // Required for usePathname
+
 import type { Metadata } from 'next';
+import { usePathname } from 'next/navigation'; // Import usePathname
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import Navbar from '@/components/layout/navbar';
 import Footer from '@/components/layout/footer';
 import { ThemeProvider } from '@/components/layout/theme-provider';
 
-export const metadata: Metadata = {
+// Metadata can't be dynamic in a client component, so we define it statically.
+// If dynamic metadata is needed based on path, it would require a different approach.
+export const metadataObject: Metadata = {
   title: 'AnandVerse | Portfolio',
   description: 'Personal portfolio of a passionate developer.',
 };
@@ -15,6 +20,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const pathname = usePathname();
+  const isAdminRoute = pathname.startsWith('/admin');
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -22,6 +30,8 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <title>{String(metadataObject.title)}</title>
+        {metadataObject.description && <meta name="description" content={metadataObject.description} />}
       </head>
       <body className="font-body antialiased flex flex-col min-h-screen">
         <div className="light-orb light-orb-1"></div>
@@ -33,9 +43,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Navbar />
-          <main className="flex-grow">{children}</main>
-          <Footer />
+          {!isAdminRoute && <Navbar />}
+          <div className={isAdminRoute ? "flex-grow" : "flex-grow"}>{children}</div>
+          {!isAdminRoute && <Footer />}
           <Toaster />
         </ThemeProvider>
       </body>
