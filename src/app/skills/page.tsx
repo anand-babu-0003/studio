@@ -59,7 +59,7 @@ export default async function SkillsPage() {
                       const IconComponent = lucideIconsMap[skill.iconName] || Package;
                       return (
                         <ScrollAnimationWrapper key={skill.id} delay={skillIndex * 50} threshold={0.05}>
-                          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 h-full flex flex-col rounded-lg overflow-hidden border border-border/70">
+                          <Card className="shadow-lg hover:shadow-xl transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-[1.03] h-full flex flex-col rounded-lg overflow-hidden border border-border/70">
                             <CardContent className="p-6 flex flex-col items-center text-center flex-grow">
                               <IconComponent className="h-12 w-12 text-primary mb-4" aria-hidden="true" />
                               <h3 className="text-xl font-semibold font-headline text-primary/95 mb-3">{skill.name}</h3>

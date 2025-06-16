@@ -1,7 +1,8 @@
-"use client"; // Required for usePathname
+"use client"; // Required for usePathname and useEffect/useState
 
 import type { Metadata } from 'next';
 import { usePathname } from 'next/navigation'; // Import usePathname
+import { useEffect, useState } from 'react';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import Navbar from '@/components/layout/navbar';
@@ -22,6 +23,26 @@ export default function RootLayout({
 }>) {
   const pathname = usePathname();
   const isAdminRoute = pathname.startsWith('/admin');
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+    const handleMouseMove = (event: MouseEvent) => {
+      setMousePosition({ x: event.clientX, y: event.clientY });
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('mousemove', handleMouseMove);
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('mousemove', handleMouseMove);
+      }
+    };
+  }, []);
+
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -34,8 +55,23 @@ export default function RootLayout({
         {metadataObject.description && <meta name="description" content={metadataObject.description} />}
       </head>
       <body className="font-body antialiased flex flex-col min-h-screen">
-        <div className="light-orb light-orb-1"></div>
-        <div className="light-orb light-orb-2"></div>
+        {isMounted && !isAdminRoute && (
+          <>
+            <div 
+              className="light-orb light-orb-1" 
+              style={{ 
+                transform: `translate(calc(${mousePosition.x}px - 30vw), calc(${mousePosition.y}px - 30vh))`,
+              }}
+            />
+            <div 
+              className="light-orb light-orb-2" 
+              style={{ 
+                transform: `translate(calc(${mousePosition.x}px - 25vw), calc(${mousePosition.y}px - 25vh))`,
+                 transitionDelay: '0.05s' 
+              }}
+            />
+          </>
+        )}
         
         <ThemeProvider
           attribute="class"

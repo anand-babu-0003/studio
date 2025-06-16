@@ -170,39 +170,31 @@ body {
     transform: translateY(0);
   }
 
-  /* Subtle light fades for background */
-  @keyframes subtleLightPulse {
-    0%, 100% { opacity: 0.05; transform: scale(0.95); }
-    50% { opacity: 0.15; transform: scale(1.05); }
-  }
-
+  /* Styles for mouse-tracking light orbs */
   .light-orb {
-    position: fixed;
+    position: fixed; /* Changed from absolute for viewport relative positioning */
     border-radius: 50%;
     pointer-events: none;
     z-index: -1; /* Behind all content */
-    animation: subtleLightPulse 20s ease-in-out infinite;
     mix-blend-mode: overlay; 
+    transition: transform 0.15s ease-out; /* Smooth transition for mouse following */
+    /* Remove fixed animation properties for dynamic JS control */
+    /* animation: subtleLightPulse 20s ease-in-out infinite; */ 
+    /* top, left, bottom, right will be controlled by transform translate */
   }
 
   .light-orb-1 {
     width: 60vw;
     height: 60vh;
     background: radial-gradient(circle, hsl(var(--primary) / 0.3) 0%, transparent 70%);
-    top: 5vh;
-    left: 5vw;
-    animation-duration: 22s;
-    animation-delay: 0s;
+    /* Removed: top, left, animation-duration, animation-delay */
   }
 
   .light-orb-2 {
     width: 50vw;
     height: 50vh;
     background: radial-gradient(circle, hsl(var(--accent) / 0.2) 0%, transparent 70%);
-    bottom: 10vh;
-    right: 10vw;
-    animation-duration: 25s;
-    animation-delay: -7s; 
+    /* Removed: bottom, right, animation-duration, animation-delay */
   }
 }
 
