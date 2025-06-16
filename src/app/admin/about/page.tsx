@@ -65,7 +65,7 @@ export default function AdminAboutPage() {
         description: state.message,
       });
       if (state.data) {
-        console.log("AdminAboutPage: Form will reset with this data:", JSON.stringify(state.data, null, 2));
+        console.log("AdminAboutPage: Server action returned success. Data for form.reset:", JSON.stringify(state.data, null, 2));
         // Ensure arrays are always present for reset
         const transformedData = {
           ...state.data,

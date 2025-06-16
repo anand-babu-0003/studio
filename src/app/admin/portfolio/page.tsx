@@ -29,6 +29,19 @@ import { portfolioItemAdminSchema, type PortfolioAdminFormData } from '@/lib/adm
 
 const initialFormState: PortfolioFormState = { message: '', status: 'idle', errors: {} };
 
+const defaultFormValues: PortfolioAdminFormData = {
+  title: '',
+  description: '',
+  longDescription: '',
+  image1: '',
+  image2: '',
+  tagsString: '',
+  liveUrl: '',
+  repoUrl: '',
+  slug: '',
+  dataAiHint: '',
+};
+
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
@@ -58,18 +71,7 @@ export default function AdminPortfolioPage() {
 
   const form = useForm<PortfolioAdminFormData>({
     resolver: zodResolver(portfolioItemAdminSchema),
-    defaultValues: {
-      title: '',
-      description: '',
-      longDescription: '',
-      image1: '',
-      image2: '',
-      tagsString: '',
-      liveUrl: '',
-      repoUrl: '',
-      slug: '',
-      dataAiHint: '',
-    },
+    defaultValues: defaultFormValues,
   });
 
   useEffect(() => {
@@ -87,11 +89,7 @@ export default function AdminPortfolioPage() {
       });
       setShowForm(false);
       setCurrentProject(null);
-      form.reset({ 
-          title: '', description: '', longDescription: '', 
-          image1: '', image2: '', tagsString: '', 
-          liveUrl: '', repoUrl: '', slug: '', dataAiHint: '' 
-      }); 
+      form.reset(defaultFormValues); 
     } else if (formActionState.status === 'error') {
       toast({ title: "Error Saving", description: formActionState.message, variant: "destructive" });
       if (formActionState.errors) {
@@ -109,12 +107,7 @@ export default function AdminPortfolioPage() {
 
   const handleAddNew = () => {
     setCurrentProject(null);
-    form.reset({ 
-      id: undefined, 
-      title: '', description: '', longDescription: '',
-      image1: '', image2: '', tagsString: '',
-      liveUrl: '', repoUrl: '', slug: '', dataAiHint: ''
-    });
+    form.reset(defaultFormValues);
     setShowForm(true);
   };
 
@@ -142,11 +135,7 @@ export default function AdminPortfolioPage() {
   const handleCancelForm = () => {
     setShowForm(false);
     setCurrentProject(null);
-    form.reset({ 
-        title: '', description: '', longDescription: '', 
-        image1: '', image2: '', tagsString: '', 
-        liveUrl: '', repoUrl: '', slug: '', dataAiHint: '' 
-    }); 
+    form.reset(defaultFormValues);
   }
 
   return (
@@ -161,7 +150,7 @@ export default function AdminPortfolioPage() {
       </div>
 
       {showForm ? (
-        <Card>
+        <Card key={currentProject?.id || 'new-project-form'}>
           <CardHeader>
             <CardTitle>{currentProject ? 'Edit Project' : 'Add New Project'}</CardTitle>
             <CardDescription>Fill in the details for your portfolio project.</CardDescription>
@@ -289,5 +278,4 @@ export default function AdminPortfolioPage() {
     </div>
   );
 }
-
     

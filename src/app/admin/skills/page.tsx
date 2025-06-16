@@ -24,6 +24,13 @@ import { skillAdminSchema, type SkillAdminFormData } from '@/lib/adminSchemas';
 
 const initialFormState: SkillFormState = { message: '', status: 'idle', errors: {} };
 
+const defaultFormValues: SkillAdminFormData = {
+  name: '',
+  category: skillCategories[0],
+  proficiency: undefined,
+  iconName: availableIconNames[0] || '',
+};
+
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
@@ -53,12 +60,7 @@ export default function AdminSkillsPage() {
 
   const form = useForm<SkillAdminFormData>({
     resolver: zodResolver(skillAdminSchema),
-    defaultValues: {
-      name: '',
-      category: skillCategories[0],
-      proficiency: undefined,
-      iconName: availableIconNames[0] || '',
-    },
+    defaultValues: defaultFormValues,
   });
 
   useEffect(() => {
@@ -76,7 +78,7 @@ export default function AdminSkillsPage() {
       });
       setShowForm(false);
       setCurrentSkill(null);
-      form.reset({ name: '', category: skillCategories[0], proficiency: undefined, iconName: availableIconNames[0] || '' });
+      form.reset(defaultFormValues);
     } else if (formActionState.status === 'error') {
       toast({ title: "Error Saving", description: formActionState.message, variant: "destructive" });
       if (formActionState.errors) {
@@ -95,11 +97,8 @@ export default function AdminSkillsPage() {
   const handleAddNew = () => {
     setCurrentSkill(null);
     form.reset({
+      ...defaultFormValues,
       id: undefined,
-      name: '',
-      category: skillCategories[0],
-      proficiency: undefined,
-      iconName: availableIconNames[0] || '',
     });
     setShowForm(true);
   };
@@ -126,7 +125,7 @@ export default function AdminSkillsPage() {
   const handleCancelForm = () => {
     setShowForm(false);
     setCurrentSkill(null);
-    form.reset({ name: '', category: skillCategories[0], proficiency: undefined, iconName: availableIconNames[0] || '' });
+    form.reset(defaultFormValues);
   }
 
   return (
@@ -141,7 +140,7 @@ export default function AdminSkillsPage() {
       </div>
 
       {showForm ? (
-        <Card>
+        <Card key={currentSkill?.id || 'new-skill-form'}>
           <CardHeader>
             <CardTitle>{currentSkill ? 'Edit Skill' : 'Add New Skill'}</CardTitle>
             <CardDescription>Fill in the details for the skill.</CardDescription>
@@ -251,5 +250,4 @@ export default function AdminSkillsPage() {
     </div>
   );
 }
-
     
