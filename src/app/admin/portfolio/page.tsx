@@ -3,7 +3,7 @@
 
 import { useEffect, useState, useMemo } from 'react'; 
 import { useActionState } from 'react'; 
-import { useFormStatus } from 'react-dom'; // Corrected import
+import { useFormStatus } from 'react-dom';
 import { useForm, type Path } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusCircle, Edit3, Trash2, Save, Loader2, XCircle } from 'lucide-react';
@@ -17,7 +17,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
-// Import the initial data directly from data.ts, which now reads from data.json
 import { portfolioItems as initialPortfolioItemsData } from '@/lib/data';
 import type { PortfolioItem } from '@/lib/types';
 import {
@@ -62,7 +61,6 @@ function SubmitButton() {
 }
 
 export default function AdminPortfolioPage() {
-  // Initialize projects state with data from data.ts (which imports from data.json)
   const [projects, setProjects] = useState<PortfolioItem[]>(initialPortfolioItemsData);
   const [currentProject, setCurrentProject] = useState<PortfolioItem | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -77,8 +75,8 @@ export default function AdminPortfolioPage() {
   
   const formCardKey = useMemo(() => {
     if (!showForm) return 'hidden-form';
-    if (currentProject) return `edit-${currentProject.id}-${new Date().getTime()}`; // Add timestamp for unique key on edit
-    return `add-new-project-form-${new Date().getTime()}`; // Add timestamp for unique key on add
+    if (currentProject) return `edit-${currentProject.id}-${new Date().getTime()}`;
+    return `add-new-project-form-${new Date().getTime()}`;
   }, [showForm, currentProject]);
   
 
@@ -111,8 +109,15 @@ export default function AdminPortfolioPage() {
       console.log("AdminPortfolioPage: Form reset to defaultFormValues after successful save.");
 
     } else if (formActionState.status === 'error') {
-      console.error("AdminPortfolioPage: Error from server action:", formActionState);
-      toast({ title: "Error Saving", description: formActionState.message, variant: "destructive" });
+      console.error("AdminPortfolioPage: Error from server action (raw object):", formActionState);
+      console.error("AdminPortfolioPage: Error from server action (JSON.stringify):", JSON.stringify(formActionState));
+      
+      const errorMessage = typeof formActionState.message === 'string' && formActionState.message.trim() !== ''
+        ? formActionState.message
+        : "An unspecified error occurred. Please check server logs for more details.";
+
+      toast({ title: "Error Saving", description: errorMessage, variant: "destructive" });
+      
       if (formActionState.errors) {
         Object.entries(formActionState.errors).forEach(([key, fieldErrorMessages]) => {
           if (Array.isArray(fieldErrorMessages) && fieldErrorMessages.length > 0) {
