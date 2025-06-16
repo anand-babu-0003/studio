@@ -13,7 +13,7 @@ export default function Home() {
   const featuredProjects = portfolioItems.slice(0, 2);
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col">
       {/* Hero Section */}
       <section className="w-full py-20 md:py-32 bg-gradient-to-br from-primary/5 via-background to-accent/5 bg-animated-gradient">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
