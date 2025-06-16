@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useActionState, useFormStatus } from 'react'; // Updated from react-dom
+import { useEffect, useState, useMemo } from 'react'; // Added useMemo
+import { useActionState, useFormStatus } from 'react';
 import { useForm, type Path } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusCircle, Edit3, Trash2, Save, Loader2, XCircle } from 'lucide-react';
@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
+// Import initial data from data.ts (which now reads from data.json)
 import { skills as initialSkillsData, skillCategories, availableIconNames, lucideIconsMap } from '@/lib/data';
 import type { Skill } from '@/lib/types';
 import { saveSkillAction, deleteSkillAction, type SkillFormState } from '@/actions/admin/skillsActions';
@@ -50,6 +51,7 @@ function SubmitButton() {
 }
 
 export default function AdminSkillsPage() {
+  // Initialize skills state with data from data.ts (which imports from data.json)
   const [skills, setSkills] = useState<Skill[]>(initialSkillsData);
   const [currentSkill, setCurrentSkill] = useState<Skill | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -62,9 +64,11 @@ export default function AdminSkillsPage() {
     defaultValues: defaultFormValues,
   });
 
-  console.log("AdminSkillsPage: Current skills state rendering:", skills);
-  console.log("AdminSkillsPage: Current showForm state:", showForm);
-  console.log("AdminSkillsPage: Current currentSkill state:", currentSkill);
+  // Generate a key for the form Card to force re-mount on mode change
+  const formCardKey = useMemo(() => {
+    if (!showForm) return 'hidden-form';
+    return currentSkill ? `edit-${currentSkill.id}` : 'add-new-skill-form';
+  }, [showForm, currentSkill]);
 
   useEffect(() => {
     console.log("AdminSkillsPage: formActionState changed:", formActionState);
@@ -90,7 +94,7 @@ export default function AdminSkillsPage() {
       });
       
       setShowForm(false);
-      setCurrentSkill(null); // Important to clear current skill
+      setCurrentSkill(null);
       form.reset(defaultFormValues);
       console.log("AdminSkillsPage: Form reset to defaultFormValues after successful save.");
 
@@ -112,14 +116,14 @@ export default function AdminSkillsPage() {
 
   const handleAddNew = () => {
     setCurrentSkill(null);
-    form.reset(defaultFormValues); // Reset form with default values
+    form.reset(defaultFormValues);
     setShowForm(true);
     console.log("AdminSkillsPage: handleAddNew - form reset, showForm true");
   };
 
   const handleEdit = (skill: Skill) => {
     setCurrentSkill(skill);
-    form.reset({ // Reset form with skill data
+    form.reset({ 
       ...skill,
       proficiency: skill.proficiency ?? undefined, 
     });
@@ -146,7 +150,7 @@ export default function AdminSkillsPage() {
   const handleCancelForm = () => {
     setShowForm(false);
     setCurrentSkill(null);
-    form.reset(defaultFormValues); // Reset form when cancelling
+    form.reset(defaultFormValues);
     console.log("AdminSkillsPage: handleCancelForm - form reset, showForm false");
   }
 
@@ -161,8 +165,8 @@ export default function AdminSkillsPage() {
         )}
       </div>
 
-      {showForm && ( // Ensure conditional rendering correctly unmounts/mounts
-        <Card key={currentSkill ? `edit-${currentSkill.id}` : 'add-new-skill-form'}>
+      {showForm && (
+        <Card key={formCardKey}> {/* Use the dynamic key here */}
           <CardHeader>
             <CardTitle>{currentSkill ? 'Edit Skill' : 'Add New Skill'}</CardTitle>
             <CardDescription>Fill in the details for the skill.</CardDescription>
@@ -273,4 +277,5 @@ export default function AdminSkillsPage() {
     </div>
   );
 }
+
     

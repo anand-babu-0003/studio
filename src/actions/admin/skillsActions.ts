@@ -3,6 +3,30 @@
 
 import type { Skill } from '@/lib/types';
 import { skillAdminSchema, type SkillAdminFormData } from '@/lib/adminSchemas';
+import fs from 'fs/promises';
+import path from 'path';
+
+const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
+
+interface AppData {
+  portfolioItems: any[]; // Assuming portfolio structure
+  skills: Skill[];
+  aboutMe: any; // Assuming aboutMe structure
+}
+
+async function readDataFromFile(): Promise<AppData> {
+  try {
+    const fileContent = await fs.readFile(dataFilePath, 'utf-8');
+    return JSON.parse(fileContent);
+  } catch (error) {
+    console.error("Error reading data file in skillsActions, returning empty structure:", error);
+    return { portfolioItems: [], skills: [], aboutMe: {} };
+  }
+}
+
+async function writeDataToFile(data: AppData): Promise<void> {
+  await fs.writeFile(dataFilePath, JSON.stringify(data, null, 2), 'utf-8');
+}
 
 export type SkillFormState = {
   message: string;
@@ -17,7 +41,6 @@ export async function saveSkillAction(
 ): Promise<SkillFormState> {
   const proficiencyString = formData.get('proficiency') as string;
   const proficiencyValue = proficiencyString && proficiencyString.trim() !== '' ? Number(proficiencyString) : undefined;
-
 
   const rawData: SkillAdminFormData = {
     id: formData.get('id') as string || undefined,
@@ -43,16 +66,27 @@ export async function saveSkillAction(
     id: data.id || `skill_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
     name: data.name,
     category: data.category,
-    proficiency: data.proficiency ?? undefined, // Ensure it's undefined not null if empty
+    proficiency: data.proficiency ?? undefined,
     iconName: data.iconName,
   };
 
   try {
-    console.log("Saving skill (simulation):", JSON.stringify(skillToSave, null, 2));
-    await new Promise(resolve => setTimeout(resolve, 1000)); 
+    const allData = await readDataFromFile();
+    if (data.id) { // Editing existing skill
+      const skillIndex = allData.skills.findIndex(s => s.id === data.id);
+      if (skillIndex > -1) {
+        allData.skills[skillIndex] = skillToSave;
+      } else {
+        // Should not happen if ID is present, but handle defensively
+        allData.skills.push(skillToSave);
+      }
+    } else { // Adding new skill
+      allData.skills.push(skillToSave);
+    }
+    await writeDataToFile(allData);
 
     return {
-      message: `Skill "${skillToSave.name}" ${data.id ? 'updated' : 'added'} successfully! (Simulated Save)`,
+      message: `Skill "${skillToSave.name}" ${data.id ? 'updated' : 'added'} successfully!`,
       status: 'success',
       skill: skillToSave,
     };
@@ -76,11 +110,20 @@ export async function deleteSkillAction(itemId: string): Promise<DeleteSkillResu
         return { success: false, message: "No skill ID provided for deletion." };
     }
     try {
-        console.log(`Simulating deletion of skill with ID: ${itemId}`);
-        await new Promise(resolve => setTimeout(resolve, 500)); 
-        return { success: true, message: `Skill (ID: ${itemId}) deleted successfully! (Simulated)` };
+        const allData = await readDataFromFile();
+        const initialLength = allData.skills.length;
+        allData.skills = allData.skills.filter(s => s.id !== itemId);
+        
+        if (allData.skills.length < initialLength) {
+          await writeDataToFile(allData);
+          return { success: true, message: `Skill (ID: ${itemId}) deleted successfully!` };
+        } else {
+           return { success: false, message: `Skill (ID: ${itemId}) not found for deletion.` };
+        }
     } catch (error) {
         console.error("Error deleting skill:", error);
         return { success: false, message: "Failed to delete skill." };
     }
 }
+
+    

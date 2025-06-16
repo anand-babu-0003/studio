@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect } from 'react';
-import { useActionState, useFormStatus } from 'react'; // Updated from react-dom
+import { useActionState, useFormStatus } from 'react'; 
 import { useForm, type Path } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -15,7 +15,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import { Save, Loader2 } from 'lucide-react';
 
-import { aboutMe as initialAboutMeData } from '@/lib/data';
+// Import initial data from data.ts (which now reads from data.json)
+import { aboutMe as initialAboutMeDataFromLib } from '@/lib/data';
 import type { AboutMeData, Experience, Education } from '@/lib/types'; 
 import { updateAboutDataAction, type UpdateAboutDataFormState } from '@/actions/admin/aboutActions';
 import { aboutMeSchema } from '@/lib/adminSchemas'; 
@@ -50,10 +51,11 @@ export default function AdminAboutPage() {
 
   const form = useForm<AboutMeData>({
     resolver: zodResolver(aboutMeSchema),
+    // Initialize form with data from data.ts (which imports from data.json)
     defaultValues: {
-      ...initialAboutMeData,
-      experience: initialAboutMeData.experience || [], 
-      education: initialAboutMeData.education || [],
+      ...initialAboutMeDataFromLib,
+      experience: initialAboutMeDataFromLib.experience || [], 
+      education: initialAboutMeDataFromLib.education || [],
     },
   });
 
@@ -66,7 +68,6 @@ export default function AdminAboutPage() {
       });
       if (state.data) {
         console.log("AdminAboutPage: Server action returned success. Data for form.reset:", JSON.stringify(state.data, null, 2));
-        // Ensure arrays are always present for reset
         const transformedData = {
           ...state.data,
           experience: state.data.experience || [],

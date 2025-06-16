@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useActionState, useFormStatus } from 'react'; // Updated from react-dom
+import { useEffect, useState, useMemo } from 'react'; // Added useMemo
+import { useActionState, useFormStatus } from 'react'; 
 import { useForm, type Path } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusCircle, Edit3, Trash2, Save, Loader2, XCircle } from 'lucide-react';
@@ -16,8 +16,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
-
-import { portfolioItems as initialPortfolioItems } from '@/lib/data';
+// Import the initial data directly from data.ts, which now reads from data.json
+import { portfolioItems as initialPortfolioItemsData } from '@/lib/data';
 import type { PortfolioItem } from '@/lib/types';
 import {
   savePortfolioItemAction,
@@ -61,7 +61,8 @@ function SubmitButton() {
 }
 
 export default function AdminPortfolioPage() {
-  const [projects, setProjects] = useState<PortfolioItem[]>(initialPortfolioItems);
+  // Initialize projects state with data from data.ts (which imports from data.json)
+  const [projects, setProjects] = useState<PortfolioItem[]>(initialPortfolioItemsData);
   const [currentProject, setCurrentProject] = useState<PortfolioItem | null>(null);
   const [showForm, setShowForm] = useState(false);
   const { toast } = useToast();
@@ -72,11 +73,12 @@ export default function AdminPortfolioPage() {
     resolver: zodResolver(portfolioItemAdminSchema),
     defaultValues: defaultFormValues,
   });
-
-  console.log("AdminPortfolioPage: Current projects state rendering:", projects);
-  console.log("AdminPortfolioPage: Current showForm state:", showForm);
-  console.log("AdminPortfolioPage: Current currentProject state:", currentProject);
-
+  
+  // Generate a key for the form Card to force re-mount on mode change
+  const formCardKey = useMemo(() => {
+    if (!showForm) return 'hidden-form';
+    return currentProject ? `edit-${currentProject.id}` : 'add-new-project-form';
+  }, [showForm, currentProject]);
 
   useEffect(() => {
     console.log("AdminPortfolioPage: formActionState changed:", formActionState);
@@ -102,7 +104,7 @@ export default function AdminPortfolioPage() {
       });
       
       setShowForm(false);
-      setCurrentProject(null); // Important to clear current project
+      setCurrentProject(null);
       form.reset(defaultFormValues); 
       console.log("AdminPortfolioPage: Form reset to defaultFormValues after successful save.");
 
@@ -124,14 +126,14 @@ export default function AdminPortfolioPage() {
 
   const handleAddNew = () => {
     setCurrentProject(null);
-    form.reset(defaultFormValues); // Reset form with default values
+    form.reset(defaultFormValues);
     setShowForm(true);
     console.log("AdminPortfolioPage: handleAddNew - form reset, showForm true");
   };
 
   const handleEdit = (project: PortfolioItem) => {
     setCurrentProject(project);
-    form.reset({ // Reset form with project data
+    form.reset({ 
       ...project,
       image1: project.images[0] || '',
       image2: project.images[1] || '',
@@ -160,7 +162,7 @@ export default function AdminPortfolioPage() {
   const handleCancelForm = () => {
     setShowForm(false);
     setCurrentProject(null);
-    form.reset(defaultFormValues); // Reset form when cancelling
+    form.reset(defaultFormValues);
     console.log("AdminPortfolioPage: handleCancelForm - form reset, showForm false");
   }
 
@@ -175,8 +177,8 @@ export default function AdminPortfolioPage() {
         )}
       </div>
 
-      {showForm && ( // Ensure conditional rendering correctly unmounts/mounts
-        <Card key={currentProject ? `edit-${currentProject.id}` : 'add-new-project-form'}>
+      {showForm && (
+        <Card key={formCardKey}> {/* Use the dynamic key here */}
           <CardHeader>
             <CardTitle>{currentProject ? 'Edit Project' : 'Add New Project'}</CardTitle>
             <CardDescription>Fill in the details for your portfolio project.</CardDescription>
@@ -305,4 +307,5 @@ export default function AdminPortfolioPage() {
     </div>
   );
 }
+
     

@@ -3,6 +3,25 @@
 
 import type { AboutMeData, Experience, Education } from '@/lib/types';
 import { aboutMeSchema } from '@/lib/adminSchemas';
+import fs from 'fs/promises';
+import path from 'path';
+
+const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
+
+async function readDataFromFile(): Promise<{ portfolioItems: any[], skills: any[], aboutMe: AboutMeData }> {
+  try {
+    const fileContent = await fs.readFile(dataFilePath, 'utf-8');
+    return JSON.parse(fileContent);
+  } catch (error) {
+    console.error("Error reading data file, returning empty structure:", error);
+    // Ensure a default structure is returned if file is missing or corrupt
+    return { portfolioItems: [], skills: [], aboutMe: { name: '', title: '', bio: '', profileImage: '', dataAiHint: '', experience: [], education: [] } };
+  }
+}
+
+async function writeDataToFile(data: any): Promise<void> {
+  await fs.writeFile(dataFilePath, JSON.stringify(data, null, 2), 'utf-8');
+}
 
 export type UpdateAboutDataFormState = {
   message: string;
@@ -35,18 +54,8 @@ export async function updateAboutDataAction(
     const company = formData.get(`experience.${index}.company`) as string || '';
     const period = formData.get(`experience.${index}.period`) as string || '';
     const description = formData.get(`experience.${index}.description`) as string || '';
-
-    // Only add if it's a meaningful entry, e.g., if role or company is filled.
-    // Or simply add all and let Zod validation handle emptiness if fields are required.
-    // For now, we add if an ID is present, which it always should be from client.
     if (id) {
-        experienceEntries.push({
-          id: id, // Client should always send an ID
-          role,
-          company,
-          period,
-          description,
-        });
+        experienceEntries.push({ id, role, company, period, description });
     }
   }
     
@@ -55,14 +64,8 @@ export async function updateAboutDataAction(
     const degree = formData.get(`education.${index}.degree`) as string || '';
     const institution = formData.get(`education.${index}.institution`) as string || '';
     const period = formData.get(`education.${index}.period`) as string || '';
-    
     if (id) {
-        educationEntries.push({
-          id: id, 
-          degree,
-          institution,
-          period,
-        });
+        educationEntries.push({ id, degree, institution, period });
     }
   }
 
@@ -90,11 +93,12 @@ export async function updateAboutDataAction(
   const dataToSave = validatedFields.data;
 
   try {
-    console.log("Simulating save of About Me data:", JSON.stringify(dataToSave, null, 2));
-    await new Promise(resolve => setTimeout(resolve, 1000)); 
+    const allData = await readDataFromFile();
+    allData.aboutMe = dataToSave;
+    await writeDataToFile(allData);
 
     return {
-      message: "About page data updated successfully! (Simulated Save)",
+      message: "About page data updated successfully!",
       status: 'success',
       data: dataToSave, 
     };
@@ -107,3 +111,5 @@ export async function updateAboutDataAction(
     };
   }
 }
+
+    

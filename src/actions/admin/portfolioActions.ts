@@ -2,7 +2,31 @@
 "use server";
 
 import type { PortfolioItem } from '@/lib/types';
-import { portfolioItemAdminSchema, type PortfolioAdminFormData } from '@/lib/adminSchemas'; // Import schema and related type
+import { portfolioItemAdminSchema, type PortfolioAdminFormData } from '@/lib/adminSchemas';
+import fs from 'fs/promises';
+import path from 'path';
+
+const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
+
+interface AppData {
+  portfolioItems: PortfolioItem[];
+  skills: any[]; // Assuming skills structure, adjust if needed
+  aboutMe: any; // Assuming aboutMe structure, adjust if needed
+}
+
+async function readDataFromFile(): Promise<AppData> {
+  try {
+    const fileContent = await fs.readFile(dataFilePath, 'utf-8');
+    return JSON.parse(fileContent);
+  } catch (error) {
+     console.error("Error reading data file in portfolioActions, returning empty structure:", error);
+     return { portfolioItems: [], skills: [], aboutMe: {} };
+  }
+}
+
+async function writeDataToFile(data: AppData): Promise<void> {
+  await fs.writeFile(dataFilePath, JSON.stringify(data, null, 2), 'utf-8');
+}
 
 export type PortfolioFormState = {
   message: string;
@@ -60,11 +84,22 @@ export async function savePortfolioItemAction(
   };
 
   try {
-    console.log("Saving portfolio project (simulation):", JSON.stringify(projectToSave, null, 2));
-    await new Promise(resolve => setTimeout(resolve, 1000)); 
+    const allData = await readDataFromFile();
+    if (data.id) { // Editing existing project
+      const projectIndex = allData.portfolioItems.findIndex(p => p.id === data.id);
+      if (projectIndex > -1) {
+        allData.portfolioItems[projectIndex] = projectToSave;
+      } else {
+        // Should not happen if ID is present, but handle defensively
+        allData.portfolioItems.push(projectToSave);
+      }
+    } else { // Adding new project
+      allData.portfolioItems.push(projectToSave);
+    }
+    await writeDataToFile(allData);
 
     return {
-      message: `Project "${projectToSave.title}" ${data.id ? 'updated' : 'added'} successfully! (Simulated Save)`,
+      message: `Project "${projectToSave.title}" ${data.id ? 'updated' : 'added'} successfully!`,
       status: 'success',
       project: projectToSave,
     };
@@ -88,11 +123,20 @@ export async function deletePortfolioItemAction(itemId: string): Promise<DeleteP
         return { success: false, message: "No item ID provided for deletion." };
     }
     try {
-        console.log(`Simulating deletion of portfolio item with ID: ${itemId}`);
-        await new Promise(resolve => setTimeout(resolve, 500)); 
-        return { success: true, message: `Project (ID: ${itemId}) deleted successfully! (Simulated)` };
+        const allData = await readDataFromFile();
+        const initialLength = allData.portfolioItems.length;
+        allData.portfolioItems = allData.portfolioItems.filter(p => p.id !== itemId);
+        
+        if (allData.portfolioItems.length < initialLength) {
+            await writeDataToFile(allData);
+            return { success: true, message: `Project (ID: ${itemId}) deleted successfully!` };
+        } else {
+            return { success: false, message: `Project (ID: ${itemId}) not found for deletion.` };
+        }
     } catch (error) {
         console.error("Error deleting portfolio item:", error);
         return { success: false, message: "Failed to delete project." };
     }
 }
+
+    
