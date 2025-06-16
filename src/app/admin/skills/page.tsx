@@ -22,13 +22,15 @@ import type { Skill } from '@/lib/types';
 import { saveSkillAction, deleteSkillAction, type SkillFormState } from '@/actions/admin/skillsActions';
 import { skillAdminSchema, type SkillAdminFormData } from '@/lib/adminSchemas';
 
-const initialFormState: SkillFormState = { message: '', status: 'idle', errors: {} };
+const initialFormState: SkillFormState = { message: '', status: 'idle', errors: {}, skill: undefined };
 
 const defaultFormValues: SkillAdminFormData = {
   name: '',
-  category: skillCategories[0],
+  category: skillCategories[0], // e.g., 'Languages'
   proficiency: undefined,
-  iconName: availableIconNames[0] || '',
+  // Ensure availableIconNames is not empty before accessing its first element.
+  // availableIconNames should always be populated based on lucideIconsMap in data.ts
+  iconName: availableIconNames.length > 0 ? availableIconNames[0] : (()=>{ throw new Error("FATAL: availableIconNames is empty. Check src/lib/data.ts and lucide-react imports.")})(),
 };
 
 function SubmitButton() {
@@ -177,7 +179,7 @@ export default function AdminSkillsPage() {
                 <FormField control={form.control} name="category" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger>
                       </FormControl>
@@ -192,7 +194,7 @@ export default function AdminSkillsPage() {
                 <FormField control={form.control} name="iconName" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Icon</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger><SelectValue placeholder="Select an icon" /></SelectTrigger>
                       </FormControl>
@@ -281,3 +283,4 @@ export default function AdminSkillsPage() {
     </div>
   );
 }
+
