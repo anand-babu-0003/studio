@@ -7,6 +7,7 @@ import type { Skill } from '@/lib/types';
 import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wrapper';
 import { Package } from 'lucide-react'; 
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 export default function SkillsPage() {
   return (
@@ -26,7 +27,7 @@ export default function SkillsPage() {
           return (
             <ScrollAnimationWrapper key={category} delay={categoryIndex * 100}>
               <section className={cn(categoryIndex > 0 && "border-t border-border pt-12 mt-12")}>
-                <h2 className="font-headline text-3xl md:text-4xl font-bold text-center text-primary mb-10">
+                <h2 className="font-headline text-3xl md:text-4xl font-bold text-center text-primary mb-12">
                   {category}
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -40,16 +41,22 @@ export default function SkillsPage() {
                             <h3 className="text-xl font-semibold font-headline text-primary/95 mb-3">{skill.name}</h3>
                             
                             <div className="w-full mt-auto pt-3">
-                              {skill.proficiency !== undefined ? (
+                              {skill.proficiency !== undefined && skill.proficiency !== null ? (
                                 <>
                                   <div className="flex justify-between items-center text-xs text-muted-foreground mb-1 px-1">
-                                    <span>Level</span>
+                                    <span>Proficiency</span>
                                     <span>{skill.proficiency}%</span>
                                   </div>
-                                  <Progress value={skill.proficiency} aria-label={`${skill.name} proficiency ${skill.proficiency}%`} className="h-2.5 rounded-full" />
+                                  <Progress 
+                                    value={skill.proficiency} 
+                                    aria-label={`${skill.name} proficiency ${skill.proficiency}%`} 
+                                    className="h-2 rounded-full" 
+                                  />
                                 </>
                               ) : (
-                                <p className="text-sm text-muted-foreground italic">Experienced</p>
+                                <div className="text-center pt-2">
+                                  <Badge variant="outline" className="font-normal text-xs px-2 py-0.5">Highly Experienced</Badge>
+                                </div>
                               )}
                             </div>
                           </CardContent>
