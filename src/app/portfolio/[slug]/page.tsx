@@ -7,7 +7,6 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, ExternalLink, Github } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wrapper';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -44,20 +43,16 @@ export default async function PortfolioDetailPage({ params }: { params: { slug: 
 
   return (
     <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
-      <ScrollAnimationWrapper>
-        <Button asChild variant="outline" className="mb-8">
-          <Link href="/portfolio">
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Portfolio
-          </Link>
-        </Button>
-      </ScrollAnimationWrapper>
+      <Button asChild variant="outline" className="mb-8">
+        <Link href="/portfolio">
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Portfolio
+        </Link>
+      </Button>
 
-      <ScrollAnimationWrapper delay={100}>
-        <PageHeader title={project.title} />
-      </ScrollAnimationWrapper>
+      <PageHeader title={project.title} />
       
       {project.images && project.images.length > 0 && (
-        <ScrollAnimationWrapper className="mb-16" delay={200}> {/* Increased mb-12 to mb-16 */}
+        <div className="mb-16">
           <Carousel className="w-full max-w-3xl mx-auto shadow-2xl rounded-lg overflow-hidden">
             <CarouselContent>
               {project.images.map((src, index) => (
@@ -82,84 +77,75 @@ export default async function PortfolioDetailPage({ params }: { params: { slug: 
               </>
             )}
           </Carousel>
-        </ScrollAnimationWrapper>
+        </div>
       )}
 
-      <div className="max-w-3xl mx-auto space-y-16"> {/* Increased space-y-12 to space-y-16 */}
-        <ScrollAnimationWrapper delay={300}>
+      <div className="max-w-4xl mx-auto space-y-16"> {/* Increased max-width from 3xl to 4xl */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-headline text-2xl text-primary">About this project</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-lg text-foreground/80 leading-relaxed">
+              {project.longDescription || project.description}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-headline text-2xl text-primary">Technologies Used</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {project.tags.map((tag) => (
+                <Badge key={tag} variant="default" className="text-sm px-3 py-1">{tag}</Badge>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {(project.liveUrl || project.repoUrl) && (
           <Card>
             <CardHeader>
-              <CardTitle className="font-headline text-2xl text-primary">About this project</CardTitle>
+              <CardTitle className="font-headline text-2xl text-primary">Links</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-lg text-foreground/80 leading-relaxed">
-                {project.longDescription || project.description}
-              </p>
-            </CardContent>
-          </Card>
-        </ScrollAnimationWrapper>
-
-        <ScrollAnimationWrapper delay={400}>
-           <Card>
-            <CardHeader>
-              <CardTitle className="font-headline text-2xl text-primary">Technologies Used</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {project.tags.map((tag) => (
-                  <Badge key={tag} variant="default" className="text-sm px-3 py-1">{tag}</Badge>
-                ))}
+              <div className="flex flex-wrap gap-4">
+                {project.liveUrl && (
+                  <Button asChild variant="default" size="lg">
+                    <Link href={project.liveUrl} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="mr-2 h-5 w-5" /> View Live Demo
+                    </Link>
+                  </Button>
+                )}
+                {project.repoUrl && (
+                  <Button asChild variant="secondary" size="lg">
+                    <Link href={project.repoUrl} target="_blank" rel="noopener noreferrer">
+                      <Github className="mr-2 h-5 w-5" /> View Code on GitHub
+                    </Link>
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
-        </ScrollAnimationWrapper>
-
-        {(project.liveUrl || project.repoUrl) && (
-          <ScrollAnimationWrapper delay={500}>
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-headline text-2xl text-primary">Links</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-4">
-                  {project.liveUrl && (
-                    <Button asChild variant="default" size="lg">
-                      <Link href={project.liveUrl} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="mr-2 h-5 w-5" /> View Live Demo
-                      </Link>
-                    </Button>
-                  )}
-                  {project.repoUrl && (
-                    <Button asChild variant="secondary" size="lg">
-                      <Link href={project.repoUrl} target="_blank" rel="noopener noreferrer">
-                        <Github className="mr-2 h-5 w-5" /> View Code on GitHub
-                      </Link>
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </ScrollAnimationWrapper>
         )}
 
         {project.readmeContent && (
-          <ScrollAnimationWrapper delay={600}>
-            <Card>
-              <CardHeader>
-                 <CardTitle className="font-headline text-2xl text-primary">Project README</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none markdown-body">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {project.readmeContent}
-                  </ReactMarkdown>
-                </div>
-              </CardContent>
-            </Card>
-          </ScrollAnimationWrapper>
+          <Card>
+            <CardHeader>
+                <CardTitle className="font-headline text-2xl text-primary">Project README</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none markdown-body">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {project.readmeContent}
+                </ReactMarkdown>
+              </div>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>
   );
 }
-
