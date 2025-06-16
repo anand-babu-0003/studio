@@ -1,8 +1,8 @@
 
 import { z } from 'zod';
-import type { Experience, Education } from '@/lib/types'; // Keep using types from lib/types
+import type { Experience, Education } from '@/lib/types'; 
+import { skillCategories, availableIconNames } from '@/lib/data';
 
-// Schemas for About Me page
 const experienceSchema = z.object({
   id: z.string(),
   role: z.string().min(1, "Role is required"),
@@ -28,7 +28,6 @@ export const aboutMeSchema = z.object({
   education: z.array(educationSchema),
 });
 
-// Schema for Portfolio Admin Form
 export const portfolioItemAdminSchema = z.object({
   id: z.string().optional(),
   title: z.string().min(2, { message: "Title must be at least 2 characters." }),
@@ -44,3 +43,17 @@ export const portfolioItemAdminSchema = z.object({
 });
 
 export type PortfolioAdminFormData = z.infer<typeof portfolioItemAdminSchema>;
+
+// Schema for Skill Admin Form
+const validCategories = skillCategories as [string, ...string[]]; // Zod enum helper
+const validIconNames = availableIconNames as [string, ...string[]]; // Zod enum helper
+
+export const skillAdminSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1, { message: "Skill name is required." }),
+  category: z.enum(validCategories, { errorMap: () => ({ message: "Please select a valid category." })}),
+  proficiency: z.coerce.number().min(0).max(100).optional().nullable(),
+  iconName: z.enum(validIconNames, { errorMap: () => ({ message: "Please select a valid icon."}) }),
+});
+
+export type SkillAdminFormData = z.infer<typeof skillAdminSchema>;

@@ -21,7 +21,6 @@ export async function updateAboutDataAction(
   const experienceIndices = new Set<string>();
   const educationIndices = new Set<string>();
 
-  // Collect all unique indices for experience and education
   for (const [key] of formData.entries()) {
     if (key.startsWith('experience.')) {
       experienceIndices.add(key.split('.')[1]);
@@ -30,11 +29,10 @@ export async function updateAboutDataAction(
     }
   }
 
-  // Reconstruct experience entries
   for (const index of Array.from(experienceIndices).sort((a,b) => parseInt(a) - parseInt(b))) {
-    const id = formData.get(`experience.${index}.id`) as string || `exp_temp_${Date.now()}_${index}`;
+    const id = formData.get(`experience.${index}.id`) as string; // ID should always be present from client
     experienceEntries.push({
-      id: id,
+      id: id || `exp_fallback_${Date.now()}_${index}`, // Fallback ID, though client should always send one
       role: formData.get(`experience.${index}.role`) as string || '',
       company: formData.get(`experience.${index}.company`) as string || '',
       period: formData.get(`experience.${index}.period`) as string || '',
@@ -42,11 +40,10 @@ export async function updateAboutDataAction(
     });
   }
     
-  // Reconstruct education entries
   for (const index of Array.from(educationIndices).sort((a,b) => parseInt(a) - parseInt(b))) {
-    const id = formData.get(`education.${index}.id`) as string || `edu_temp_${Date.now()}_${index}`;
+    const id = formData.get(`education.${index}.id`) as string; // ID should always be present
     educationEntries.push({
-      id: id,
+      id: id || `edu_fallback_${Date.now()}_${index}`, // Fallback ID
       degree: formData.get(`education.${index}.degree`) as string || '',
       institution: formData.get(`education.${index}.institution`) as string || '',
       period: formData.get(`education.${index}.period`) as string || '',
@@ -70,21 +67,20 @@ export async function updateAboutDataAction(
     return {
       message: "Failed to update data. Please check the errors below.",
       status: 'error',
-      errors: fieldErrors as UpdateAboutDataFormState['errors'], // Cast needed due to complex nested error types
+      errors: fieldErrors as UpdateAboutDataFormState['errors'], 
     };
   }
 
   const dataToSave = validatedFields.data;
 
   try {
-    // Simulate saving the data
     console.log("Simulating save of About Me data:", JSON.stringify(dataToSave, null, 2));
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 1000)); 
 
     return {
       message: "About page data updated successfully! (Simulated Save)",
       status: 'success',
-      data: dataToSave, // Return the "saved" data
+      data: dataToSave, 
     };
 
   } catch (error) {

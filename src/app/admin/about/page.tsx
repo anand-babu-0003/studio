@@ -64,6 +64,7 @@ export default function AdminAboutPage() {
         description: state.message,
       });
       if (state.data) {
+        // Ensure arrays are always present for reset
         const transformedData = {
           ...state.data,
           experience: state.data.experience || [],
@@ -80,17 +81,28 @@ export default function AdminAboutPage() {
       if (state.errors) {
         const allErrors = { ...state.errors };
         
+        // Set errors for top-level fields
         (Object.keys(form.getValues()) as Array<keyof AboutMeData>).forEach(key => {
           if (allErrors[key]) {
             form.setError(key, { type: 'server', message: (allErrors[key] as string[]).join(', ') });
-            delete allErrors[key];
+            delete allErrors[key]; // Remove handled error
           }
         });
 
+        // Set errors for nested array fields (experience, education)
         Object.entries(allErrors).forEach(([key, value]) => {
-          if (value && value.length > 0) {
-            // @ts-ignore 
+          if (value && Array.isArray(value) && value.length > 0) {
+            // This handles keys like 'experience.0.role'
+            // @ts-ignore - key can be a path string for react-hook-form
             form.setError(key as any, { type: 'server', message: value.join(', ') });
+          } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+            // Handle cases where error might be an object (though less common for fieldErrors)
+            Object.entries(value).forEach(([nestedKey, nestedValue]) => {
+                 if (Array.isArray(nestedValue) && nestedValue.length > 0) {
+                    // @ts-ignore
+                    form.setError(`${key}.${nestedKey}` as any, { type: 'server', message: nestedValue.join(', ') });
+                 }
+            });
           }
         });
       }

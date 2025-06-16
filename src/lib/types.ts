@@ -18,7 +18,7 @@ export interface PortfolioItem {
 export interface Skill {
   id: string;
   name: string;
-  icon: LucideIcon | React.ElementType;
+  iconName: string; // Changed from LucideIcon to string
   category: 'Frontend' | 'Backend' | 'DevOps' | 'Tools' | 'Languages' | 'Other';
   proficiency?: number; 
 }

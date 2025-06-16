@@ -40,28 +40,28 @@ export const portfolioItems: PortfolioItem[] = [
 
 export const skills: Skill[] = [
   // Languages
-  { id: 'ts', name: 'TypeScript', icon: Code, category: 'Languages', proficiency: 90 },
-  { id: 'js', name: 'JavaScript', icon: Code, category: 'Languages', proficiency: 95 },
-  { id: 'python', name: 'Python', icon: Code, category: 'Languages', proficiency: 75 },
+  { id: 'ts', name: 'TypeScript', iconName: 'Code', category: 'Languages', proficiency: 90 },
+  { id: 'js', name: 'JavaScript', iconName: 'Code', category: 'Languages', proficiency: 95 },
+  { id: 'python', name: 'Python', iconName: 'Code', category: 'Languages', proficiency: 75 },
   // Frontend
-  { id: 'react', name: 'React', icon: Laptop, category: 'Frontend', proficiency: 90 },
-  { id: 'nextjs', name: 'Next.js', icon: Laptop, category: 'Frontend', proficiency: 85 },
-  { id: 'vue', name: 'Vue.js', icon: Laptop, category: 'Frontend', proficiency: 70 },
-  { id: 'tailwind', name: 'Tailwind CSS', icon: PenTool, category: 'Frontend', proficiency: 90 },
+  { id: 'react', name: 'React', iconName: 'Laptop', category: 'Frontend', proficiency: 90 },
+  { id: 'nextjs', name: 'Next.js', iconName: 'Laptop', category: 'Frontend', proficiency: 85 },
+  { id: 'vue', name: 'Vue.js', iconName: 'Laptop', category: 'Frontend', proficiency: 70 },
+  { id: 'tailwind', name: 'Tailwind CSS', iconName: 'PenTool', category: 'Frontend', proficiency: 90 },
   // Backend
-  { id: 'nodejs', name: 'Node.js', icon: Server, category: 'Backend', proficiency: 85 },
-  { id: 'express', name: 'Express.js', icon: Server, category: 'Backend', proficiency: 80 },
-  { id: 'django', name: 'Django', icon: Server, category: 'Backend', proficiency: 70 },
+  { id: 'nodejs', name: 'Node.js', iconName: 'Server', category: 'Backend', proficiency: 85 },
+  { id: 'express', name: 'Express.js', iconName: 'Server', category: 'Backend', proficiency: 80 },
+  { id: 'django', name: 'Django', iconName: 'Server', category: 'Backend', proficiency: 70 },
   // Databases
-  { id: 'postgres', name: 'PostgreSQL', icon: Database, category: 'Backend', proficiency: 75 },
-  { id: 'mongodb', name: 'MongoDB', icon: Database, category: 'Backend', proficiency: 80 },
+  { id: 'postgres', name: 'PostgreSQL', iconName: 'Database', category: 'Backend', proficiency: 75 },
+  { id: 'mongodb', name: 'MongoDB', iconName: 'Database', category: 'Backend', proficiency: 80 },
   // DevOps
-  { id: 'docker', name: 'Docker', icon: Settings, category: 'DevOps', proficiency: 70 },
-  { id: 'aws', name: 'AWS', icon: Cloud, category: 'DevOps', proficiency: 65 },
+  { id: 'docker', name: 'Docker', iconName: 'Settings', category: 'DevOps', proficiency: 70 },
+  { id: 'aws', name: 'AWS', iconName: 'Cloud', category: 'DevOps', proficiency: 65 },
   // Tools
-  { id: 'git', name: 'Git', icon: Briefcase, category: 'Tools', proficiency: 95 },
-  { id: 'figma', name: 'Figma', icon: PenTool, category: 'Tools', proficiency: 70 },
-  { id: 'vscode', name: 'VS Code', icon: Terminal, category: 'Tools', proficiency: 95 },
+  { id: 'git', name: 'Git', iconName: 'Briefcase', category: 'Tools', proficiency: 95 },
+  { id: 'figma', name: 'Figma', iconName: 'PenTool', category: 'Tools', proficiency: 70 },
+  { id: 'vscode', name: 'VS Code', iconName: 'Terminal', category: 'Tools', proficiency: 95 },
 ];
 
 export const aboutMe = {
@@ -107,3 +107,25 @@ When I'm not coding, you can find me exploring new design trends, contributing t
 };
 
 export const skillCategories: Array<Skill['category']> = ['Languages', 'Frontend', 'Backend', 'DevOps', 'Tools', 'Other'];
+
+// Helper to get Lucide icon components by name string
+// This is a simplified list for demonstration. You'd expand this.
+export const lucideIconsMap: { [key: string]: React.ElementType } = {
+  Code,
+  Database,
+  Server,
+  Cloud,
+  PenTool,
+  Terminal,
+  Briefcase,
+  Zap,
+  Brain,
+  MessageSquare,
+  Settings,
+  LayoutDashboard,
+  Smartphone,
+  Laptop,
+  // Add more icons as needed and ensure they are imported from lucide-react
+};
+
+export const availableIconNames = Object.keys(lucideIconsMap);
