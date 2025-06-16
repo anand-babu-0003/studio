@@ -108,6 +108,9 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+  main {
+    @apply relative z-10; /* Ensures main content is above z-index -1 orbs */
+  }
 }
 
 /* Added Animations */
@@ -159,5 +162,40 @@ body {
   .scroll-trigger.animate-scroll-in {
     opacity: 1;
     transform: translateY(0);
+  }
+
+  /* Subtle light fades for background */
+  @keyframes subtleLightPulse {
+    0%, 100% { opacity: 0.05; transform: scale(0.95); }
+    50% { opacity: 0.15; transform: scale(1.05); }
+  }
+
+  .light-orb {
+    position: fixed;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: -1; /* Behind all content */
+    animation: subtleLightPulse 20s ease-in-out infinite;
+    mix-blend-mode: overlay; 
+  }
+
+  .light-orb-1 {
+    width: 60vw;
+    height: 60vh;
+    background: radial-gradient(circle, hsl(var(--primary) / 0.3) 0%, transparent 70%);
+    top: 5vh;
+    left: 5vw;
+    animation-duration: 22s;
+    animation-delay: 0s;
+  }
+
+  .light-orb-2 {
+    width: 50vw;
+    height: 50vh;
+    background: radial-gradient(circle, hsl(var(--accent) / 0.2) 0%, transparent 70%);
+    bottom: 10vh;
+    right: 10vw;
+    animation-duration: 25s;
+    animation-delay: -7s; 
   }
 }
