@@ -2,7 +2,8 @@
 "use client";
 
 import { useEffect } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react'; // Changed from 'react-dom' and useFormState
+import { useFormStatus } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -45,7 +46,7 @@ function SubmitButton() {
 }
 
 export default function AdminAboutPage() {
-  const [state, formAction] = useFormState(updateAboutDataAction, initialState);
+  const [state, formAction] = useActionState(updateAboutDataAction, initialState); // Changed from useFormState
   const { toast } = useToast();
 
   const form = useForm<AboutMeData>({

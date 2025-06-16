@@ -2,7 +2,8 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react'; // Changed from 'react-dom' and useFormState
+import { useFormStatus } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusCircle, Edit3, Trash2, Save, Loader2, XCircle } from 'lucide-react';
@@ -48,7 +49,7 @@ export default function AdminSkillsPage() {
   const [showForm, setShowForm] = useState(false);
   const { toast } = useToast();
 
-  const [formActionState, formAction] = useFormState(saveSkillAction, initialFormState);
+  const [formActionState, formAction] = useActionState(saveSkillAction, initialFormState); // Changed from useFormState
 
   const form = useForm<SkillAdminFormData>({
     resolver: zodResolver(skillAdminSchema),
