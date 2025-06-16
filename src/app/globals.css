@@ -1,4 +1,4 @@
-@import "./styles/github-markdown.css";
+@import "../styles/github-markdown.css";
 
 @tailwind base;
 @tailwind components;
