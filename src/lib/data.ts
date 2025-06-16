@@ -65,7 +65,7 @@ export const skills: Skill[] = [
 ];
 
 export const aboutMe = {
-  name: 'Sahil Verma (Demo)',
+  name: 'Anand (Demo)',
   title: 'Full Stack Developer & UI/UX Enthusiast',
   bio: `Hello! I'm a passionate and results-driven Full Stack Developer with a keen eye for UI/UX design. I thrive on transforming complex problems into intuitive, user-friendly applications. My journey in tech has been fueled by a constant curiosity and a desire to build things that make a difference.
 

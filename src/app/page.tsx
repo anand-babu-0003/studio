@@ -56,7 +56,7 @@ export default function Home() {
             <div className="flex justify-center">
               <Image
                 src={aboutMe.profileImage}
-                alt="Profile picture of Sahil Verma"
+                alt={`Profile picture of ${aboutMe.name.split(' ')[0]}`}
                 width={300}
                 height={300}
                 className="rounded-full shadow-2xl object-cover"

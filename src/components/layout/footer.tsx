@@ -17,7 +17,7 @@ export default function Footer() {
       <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
           <p className="text-sm text-muted-foreground">
-            &copy; {currentYear} VermaVerse. All rights reserved.
+            &copy; {currentYear} AnandVerse. All rights reserved.
           </p>
           <div className="flex space-x-4">
             {socialLinks.map((link) => (
