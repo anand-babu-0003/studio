@@ -1,8 +1,9 @@
+
 import Image from 'next/image';
 import { PageHeader } from '@/components/shared/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { aboutMe } from '@/lib/data';
-import { Briefcase, GraduationCap } from 'lucide-react';
+// import { Briefcase, GraduationCap } from 'lucide-react';
 
 export default function AboutPage() {
   return (
@@ -46,7 +47,7 @@ export default function AboutPage() {
           {/* Experience Section */}
           <div>
             <h3 className="font-headline text-2xl font-semibold text-primary/90 mb-6 flex items-center">
-              <Briefcase className="mr-3 h-7 w-7 text-primary" /> Professional Journey
+              {/* <Briefcase className="mr-3 h-7 w-7 text-primary" /> */} Professional Journey
             </h3>
             <div className="space-y-6">
               {aboutMe.experience.map((exp) => (
@@ -66,7 +67,7 @@ export default function AboutPage() {
           {/* Education Section */}
           <div>
             <h3 className="font-headline text-2xl font-semibold text-primary/90 mb-6 flex items-center">
-              <GraduationCap className="mr-3 h-7 w-7 text-primary" /> Academic Background
+              {/* <GraduationCap className="mr-3 h-7 w-7 text-primary" /> */} Academic Background
             </h3>
             <div className="space-y-6">
               {aboutMe.education.map((edu) => (
