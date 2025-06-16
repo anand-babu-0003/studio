@@ -2,9 +2,9 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useActionState } from 'react'; // Changed from 'react-dom' and useFormState
+import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, type Path } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusCircle, Edit3, Trash2, Save, Loader2, XCircle } from 'lucide-react';
 
@@ -25,7 +25,7 @@ import {
   deletePortfolioItemAction,
   type PortfolioFormState,
 } from '@/actions/admin/portfolioActions';
-import { portfolioItemAdminSchema, type PortfolioAdminFormData } from '@/lib/adminSchemas'; // Import schema and related type
+import { portfolioItemAdminSchema, type PortfolioAdminFormData } from '@/lib/adminSchemas';
 
 const initialFormState: PortfolioFormState = { message: '', status: 'idle', errors: {} };
 
@@ -54,7 +54,7 @@ export default function AdminPortfolioPage() {
   const [showForm, setShowForm] = useState(false);
   const { toast } = useToast();
 
-  const [formActionState, formAction] = useActionState(savePortfolioItemAction, initialFormState); // Changed from useFormState
+  const [formActionState, formAction] = useActionState(savePortfolioItemAction, initialFormState);
 
   const form = useForm<PortfolioAdminFormData>({
     resolver: zodResolver(portfolioItemAdminSchema),
@@ -95,8 +95,13 @@ export default function AdminPortfolioPage() {
     } else if (formActionState.status === 'error') {
       toast({ title: "Error Saving", description: formActionState.message, variant: "destructive" });
       if (formActionState.errors) {
-        Object.entries(formActionState.errors).forEach(([key, value]) => {
-          form.setError(key as keyof PortfolioAdminFormData, { type: 'server', message: value?.join(', ') });
+        Object.entries(formActionState.errors).forEach(([key, fieldErrorMessages]) => {
+          if (Array.isArray(fieldErrorMessages) && fieldErrorMessages.length > 0) {
+            form.setError(key as Path<PortfolioAdminFormData>, { 
+              type: 'server', 
+              message: fieldErrorMessages.join(', ') 
+            });
+          }
         });
       }
     }
@@ -284,3 +289,5 @@ export default function AdminPortfolioPage() {
     </div>
   );
 }
+
+    

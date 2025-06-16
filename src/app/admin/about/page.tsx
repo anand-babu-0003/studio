@@ -2,9 +2,9 @@
 "use client";
 
 import { useEffect } from 'react';
-import { useActionState } from 'react'; // Changed from 'react-dom' and useFormState
+import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, type Path } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { PageHeader } from '@/components/shared/page-header';
@@ -46,7 +46,7 @@ function SubmitButton() {
 }
 
 export default function AdminAboutPage() {
-  const [state, formAction] = useActionState(updateAboutDataAction, initialState); // Changed from useFormState
+  const [state, formAction] = useActionState(updateAboutDataAction, initialState);
   const { toast } = useToast();
 
   const form = useForm<AboutMeData>({
@@ -81,18 +81,12 @@ export default function AdminAboutPage() {
         variant: "destructive",
       });
       if (state.errors) {
-        const allErrors = { ...state.errors };
-        
-        (Object.keys(form.getValues()) as Array<keyof AboutMeData>).forEach(key => {
-          if (allErrors[key] && Array.isArray(allErrors[key])) {
-            form.setError(key, { type: 'server', message: (allErrors[key] as string[]).join(', ') });
-            delete allErrors[key]; 
-          }
-        });
-
-        Object.entries(allErrors).forEach(([key, value]) => {
-          if (value && Array.isArray(value) && value.length > 0) {
-            form.setError(key as any, { type: 'server', message: value.join(', ') });
+        Object.entries(state.errors).forEach(([fieldName, fieldErrorMessages]) => {
+          if (Array.isArray(fieldErrorMessages) && fieldErrorMessages.length > 0) {
+            form.setError(fieldName as Path<AboutMeData>, {
+              type: 'server',
+              message: fieldErrorMessages.join(', '),
+            });
           }
         });
       }
@@ -337,3 +331,5 @@ export default function AdminAboutPage() {
     </div>
   );
 }
+
+    

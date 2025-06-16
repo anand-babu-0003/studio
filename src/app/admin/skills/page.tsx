@@ -2,9 +2,9 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useActionState } from 'react'; // Changed from 'react-dom' and useFormState
+import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, type Path } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusCircle, Edit3, Trash2, Save, Loader2, XCircle } from 'lucide-react';
 
@@ -49,7 +49,7 @@ export default function AdminSkillsPage() {
   const [showForm, setShowForm] = useState(false);
   const { toast } = useToast();
 
-  const [formActionState, formAction] = useActionState(saveSkillAction, initialFormState); // Changed from useFormState
+  const [formActionState, formAction] = useActionState(saveSkillAction, initialFormState);
 
   const form = useForm<SkillAdminFormData>({
     resolver: zodResolver(skillAdminSchema),
@@ -80,8 +80,13 @@ export default function AdminSkillsPage() {
     } else if (formActionState.status === 'error') {
       toast({ title: "Error Saving", description: formActionState.message, variant: "destructive" });
       if (formActionState.errors) {
-        Object.entries(formActionState.errors).forEach(([key, value]) => {
-          form.setError(key as keyof SkillAdminFormData, { type: 'server', message: value?.join(', ') });
+        Object.entries(formActionState.errors).forEach(([key, fieldErrorMessages]) => {
+          if (Array.isArray(fieldErrorMessages) && fieldErrorMessages.length > 0) {
+            form.setError(key as Path<SkillAdminFormData>, { 
+              type: 'server', 
+              message: fieldErrorMessages.join(', ') 
+            });
+          }
         });
       }
     }
@@ -103,7 +108,7 @@ export default function AdminSkillsPage() {
     setCurrentSkill(skill);
     form.reset({
       ...skill,
-      proficiency: skill.proficiency ?? undefined, // Ensure undefined if null/missing for form
+      proficiency: skill.proficiency ?? undefined, 
     });
     setShowForm(true);
   };
@@ -246,3 +251,5 @@ export default function AdminSkillsPage() {
     </div>
   );
 }
+
+    
