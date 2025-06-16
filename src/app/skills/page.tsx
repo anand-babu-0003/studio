@@ -1,6 +1,6 @@
 
 import { PageHeader } from '@/components/shared/page-header';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { skills, skillCategories, lucideIconsMap } from '@/lib/data';
 import type { Skill } from '@/lib/types';
@@ -19,53 +19,57 @@ export default function SkillsPage() {
         />
       </ScrollAnimationWrapper>
 
-      <div className="space-y-16">
+      <div className="space-y-12">
         {skillCategories.map((category, categoryIndex) => {
           const categorySkills = skills.filter((skill) => skill.category === category);
           if (categorySkills.length === 0) return null;
 
           return (
             <ScrollAnimationWrapper key={category} delay={categoryIndex * 100}>
-              <section className={cn(categoryIndex > 0 && "border-t border-border pt-12 mt-12")}>
-                <h2 className="font-headline text-3xl md:text-4xl font-bold text-center text-primary mb-12">
-                  {category}
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                  {categorySkills.map((skill: Skill, skillIndex: number) => {
-                    const IconComponent = lucideIconsMap[skill.iconName] || Package;
-                    return (
-                      <ScrollAnimationWrapper key={skill.id} delay={skillIndex * 50} threshold={0.05}>
-                        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 h-full flex flex-col rounded-xl overflow-hidden">
-                          <CardContent className="p-6 flex flex-col items-center text-center flex-grow">
-                            <IconComponent className="h-12 w-12 text-primary mb-4" aria-hidden="true" />
-                            <h3 className="text-xl font-semibold font-headline text-primary/95 mb-3">{skill.name}</h3>
-                            
-                            <div className="w-full mt-auto pt-3">
-                              {skill.proficiency !== undefined && skill.proficiency !== null ? (
-                                <>
-                                  <div className="flex justify-between items-center text-xs text-muted-foreground mb-1 px-1">
-                                    <span>Proficiency</span>
-                                    <span>{skill.proficiency}%</span>
+              <Card className="shadow-xl overflow-hidden rounded-xl">
+                <CardHeader className="bg-muted/30">
+                  <CardTitle className="font-headline text-2xl md:text-3xl text-center text-primary py-2">
+                    {category}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6 md:p-8">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {categorySkills.map((skill: Skill, skillIndex: number) => {
+                      const IconComponent = lucideIconsMap[skill.iconName] || Package;
+                      return (
+                        <ScrollAnimationWrapper key={skill.id} delay={skillIndex * 50} threshold={0.05}>
+                          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 h-full flex flex-col rounded-lg overflow-hidden border border-border/70">
+                            <CardContent className="p-6 flex flex-col items-center text-center flex-grow">
+                              <IconComponent className="h-12 w-12 text-primary mb-4" aria-hidden="true" />
+                              <h3 className="text-xl font-semibold font-headline text-primary/95 mb-3">{skill.name}</h3>
+                              
+                              <div className="w-full mt-auto pt-3">
+                                {skill.proficiency !== undefined && skill.proficiency !== null ? (
+                                  <>
+                                    <div className="flex justify-between items-center text-xs text-muted-foreground mb-1 px-1">
+                                      <span>Proficiency</span>
+                                      <span>{skill.proficiency}%</span>
+                                    </div>
+                                    <Progress 
+                                      value={skill.proficiency} 
+                                      aria-label={`${skill.name} proficiency ${skill.proficiency}%`} 
+                                      className="h-2 rounded-full" 
+                                    />
+                                  </>
+                                ) : (
+                                  <div className="text-center pt-2">
+                                    <Badge variant="outline" className="font-normal text-xs px-2 py-0.5 border-primary/30 text-primary/80">Highly Experienced</Badge>
                                   </div>
-                                  <Progress 
-                                    value={skill.proficiency} 
-                                    aria-label={`${skill.name} proficiency ${skill.proficiency}%`} 
-                                    className="h-2 rounded-full" 
-                                  />
-                                </>
-                              ) : (
-                                <div className="text-center pt-2">
-                                  <Badge variant="outline" className="font-normal text-xs px-2 py-0.5">Highly Experienced</Badge>
-                                </div>
-                              )}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </ScrollAnimationWrapper>
-                    );
-                  })}
-                </div>
-              </section>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </ScrollAnimationWrapper>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
             </ScrollAnimationWrapper>
           );
         })}
