@@ -74,7 +74,17 @@ export default async function Home() {
               About Me
             </h2>
             <div className="grid md:grid-cols-2 gap-12 items-center">
-              <div>
+              <div className="flex justify-center md:order-2">
+                <Image
+                  src={aboutMeData.profileImage || 'https://placehold.co/300x300.png'}
+                  alt={`Profile picture of ${aboutMeData.name.split(' ')[0]}`}
+                  width={300}
+                  height={300}
+                  className="rounded-full shadow-2xl object-cover aspect-square"
+                  data-ai-hint={aboutMeData.dataAiHint}
+                />
+              </div>
+              <div className="md:order-1">
                 <h3 className="font-headline text-2xl md:text-3xl font-bold text-primary/90 mb-6">A Glimpse Into My Story</h3>
                 <p className="text-muted-foreground text-lg mb-4">
                   {(aboutMeData.bio || '').split('\n\n')[0]} {/* First paragraph */}
@@ -87,16 +97,6 @@ export default async function Home() {
                     Read More About Me <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
                 </Button>
-              </div>
-              <div className="flex justify-center">
-                <Image
-                  src={aboutMeData.profileImage || 'https://placehold.co/300x300.png'}
-                  alt={`Profile picture of ${aboutMeData.name.split(' ')[0]}`}
-                  width={300}
-                  height={300}
-                  className="rounded-full shadow-2xl object-cover aspect-square"
-                  data-ai-hint={aboutMeData.dataAiHint}
-                />
               </div>
             </div>
           </div>
