@@ -28,6 +28,10 @@ async function getFreshAppData(): Promise<AppData> {
         dataAiHint: 'placeholder image',
         experience: [],
         education: [],
+        email: 'contact@example.com',
+        linkedinUrl: '',
+        githubUrl: '',
+        twitterUrl: '',
       },
     };
   }
@@ -38,6 +42,9 @@ export default async function Home() {
   const aboutMeData = appData.aboutMe;
   const allPortfolioItems = appData.portfolioItems;
   const featuredProjects = allPortfolioItems.slice(0, 2);
+
+  // Extract the first paragraph for the glimpse
+  const firstParagraphBio = (aboutMeData.bio || '').split('\n\n')[0];
 
   return (
     <div className="flex flex-col">
@@ -87,11 +94,8 @@ export default async function Home() {
               </div>
               <div className="md:order-1">
                 <h3 className="font-headline text-2xl md:text-3xl font-bold text-primary/90 mb-6">A Glimpse Into My Story</h3>
-                <p className="text-muted-foreground text-lg mb-4">
-                  {(aboutMeData.bio || '').split('\n\n')[0]} {/* First paragraph */}
-                </p>
                 <p className="text-muted-foreground text-lg mb-6">
-                  {(aboutMeData.bio || '').split('\n\n')[1] || (aboutMeData.bio || '').split('\n')[0]} {/* Second paragraph or fallback */}
+                  {firstParagraphBio}
                 </p>
                 <Button asChild variant="link" className="text-primary p-0 text-lg hover:text-accent">
                   <Link href="/about">
