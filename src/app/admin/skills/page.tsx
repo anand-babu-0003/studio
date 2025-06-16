@@ -1,8 +1,9 @@
 
 "use client";
 
-import { useEffect, useState, useMemo } from 'react'; // Added useMemo
-import { useActionState, useFormStatus } from 'react';
+import { useEffect, useState, useMemo } from 'react'; 
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom'; // Corrected import
 import { useForm, type Path } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusCircle, Edit3, Trash2, Save, Loader2, XCircle } from 'lucide-react';
@@ -64,11 +65,12 @@ export default function AdminSkillsPage() {
     defaultValues: defaultFormValues,
   });
 
-  // Generate a key for the form Card to force re-mount on mode change
   const formCardKey = useMemo(() => {
     if (!showForm) return 'hidden-form';
-    return currentSkill ? `edit-${currentSkill.id}` : 'add-new-skill-form';
+    if (currentSkill) return `edit-${currentSkill.id}-${new Date().getTime()}`; // Add timestamp for unique key on edit
+    return `add-new-skill-form-${new Date().getTime()}`; // Add timestamp for unique key on add
   }, [showForm, currentSkill]);
+
 
   useEffect(() => {
     console.log("AdminSkillsPage: formActionState changed:", formActionState);
@@ -166,7 +168,7 @@ export default function AdminSkillsPage() {
       </div>
 
       {showForm && (
-        <Card key={formCardKey}> {/* Use the dynamic key here */}
+        <Card key={formCardKey}> 
           <CardHeader>
             <CardTitle>{currentSkill ? 'Edit Skill' : 'Add New Skill'}</CardTitle>
             <CardDescription>Fill in the details for the skill.</CardDescription>

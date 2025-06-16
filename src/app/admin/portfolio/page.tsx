@@ -1,8 +1,9 @@
 
 "use client";
 
-import { useEffect, useState, useMemo } from 'react'; // Added useMemo
-import { useActionState, useFormStatus } from 'react'; 
+import { useEffect, useState, useMemo } from 'react'; 
+import { useActionState } from 'react'; 
+import { useFormStatus } from 'react-dom'; // Corrected import
 import { useForm, type Path } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusCircle, Edit3, Trash2, Save, Loader2, XCircle } from 'lucide-react';
@@ -74,11 +75,12 @@ export default function AdminPortfolioPage() {
     defaultValues: defaultFormValues,
   });
   
-  // Generate a key for the form Card to force re-mount on mode change
   const formCardKey = useMemo(() => {
     if (!showForm) return 'hidden-form';
-    return currentProject ? `edit-${currentProject.id}` : 'add-new-project-form';
+    if (currentProject) return `edit-${currentProject.id}-${new Date().getTime()}`; // Add timestamp for unique key on edit
+    return `add-new-project-form-${new Date().getTime()}`; // Add timestamp for unique key on add
   }, [showForm, currentProject]);
+  
 
   useEffect(() => {
     console.log("AdminPortfolioPage: formActionState changed:", formActionState);
@@ -178,7 +180,7 @@ export default function AdminPortfolioPage() {
       </div>
 
       {showForm && (
-        <Card key={formCardKey}> {/* Use the dynamic key here */}
+        <Card key={formCardKey}> 
           <CardHeader>
             <CardTitle>{currentProject ? 'Edit Project' : 'Add New Project'}</CardTitle>
             <CardDescription>Fill in the details for your portfolio project.</CardDescription>
