@@ -121,6 +121,7 @@ export async function updateAboutDataAction(
       message: "Failed to update data. Please check the errors below.",
       status: 'error',
       errors: fieldErrors as UpdateAboutDataFormState['errors'],
+      data: undefined, // Explicitly add optional fields
     };
   }
 
@@ -135,7 +136,7 @@ export async function updateAboutDataAction(
       message: "About page data updated successfully!",
       status: 'success',
       data: dataToSave,
-      errors: {}, // Ensure errors is present even on success
+      errors: {},
     };
 
   } catch (error) {
@@ -143,7 +144,8 @@ export async function updateAboutDataAction(
     return {
       message: "An unexpected server error occurred while saving About Me data. Please try again.",
       status: 'error',
-      errors: {}, // Ensure errors object is present
+      errors: {},
+      data: undefined, // Explicitly add optional fields
     };
   }
 }

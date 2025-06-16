@@ -57,7 +57,7 @@ export type SkillFormState = {
   message: string;
   status: 'success' | 'error' | 'idle';
   errors?: Partial<Record<keyof SkillAdminFormData, string[]>>;
-  skill?: Skill; 
+  skill?: Skill;
 };
 
 export async function saveSkillAction(
@@ -74,7 +74,7 @@ export async function saveSkillAction(
     proficiency: proficiencyValue,
     iconName: formData.get('iconName') as string,
   };
-  
+
   const validatedFields = skillAdminSchema.safeParse(rawData);
 
   if (!validatedFields.success) {
@@ -82,6 +82,7 @@ export async function saveSkillAction(
       message: "Failed to save skill. Please check errors.",
       status: 'error',
       errors: validatedFields.error.flatten().fieldErrors,
+      skill: undefined, // Explicitly add optional fields
     };
   }
 
@@ -97,7 +98,7 @@ export async function saveSkillAction(
 
   try {
     const allData = await readDataFromFile();
-    if (data.id) { 
+    if (data.id) {
       const skillIndex = allData.skills.findIndex(s => s.id === data.id);
       if (skillIndex > -1) {
         allData.skills[skillIndex] = skillToSave;
@@ -105,7 +106,7 @@ export async function saveSkillAction(
         // If ID provided but not found, treat as new add (or could error, but adding is safer)
         allData.skills.push(skillToSave);
       }
-    } else { 
+    } else {
       allData.skills.push(skillToSave);
     }
     await writeDataToFile(allData);
@@ -114,7 +115,7 @@ export async function saveSkillAction(
       message: `Skill "${skillToSave.name}" ${data.id ? 'updated' : 'added'} successfully!`,
       status: 'success',
       skill: skillToSave,
-      errors: {}, // Ensure errors is present even on success
+      errors: {},
     };
 
   } catch (error) {
@@ -122,7 +123,8 @@ export async function saveSkillAction(
     return {
       message: "An unexpected server error occurred while saving the skill. Please try again.",
       status: 'error',
-      errors: {}, // Ensure errors object is present
+      errors: {},
+      skill: undefined, // Explicitly add optional fields
     };
   }
 }
@@ -140,7 +142,7 @@ export async function deleteSkillAction(itemId: string): Promise<DeleteSkillResu
         const allData = await readDataFromFile();
         const initialLength = allData.skills.length;
         allData.skills = allData.skills.filter(s => s.id !== itemId);
-        
+
         if (allData.skills.length < initialLength) {
           await writeDataToFile(allData);
           return { success: true, message: `Skill (ID: ${itemId}) deleted successfully!` };

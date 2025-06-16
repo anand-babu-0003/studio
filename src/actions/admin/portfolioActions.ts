@@ -34,7 +34,7 @@ async function readDataFromFile(): Promise<AppData> {
         return localDefaultAppData;
     }
     const parsedData = JSON.parse(fileContent);
-    
+
     return {
       portfolioItems: parsedData.portfolioItems ?? localDefaultAppData.portfolioItems,
       skills: parsedData.skills ?? localDefaultAppData.skills,
@@ -57,7 +57,7 @@ export type PortfolioFormState = {
   message: string;
   status: 'success' | 'error' | 'idle';
   errors?: Partial<Record<keyof PortfolioAdminFormData, string[]>>;
-  project?: PortfolioItem; 
+  project?: PortfolioItem;
 };
 
 export async function savePortfolioItemAction(
@@ -86,6 +86,7 @@ export async function savePortfolioItemAction(
       message: "Failed to save project. Please check errors.",
       status: 'error',
       errors: validatedFields.error.flatten().fieldErrors,
+      project: undefined, // Explicitly add optional fields
     };
   }
 
@@ -112,7 +113,7 @@ export async function savePortfolioItemAction(
 
   try {
     const allData = await readDataFromFile();
-    if (data.id) { 
+    if (data.id) {
       const projectIndex = allData.portfolioItems.findIndex(p => p.id === data.id);
       if (projectIndex > -1) {
         allData.portfolioItems[projectIndex] = projectToSave;
@@ -120,7 +121,7 @@ export async function savePortfolioItemAction(
         // If ID provided but not found, treat as new add
         allData.portfolioItems.push(projectToSave);
       }
-    } else { 
+    } else {
       allData.portfolioItems.push(projectToSave);
     }
     await writeDataToFile(allData);
@@ -129,7 +130,7 @@ export async function savePortfolioItemAction(
       message: `Project "${projectToSave.title}" ${data.id ? 'updated' : 'added'} successfully!`,
       status: 'success',
       project: projectToSave,
-      errors: {}, // Ensure errors is present even on success
+      errors: {},
     };
 
   } catch (error) {
@@ -137,7 +138,8 @@ export async function savePortfolioItemAction(
     return {
       message: "An unexpected server error occurred while saving the project. Please try again.",
       status: 'error',
-      errors: {}, // Ensure errors object is present
+      errors: {},
+      project: undefined, // Explicitly add optional fields
     };
   }
 }
@@ -155,7 +157,7 @@ export async function deletePortfolioItemAction(itemId: string): Promise<DeleteP
         const allData = await readDataFromFile();
         const initialLength = allData.portfolioItems.length;
         allData.portfolioItems = allData.portfolioItems.filter(p => p.id !== itemId);
-        
+
         if (allData.portfolioItems.length < initialLength) {
             await writeDataToFile(allData);
             return { success: true, message: `Project (ID: ${itemId}) deleted successfully!` };
