@@ -15,24 +15,26 @@ export default function Home() {
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <section className="w-full py-20 md:py-32 bg-gradient-to-br from-primary/5 via-background to-accent/5 bg-animated-gradient">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="font-headline text-5xl md:text-7xl font-bold tracking-tight">
-            <span className="block animate-fadeInUp-1">Hi, I&apos;m <span className="text-primary">{aboutMe.name.split(' ')[0]}</span></span>
-            <span className="block text-primary/80 animate-fadeInUp-2">{aboutMe.title}</span>
-          </h1>
-          <p className="mt-6 max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground animate-fadeInUp-2" style={{ animationDelay: '0.5s' }}>
-            {aboutMe.bio.substring(0, 150)}... {/* Short intro */}
-          </p>
-          <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4 animate-fadeInUp-2" style={{ animationDelay: '0.7s' }}>
-            <Button asChild size="lg" className="text-lg px-8 py-6 shadow-lg hover:shadow-primary/30 transition-shadow duration-300">
-              <Link href="/portfolio">
-                View My Work <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" size="lg" className="text-lg px-8 py-6 shadow-lg hover:shadow-accent/30 transition-shadow duration-300">
-              <Link href="/contact">Get in Touch</Link>
-            </Button>
+      <section className="w-full min-h-screen flex flex-col justify-center items-center py-20 md:py-32 bg-gradient-to-br from-primary/5 via-background to-accent/5 bg-animated-gradient">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col justify-center items-center flex-grow">
+          <div> {/* Added a wrapper div for easier centering control of the content block */}
+            <h1 className="font-headline text-5xl md:text-7xl font-bold tracking-tight">
+              <span className="block animate-fadeInUp-1">Hi, I&apos;m <span className="text-primary">{aboutMe.name.split(' ')[0]}</span></span>
+              <span className="block text-primary/80 animate-fadeInUp-2">{aboutMe.title}</span>
+            </h1>
+            <p className="mt-6 max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground animate-fadeInUp-2" style={{ animationDelay: '0.5s' }}>
+              {aboutMe.bio.substring(0, 150)}... {/* Short intro */}
+            </p>
+            <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4 animate-fadeInUp-2" style={{ animationDelay: '0.7s' }}>
+              <Button asChild size="lg" className="text-lg px-8 py-6 shadow-lg hover:shadow-primary/30 transition-shadow duration-300">
+                <Link href="/portfolio">
+                  View My Work <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="text-lg px-8 py-6 shadow-lg hover:shadow-accent/30 transition-shadow duration-300">
+                <Link href="/contact">Get in Touch</Link>
+              </Button>
+            </div>
           </div>
         </div>
       </section>
