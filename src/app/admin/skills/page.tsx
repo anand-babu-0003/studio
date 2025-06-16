@@ -3,7 +3,7 @@
 
 import { useEffect, useState, useMemo } from 'react'; 
 import { useActionState } from 'react';
-import { useFormStatus } from 'react-dom'; // Corrected import
+import { useFormStatus } from 'react-dom'; 
 import { useForm, type Path } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusCircle, Edit3, Trash2, Save, Loader2, XCircle } from 'lucide-react';
@@ -17,7 +17,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
-// Import initial data from data.ts (which now reads from data.json)
 import { skills as initialSkillsData, skillCategories, availableIconNames, lucideIconsMap } from '@/lib/data';
 import type { Skill } from '@/lib/types';
 import { saveSkillAction, deleteSkillAction, type SkillFormState } from '@/actions/admin/skillsActions';
@@ -52,7 +51,6 @@ function SubmitButton() {
 }
 
 export default function AdminSkillsPage() {
-  // Initialize skills state with data from data.ts (which imports from data.json)
   const [skills, setSkills] = useState<Skill[]>(initialSkillsData);
   const [currentSkill, setCurrentSkill] = useState<Skill | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -67,30 +65,25 @@ export default function AdminSkillsPage() {
 
   const formCardKey = useMemo(() => {
     if (!showForm) return 'hidden-form';
-    if (currentSkill) return `edit-${currentSkill.id}-${new Date().getTime()}`; // Add timestamp for unique key on edit
-    return `add-new-skill-form-${new Date().getTime()}`; // Add timestamp for unique key on add
+    if (currentSkill) return `edit-${currentSkill.id}-${new Date().getTime()}`;
+    return `add-new-skill-form-${new Date().getTime()}`;
   }, [showForm, currentSkill]);
 
 
   useEffect(() => {
-    console.log("AdminSkillsPage: formActionState changed:", formActionState);
     if (formActionState.status === 'success' && formActionState.skill) {
       const savedSkill = formActionState.skill;
-      console.log("AdminSkillsPage: Success, savedSkill:", savedSkill);
       toast({ title: "Success!", description: formActionState.message });
 
       setSkills(prevSkills => {
-        console.log("AdminSkillsPage: setSkills - prevSkills:", prevSkills);
         const existingIndex = prevSkills.findIndex(s => s.id === savedSkill.id);
         let newSkillsArray;
         if (existingIndex > -1) {
           const updatedSkills = [...prevSkills];
           updatedSkills[existingIndex] = savedSkill;
           newSkillsArray = updatedSkills;
-          console.log("AdminSkillsPage: setSkills - updating existing skill, newSkillsArray:", newSkillsArray);
         } else {
           newSkillsArray = [...prevSkills, savedSkill];
-          console.log("AdminSkillsPage: setSkills - adding new skill, newSkillsArray:", newSkillsArray);
         }
         return newSkillsArray;
       });
@@ -98,10 +91,11 @@ export default function AdminSkillsPage() {
       setShowForm(false);
       setCurrentSkill(null);
       form.reset(defaultFormValues);
-      console.log("AdminSkillsPage: Form reset to defaultFormValues after successful save.");
 
     } else if (formActionState.status === 'error') {
-      console.error("AdminSkillsPage: Error from server action:", formActionState);
+      console.error("AdminSkillsPage: Error from server action (raw object):", formActionState);
+      console.error("AdminSkillsPage: Error from server action (JSON.stringify):", JSON.stringify(formActionState));
+      
       const errorMessage = typeof formActionState.message === 'string' && formActionState.message.trim() !== ''
         ? formActionState.message
         : "An unspecified error occurred. Please check server logs for more details.";
@@ -124,7 +118,6 @@ export default function AdminSkillsPage() {
     setCurrentSkill(null);
     form.reset(defaultFormValues);
     setShowForm(true);
-    console.log("AdminSkillsPage: handleAddNew - form reset, showForm true");
   };
 
   const handleEdit = (skill: Skill) => {
@@ -134,22 +127,15 @@ export default function AdminSkillsPage() {
       proficiency: skill.proficiency ?? undefined, 
     });
     setShowForm(true);
-    console.log("AdminSkillsPage: handleEdit - editing skill:", skill);
   };
 
   const handleDelete = async (skillId: string) => {
-    console.log("AdminSkillsPage: handleDelete - skillId:", skillId);
     const result = await deleteSkillAction(skillId);
     if (result.success) {
       toast({ title: "Success!", description: result.message });
-      setSkills(prevSkills => {
-        const updated = prevSkills.filter(s => s.id !== skillId);
-        console.log("AdminSkillsPage: handleDelete - skills updated:", updated);
-        return updated;
-      });
+      setSkills(prevSkills => prevSkills.filter(s => s.id !== skillId));
     } else {
       toast({ title: "Error Deleting", description: result.message, variant: "destructive" });
-      console.error("AdminSkillsPage: handleDelete - error:", result.message);
     }
   };
   
@@ -157,7 +143,6 @@ export default function AdminSkillsPage() {
     setShowForm(false);
     setCurrentSkill(null);
     form.reset(defaultFormValues);
-    console.log("AdminSkillsPage: handleCancelForm - form reset, showForm false");
   }
 
   return (
@@ -229,7 +214,7 @@ export default function AdminSkillsPage() {
                         <Input
                           type="number"
                           name={name}
-                          value={value ?? ''} // Ensures controlled: undefined becomes empty string
+                          value={value ?? ''} 
                           onChange={e => onChange(e.target.value === '' ? undefined : Number(e.target.value))}
                           onBlur={onBlur}
                           ref={ref}

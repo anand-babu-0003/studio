@@ -82,6 +82,9 @@ export default function AdminAboutPage() {
         form.reset(transformedData);
       }
     } else if (state.status === 'error') {
+      console.error("AdminAboutPage: Error from server action (raw object):", state);
+      console.error("AdminAboutPage: Error from server action (JSON.stringify):", JSON.stringify(state));
+
       const errorMessage = typeof state.message === 'string' && state.message.trim() !== ''
         ? state.message
         : "An unspecified error occurred. Please check server logs for more details.";
