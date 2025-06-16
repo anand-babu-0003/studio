@@ -15,7 +15,23 @@ async function readDataFromFile(): Promise<{ portfolioItems: any[], skills: any[
   } catch (error) {
     console.error("Error reading data file, returning empty structure:", error);
     // Ensure a default structure is returned if file is missing or corrupt
-    return { portfolioItems: [], skills: [], aboutMe: { name: '', title: '', bio: '', profileImage: '', dataAiHint: '', experience: [], education: [] } };
+    return { 
+        portfolioItems: [], 
+        skills: [], 
+        aboutMe: { 
+            name: '', 
+            title: '', 
+            bio: '', 
+            profileImage: '', 
+            dataAiHint: '', 
+            experience: [], 
+            education: [],
+            email: '',
+            linkedinUrl: '',
+            githubUrl: '',
+            twitterUrl: '',
+        } 
+    };
   }
 }
 
@@ -47,9 +63,9 @@ export async function updateAboutDataAction(
       educationIndices.add(key.split('.')[1]);
     }
   }
-  
+
   for (const index of Array.from(experienceIndices).sort((a,b) => parseInt(a) - parseInt(b))) {
-    const id = formData.get(`experience.${index}.id`) as string; 
+    const id = formData.get(`experience.${index}.id`) as string;
     const role = formData.get(`experience.${index}.role`) as string || '';
     const company = formData.get(`experience.${index}.company`) as string || '';
     const period = formData.get(`experience.${index}.period`) as string || '';
@@ -58,9 +74,9 @@ export async function updateAboutDataAction(
         experienceEntries.push({ id, role, company, period, description });
     }
   }
-    
+
   for (const index of Array.from(educationIndices).sort((a,b) => parseInt(a) - parseInt(b))) {
-    const id = formData.get(`education.${index}.id`) as string; 
+    const id = formData.get(`education.${index}.id`) as string;
     const degree = formData.get(`education.${index}.degree`) as string || '';
     const institution = formData.get(`education.${index}.institution`) as string || '';
     const period = formData.get(`education.${index}.period`) as string || '';
@@ -75,10 +91,14 @@ export async function updateAboutDataAction(
     bio: formData.get('bio') as string,
     profileImage: formData.get('profileImage') as string,
     dataAiHint: formData.get('dataAiHint') as string,
-    experience: experienceEntries, 
+    experience: experienceEntries,
     education: educationEntries,
+    email: formData.get('email') as string || undefined,
+    linkedinUrl: formData.get('linkedinUrl') as string || undefined,
+    githubUrl: formData.get('githubUrl') as string || undefined,
+    twitterUrl: formData.get('twitterUrl') as string || undefined,
   };
-  
+
   const validatedFields = aboutMeSchema.safeParse(rawData);
 
   if (!validatedFields.success) {
@@ -86,7 +106,7 @@ export async function updateAboutDataAction(
     return {
       message: "Failed to update data. Please check the errors below.",
       status: 'error',
-      errors: fieldErrors as UpdateAboutDataFormState['errors'], 
+      errors: fieldErrors as UpdateAboutDataFormState['errors'],
     };
   }
 
@@ -100,7 +120,7 @@ export async function updateAboutDataAction(
     return {
       message: "About page data updated successfully!",
       status: 'success',
-      data: dataToSave, 
+      data: dataToSave,
     };
 
   } catch (error) {
@@ -111,5 +131,3 @@ export async function updateAboutDataAction(
     };
   }
 }
-
-    

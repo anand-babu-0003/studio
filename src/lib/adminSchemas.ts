@@ -1,6 +1,6 @@
 
 import { z } from 'zod';
-import type { Experience, Education } from '@/lib/types'; 
+import type { Experience, Education } from '@/lib/types';
 import { skillCategories, availableIconNames } from '@/lib/data';
 
 const experienceSchema = z.object({
@@ -26,6 +26,10 @@ export const aboutMeSchema = z.object({
   dataAiHint: z.string().max(50, { message: "AI hint must be 50 characters or less." }).or(z.literal("")),
   experience: z.array(experienceSchema),
   education: z.array(educationSchema),
+  email: z.string().email({ message: "Please enter a valid email." }).or(z.literal("")).optional(),
+  linkedinUrl: z.string().url({ message: "Please enter a valid LinkedIn URL." }).or(z.literal("")).optional(),
+  githubUrl: z.string().url({ message: "Please enter a valid GitHub URL." }).or(z.literal("")).optional(),
+  twitterUrl: z.string().url({ message: "Please enter a valid Twitter URL." }).or(z.literal("")).optional(),
 });
 
 export const portfolioItemAdminSchema = z.object({
@@ -35,7 +39,7 @@ export const portfolioItemAdminSchema = z.object({
   longDescription: z.string().optional(),
   image1: z.string().url({ message: "Please enter a valid URL for Image 1." }).or(z.literal("")).optional(),
   image2: z.string().url({ message: "Please enter a valid URL for Image 2." }).or(z.literal("")).optional(),
-  tagsString: z.string().optional(), 
+  tagsString: z.string().optional(),
   liveUrl: z.string().url({ message: "Please enter a valid URL for Live Demo." }).or(z.literal("")).optional(),
   repoUrl: z.string().url({ message: "Please enter a valid URL for Code Repo." }).or(z.literal("")).optional(),
   slug: z.string().min(1, "Slug is required.").regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, { message: "Slug can only contain lowercase letters, numbers, and hyphens." }),
@@ -46,8 +50,8 @@ export const portfolioItemAdminSchema = z.object({
 export type PortfolioAdminFormData = z.infer<typeof portfolioItemAdminSchema>;
 
 // Schema for Skill Admin Form
-const validCategories = skillCategories as [string, ...string[]]; 
-const validIconNames = availableIconNames as [string, ...string[]]; 
+const validCategories = skillCategories as [string, ...string[]];
+const validIconNames = availableIconNames as [string, ...string[]];
 
 export const skillAdminSchema = z.object({
   id: z.string().optional(),
@@ -58,4 +62,3 @@ export const skillAdminSchema = z.object({
 });
 
 export type SkillAdminFormData = z.infer<typeof skillAdminSchema>;
-

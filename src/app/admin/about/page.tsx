@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect } from 'react';
-import { useActionState } from 'react'; 
+import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom'; // Corrected import
 import { useForm, type Path } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,15 +18,15 @@ import { Save, Loader2 } from 'lucide-react';
 
 // Import initial data from data.ts (which now reads from data.json)
 import { aboutMe as initialAboutMeDataFromLib } from '@/lib/data';
-import type { AboutMeData, Experience, Education } from '@/lib/types'; 
+import type { AboutMeData, Experience, Education } from '@/lib/types';
 import { updateAboutDataAction, type UpdateAboutDataFormState } from '@/actions/admin/aboutActions';
-import { aboutMeSchema } from '@/lib/adminSchemas'; 
+import { aboutMeSchema } from '@/lib/adminSchemas';
 
 const initialState: UpdateAboutDataFormState = {
   message: '',
   status: 'idle',
   errors: {},
-  data: undefined, 
+  data: undefined,
 };
 
 function SubmitButton() {
@@ -52,11 +52,14 @@ export default function AdminAboutPage() {
 
   const form = useForm<AboutMeData>({
     resolver: zodResolver(aboutMeSchema),
-    // Initialize form with data from data.ts (which imports from data.json)
     defaultValues: {
       ...initialAboutMeDataFromLib,
-      experience: initialAboutMeDataFromLib.experience || [], 
+      experience: initialAboutMeDataFromLib.experience || [],
       education: initialAboutMeDataFromLib.education || [],
+      email: initialAboutMeDataFromLib.email || '',
+      linkedinUrl: initialAboutMeDataFromLib.linkedinUrl || '',
+      githubUrl: initialAboutMeDataFromLib.githubUrl || '',
+      twitterUrl: initialAboutMeDataFromLib.twitterUrl || '',
     },
   });
 
@@ -73,6 +76,10 @@ export default function AdminAboutPage() {
           ...state.data,
           experience: state.data.experience || [],
           education: state.data.education || [],
+          email: state.data.email || '',
+          linkedinUrl: state.data.linkedinUrl || '',
+          githubUrl: state.data.githubUrl || '',
+          twitterUrl: state.data.twitterUrl || '',
         };
         form.reset(transformedData);
         console.log("AdminAboutPage: Form reset with new data.");
@@ -97,7 +104,7 @@ export default function AdminAboutPage() {
       }
     }
   }, [state, toast, form]);
-  
+
   const addExperience = () => {
     const currentExperience = form.getValues('experience') || [];
     form.setValue('experience', [...currentExperience, { id: `new_exp_${Date.now()}`, role: '', company: '', period: '', description: '' }], { shouldValidate: false, shouldDirty: true });
@@ -112,7 +119,7 @@ export default function AdminAboutPage() {
     const currentEducation = form.getValues('education') || [];
     form.setValue('education', [...currentEducation, { id: `new_edu_${Date.now()}`, degree: '', institution: '', period: '' }], { shouldValidate: false, shouldDirty: true });
   };
-  
+
   const removeEducation = (index: number) => {
     const currentEducation = form.getValues('education') || [];
     form.setValue('education', currentEducation.filter((_, i) => i !== index), { shouldValidate: true, shouldDirty: true });
@@ -220,7 +227,68 @@ export default function AdminAboutPage() {
                 />
               </CardContent>
             </Card>
-            
+
+            <Card className="lg:col-span-3">
+              <CardHeader>
+                <CardTitle>Contact & Social Links</CardTitle>
+                <CardDescription>Update your email and social media URLs.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email Address</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="email" placeholder="your.email@example.com" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="linkedinUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>LinkedIn Profile URL</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="https://linkedin.com/in/yourprofile" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="githubUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>GitHub Profile URL</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="https://github.com/yourusername" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="twitterUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Twitter Profile URL (Optional)</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="https://twitter.com/yourusername" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+
             <Card className="lg:col-span-3">
               <CardHeader>
                 <CardTitle>Experience</CardTitle>
@@ -336,5 +404,3 @@ export default function AdminAboutPage() {
     </div>
   );
 }
-
-    

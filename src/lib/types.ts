@@ -21,13 +21,14 @@ export interface Skill {
   name: string;
   iconName: string; // Changed from LucideIcon to string
   category: 'Frontend' | 'Backend' | 'DevOps' | 'Tools' | 'Languages' | 'Other';
-  proficiency?: number; 
+  proficiency?: number;
 }
 
 export interface SocialLink {
   id: string;
   name: string;
-  url: string;
+  url?: string; // Make URL optional as it will come from AboutMeData
+  baseUrl?: string; // For mailto:, etc.
   icon: LucideIcon | React.ElementType;
 }
 
@@ -54,6 +55,8 @@ export interface AboutMeData {
   dataAiHint: string;
   experience: Experience[];
   education: Education[];
+  email?: string;
+  linkedinUrl?: string;
+  githubUrl?: string;
+  twitterUrl?: string;
 }
-
-    

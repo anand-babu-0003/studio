@@ -1,10 +1,41 @@
+
 import { PageHeader } from '@/components/shared/page-header';
 import { ContactForm } from '@/components/contact/contact-form';
 import { ContactInfo } from '@/components/contact/contact-info';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wrapper';
+import type { AboutMeData, AppData } from '@/lib/types';
+import fs from 'fs/promises';
+import path from 'path';
 
-export default function ContactPage() {
+async function getFreshAboutMeData(): Promise<AboutMeData> {
+  const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
+  try {
+    const fileContent = await fs.readFile(dataFilePath, 'utf-8');
+    const appData = JSON.parse(fileContent) as AppData;
+    return appData.aboutMe;
+  } catch (error) {
+    console.error("Error reading data.json for Contact page, returning default structure:", error);
+    return { 
+      name: 'Default Name', 
+      title: 'Default Title', 
+      bio: 'Default bio.', 
+      profileImage: 'https://placehold.co/400x400.png', 
+      dataAiHint: 'placeholder image',
+      experience: [], 
+      education: [],
+      email: 'default@example.com',
+      linkedinUrl: '',
+      githubUrl: '',
+      twitterUrl: '',
+    };
+  }
+}
+
+
+export default async function ContactPage() {
+  const aboutMeData = await getFreshAboutMeData();
+
   return (
     <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
       <ScrollAnimationWrapper>
@@ -25,7 +56,7 @@ export default function ContactPage() {
         <ScrollAnimationWrapper className="lg:col-span-2" delay={200}>
            <Card className="shadow-xl p-6 sm:p-8 bg-primary/5">
             <CardContent className="p-0">
-              <ContactInfo />
+              <ContactInfo aboutMeData={aboutMeData} />
             </CardContent>
           </Card>
         </ScrollAnimationWrapper>
