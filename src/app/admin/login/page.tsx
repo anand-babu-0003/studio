@@ -2,12 +2,13 @@
 "use client";
 
 import { useState, type FormEvent } from 'react';
+import Link from 'next/link'; // Added for the new button
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { AlertCircle, LogIn } from 'lucide-react';
+import { AlertCircle, LogIn, Home } from 'lucide-react'; // Added Home icon
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 // VERY IMPORTANT: These credentials are hardcoded and visible in the client-side code.
@@ -105,7 +106,12 @@ export default function AdminLoginPage() {
             </Button>
           </form>
         </CardContent>
-         <CardFooter className="text-center text-xs text-muted-foreground pt-6">
+         <CardFooter className="flex flex-col items-center text-center text-xs text-muted-foreground pt-6 gap-4">
+           <Button variant="outline" size="sm" asChild className="w-full">
+              <Link href="/">
+                <Home className="mr-2 h-4 w-4" /> View Live Site
+              </Link>
+            </Button>
           <p className="w-full">
             <AlertCircle className="inline h-3 w-3 mr-1" />
             This is a prototype login. Credentials are not secure.
