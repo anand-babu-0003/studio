@@ -62,7 +62,7 @@ export default async function Home() {
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <section className="w-full min-h-screen flex flex-col justify-center items-center py-20 md:py-32 bg-gradient-to-br from-primary/5 via-background to-accent/5 bg-animated-gradient">
+      <section className="w-full min-h-screen flex flex-col justify-center items-center py-20 md:py-32 bg-gradient-to-br from-primary/15 via-background to-accent/15 bg-animated-gradient">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col justify-center items-center flex-grow">
           <div> 
             <h1 className="font-headline text-5xl md:text-7xl font-bold tracking-tight">
@@ -94,7 +94,7 @@ export default async function Home() {
               About Me
             </h2>
             <div className="grid md:grid-cols-2 gap-12 items-center">
-              <div className="flex justify-center md:order-2">
+              <div className="md:order-2 flex justify-center">
                 <Image
                   src={aboutMeData.profileImage || 'https://placehold.co/320x320.png'}
                   alt={`Profile picture of ${aboutMeData.name.split(' ')[0]}`}
