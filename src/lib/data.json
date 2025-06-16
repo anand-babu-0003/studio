@@ -20,45 +20,6 @@
       "slug": "email-alidator",
       "dataAiHint": "Validator",
       "readmeContent": "``\r\n## TrueValidator\r\n\r\nTrueValidator is a comprehensive, industry-leading email validation service engineered to maximize your email deliverability and safeguard your sender reputation. By leveraging advanced algorithms and real-time data sources, TrueValidator empowers businesses to maintain pristine email lists, minimize bounce rates, and optimize the performance of their email marketing campaigns.\r\n\r\n## 🚀 Key Features\r\n\r\n- **Precision Validation**: Identify invalid, disposable, catch-all, and high-risk email addresses with up to 99.9% accuracy.\r\n- **Real-time API Access**: Instantly validate emails as users submit forms or sign up, ensuring only valid addresses enter your system.\r\n- **Bulk & Batch Processing**: Effortlessly validate entire email databases with high-speed, scalable batch operations.\r\n- **Comprehensive Analytics**: Gain actionable insights into your email list quality, validation outcomes, and deliverability trends.\r\n- **Fraud & Spam Prevention**: Detect fraudulent signups, block spam submissions, and protect your platform from abuse.\r\n- **GDPR & Privacy Compliance**: Fully adheres to global data privacy standards, including GDPR, to keep your data secure.\r\n\r\n## 🛠 Getting Started\r\n\r\nTo start using TrueValidator, follow these steps:\r\n\r\n1. **Sign Up**: Register for an account at [truevalidator.ai](https://truevalidator.ai) to receive your unique API key.\r\n2. **Integrate the Client**: Add TrueValidator to your application using our official SDKs or REST API.\r\n3. **Start Validating**: Use our endpoints to validate emails in real time or in bulk, and monitor results via the dashboard.\r\n\r\n## 📦 Installation\r\n\r\nClone the Repo by using :\r\n\r\n```bash\r\ngit clone https://github.com/anand-babu-0003/TrueValidator.git\r\n```\r\n\r\nTo install Dependences use:\r\n\r\n```bash\r\nnpm install -g pnpm; pnpm install\r\n```\r\nTo Run:\r\n```bash\r\nnpm run dev\r\n```\r\n\r\n## ⚙️ Usage\r\n\r\n### API Key Setup\r\n\r\n```javascript\r\n// Node.js example\r\nconst TrueValidator = require('truevalidator');\r\nconst client = new TrueValidator('your_api_key_here');\r\n```\r\n\r\n### Validate a Single Email\r\n\r\n```javascript\r\nconst result = await client.validate('user@example.com');\r\nconsole.log(result);\r\n// Output: { status: 'valid', reason: null, ... }\r\n```\r\n\r\n### Batch Validation\r\n\r\n```javascript\r\nconst emails = ['user1@example.com', 'user2@example.com'];\r\nconst results = await client.validateBatch(emails);\r\nconsole.log(results);\r\n// Output: [{ email: 'user1@example.com', status: 'valid' }, ...]\r\n```\r\n\r\n### Webhook Integration\r\n\r\nSet up a webhook endpoint to receive asynchronous validation results:\r\n\r\n```javascript\r\napp.post('/webhook/validation', (req, res) => {\r\n  const validationResults = req.body;\r\n  // Process validation results here\r\n  res.status(200).send('Received');\r\n});\r\n```\r\n\r\n## 📚 Documentation\r\n\r\nExplore our comprehensive API documentation for details on authentication, endpoints, response formats, error handling, and integration examples:  \r\n👉 [API Docs](https://truevalidator.ai/docs)\r\n\r\n## 💰 Pricing\r\n\r\nSelect a plan tailored to your business needs:\r\n\r\n- **Starter Plan**: \\$29/month — Up to 10,000 email validations.\r\n- **Professional Plan**: \\$99/month — Up to 50,000 validations.\r\n- **Enterprise Plan**: Custom pricing — Unlimited validations, dedicated support, and advanced features.\r\n\r\nAll plans include a 7-day free trial and access to all core features.\r\n\r\n## ❓ Frequently Asked Questions\r\n\r\n**What happens if I exceed my monthly validation limit?**  \r\nYou can purchase additional validations or upgrade to a higher plan at any time.\r\n\r\n**How accurate is TrueValidator?**  \r\nOur service delivers up to 99.9% validation accuracy using multiple verification techniques.\r\n\r\n**Is there a free trial?**  \r\nYes! Every plan includes a 7-day free trial with full access to all features.\r\n\r\n**Is my data secure and compliant?**  \r\nAbsolutely. We are fully GDPR compliant and prioritize data privacy and security.\r\n\r\n## 🧑‍💻 Technologies Used\r\n\r\n- **Frontend**: React, TypeScript, Tailwind CSS, Framer Motion\r\n- **Backend**: Supabase (Database & Authentication)\r\n- **Routing**: React Router\r\n\r\n## 📄 Website Components\r\n\r\n### Navbar\r\n\r\n- Responsive navigation to Home, Pricing, API Docs, and About pages\r\n- Prominent call-to-action (CTA) for user sign-up\r\n\r\n### Footer\r\n\r\n- Branding, social media links, and quick navigation to key pages\r\n\r\n### Pages\r\n\r\n- **Home**: Feature highlights, customer testimonials, and free trial CTA\r\n- **About**: Company background, team profiles, and core values\r\n- **Pricing**: Plan comparison, feature breakdown, and FAQs\r\n- **Documentation**: Full API reference, integration guides, and code samples\r\n\r\n### Authentication\r\n\r\n- Secure user registration and login powered by Supabase\r\n\r\n## 🙋 Support\r\n\r\nNeed help with integration or have questions?\r\n\r\n- 📧 Email: [support@truevalidator.ai](mailto:support@truevalidator.ai)\r\n- 💬 Join our [Developer Community](https://truevalidator.ai/community) for peer support and updates\r\n\r\n## ✅ Conclusion\r\n\r\nTrueValidator is your all-in-one solution for email validation. Whether you need to clean up your mailing lists, reduce bounce rates, or seamlessly integrate real-time validation into your forms, we provide the tools, documentation, and support to help you succeed.\r\n\r\n---\r\n\r\n**Start your free trial today at [truevalidator.ai](https://truevalidator.ai) and experience the difference!**\r\n\r\n\r\nWant to contribute? Let us know if you need a `package.json`, license file, or contributor guide for this project!\r\n\r\n\r\n"
-    },
-    {
-      "id": "project-2",
-      "title": "Social Media App",
-      "description": "A dynamic social media application for content sharing and interaction.",
-      "longDescription": "Created a social media app where users can post updates, follow others, and engage with content. Implemented real-time notifications using WebSockets. Tech stack includes React, Firebase, and Material UI.",
-      "images": [
-        "https://placehold.co/600x400.png?text=Project+2+Image+1"
-      ],
-      "tags": [
-        "React",
-        "Firebase",
-        "Social Media",
-        "Real-time"
-      ],
-      "liveUrl": "#",
-      "slug": "social-media-app",
-      "dataAiHint": "social network",
-      "readmeContent": ""
-    },
-    {
-      "id": "project-3",
-      "title": "Project Management Tool",
-      "description": "A collaborative tool for managing projects and tasks effectively.",
-      "longDescription": "Designed and built a project management tool to help teams organize tasks, track progress, and collaborate efficiently. Features include Kanban boards, task assignments, and progress reports. Built with Vue.js, Express, and MongoDB.",
-      "images": [
-        "https://placehold.co/600x400.png?text=Project+3+Image+1",
-        "https://placehold.co/600x400.png?text=Project+3+Image+2"
-      ],
-      "tags": [
-        "Vue.js",
-        "Express",
-        "MongoDB",
-        "Productivity"
-      ],
-      "repoUrl": "#",
-      "slug": "project-management-tool",
-      "dataAiHint": "task manager",
-      "readmeContent": ""
     }
   ],
   "skills": [],
@@ -100,6 +61,7 @@
     ],
     "email": "basumgarianand109@gmail.com",
     "linkedinUrl": "https://www.linkedin.com/in/anand0003",
-    "githubUrl": "https://github.com/anand-babu-0003"
+    "githubUrl": "https://github.com/anand-babu-0003",
+    "twitterUrl": ""
   }
 }
