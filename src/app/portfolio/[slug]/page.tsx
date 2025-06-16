@@ -137,7 +137,7 @@ export default async function PortfolioDetailPage({ params }: { params: { slug: 
                 <CardTitle className="font-headline text-2xl text-primary">Project README</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="markdown-body">
+              <div className="prose prose-sm sm:prose-base md:prose-lg lg:prose-xl xl:prose-2xl 2xl:prose-3xl max-w-none markdown-body">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {project.readmeContent}
                 </ReactMarkdown>

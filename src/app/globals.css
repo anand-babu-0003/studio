@@ -208,11 +208,9 @@ body {
 
 /* Ensure markdown-body styles do not get purged by Tailwind and provide some reset */
 .markdown-body {
-  @apply prose prose-sm sm:prose lg:prose-lg xl:prose-xl; /* Apply base prose styles */
   box-sizing: border-box; /* from github-markdown.css */
-  min-width: 200px; /* from github-markdown.css */
-  max-width: none !important; /* Ensure it takes full width of parent */
-  margin: 0 auto; /* from github-markdown.css */
+  /* min-width: 200px; /* from github-markdown.css - can be removed if prose handles it */
+  /* margin: 0 auto; /* from github-markdown.css - remove to prevent centering if max-width is truly none */
   padding: 0; /* Override 45px from github-markdown.css; CardContent handles padding */
 }
 
