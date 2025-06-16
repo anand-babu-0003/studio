@@ -80,7 +80,7 @@ export default async function PortfolioDetailPage({ params }: { params: { slug: 
         </div>
       )}
 
-      <div className="max-w-5xl mx-auto space-y-16"> {/* Changed max-w-4xl to max-w-5xl */}
+      <div className="max-w-5xl mx-auto space-y-16">
         <Card>
           <CardHeader>
             <CardTitle className="font-headline text-2xl text-primary">About this project</CardTitle>
@@ -137,7 +137,7 @@ export default async function PortfolioDetailPage({ params }: { params: { slug: 
                 <CardTitle className="font-headline text-2xl text-primary">Project README</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none markdown-body">
+              <div className="markdown-body">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {project.readmeContent}
                 </ReactMarkdown>
@@ -149,4 +149,3 @@ export default async function PortfolioDetailPage({ params }: { params: { slug: 
     </div>
   );
 }
-

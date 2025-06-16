@@ -208,17 +208,17 @@ body {
 
 /* Ensure markdown-body styles do not get purged by Tailwind and provide some reset */
 .markdown-body {
-  @apply prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none;
-  box-sizing: border-box;
-  min-width: 200px;
-  max-width: 980px;
-  margin: 0 auto;
-  padding: 45px;
+  @apply prose prose-sm sm:prose lg:prose-lg xl:prose-xl; /* Apply base prose styles */
+  box-sizing: border-box; /* from github-markdown.css */
+  min-width: 200px; /* from github-markdown.css */
+  max-width: none !important; /* Ensure it takes full width of parent */
+  margin: 0 auto; /* from github-markdown.css */
+  padding: 0; /* Override 45px from github-markdown.css; CardContent handles padding */
 }
 
 @media (max-width: 767px) {
   .markdown-body {
-    padding: 15px;
+    /* padding: 15px; */ /* Original mobile padding from github-markdown.css, overridden by padding: 0 above */
   }
 }
 
