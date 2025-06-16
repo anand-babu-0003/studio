@@ -2,8 +2,7 @@
 "use client";
 
 import { useEffect } from 'react';
-import { useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useActionState, useFormStatus } from 'react';
 import { useForm, type Path } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -59,6 +58,7 @@ export default function AdminAboutPage() {
   });
 
   useEffect(() => {
+    console.log("AdminAboutPage: state changed:", state);
     if (state.status === 'success' && state.message) {
       toast({
         title: "Success!",
@@ -73,8 +73,10 @@ export default function AdminAboutPage() {
           education: state.data.education || [],
         };
         form.reset(transformedData);
+        console.log("AdminAboutPage: Form reset with new data.");
       }
     } else if (state.status === 'error' && state.message) {
+      console.error("AdminAboutPage: Error from server action:", state);
       toast({
         title: "Error Saving",
         description: state.message,

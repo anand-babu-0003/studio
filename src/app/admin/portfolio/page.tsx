@@ -2,8 +2,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useActionState, useFormStatus } from 'react';
 import { useForm, type Path } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusCircle, Edit3, Trash2, Save, Loader2, XCircle } from 'lucide-react';
@@ -74,23 +73,38 @@ export default function AdminPortfolioPage() {
     defaultValues: defaultFormValues,
   });
 
+  console.log("AdminPortfolioPage: Current projects state rendering:", projects);
+
   useEffect(() => {
+    console.log("AdminPortfolioPage: formActionState changed:", formActionState);
     if (formActionState.status === 'success' && formActionState.project) {
       const savedProject = formActionState.project;
+      console.log("AdminPortfolioPage: Success, savedProject:", savedProject);
       toast({ title: "Success!", description: formActionState.message });
+
+      let newProjectsArray: PortfolioItem[] = [];
       setProjects(prevProjects => {
+        console.log("AdminPortfolioPage: setProjects - prevProjects:", prevProjects);
         const existingIndex = prevProjects.findIndex(p => p.id === savedProject.id);
         if (existingIndex > -1) {
           const updatedProjects = [...prevProjects];
           updatedProjects[existingIndex] = savedProject;
+          newProjectsArray = updatedProjects;
+          console.log("AdminPortfolioPage: setProjects - updating existing project, newProjectsArray:", newProjectsArray);
           return updatedProjects;
         }
-        return [...prevProjects, savedProject];
+        newProjectsArray = [...prevProjects, savedProject];
+        console.log("AdminPortfolioPage: setProjects - adding new project, newProjectsArray:", newProjectsArray);
+        return newProjectsArray;
       });
+      
       setShowForm(false);
       setCurrentProject(null);
-      form.reset(defaultFormValues); 
+      form.reset(defaultFormValues); // Reset form after it's hidden
+      console.log("AdminPortfolioPage: Form reset to defaultFormValues after successful save.");
+
     } else if (formActionState.status === 'error') {
+      console.error("AdminPortfolioPage: Error from server action:", formActionState);
       toast({ title: "Error Saving", description: formActionState.message, variant: "destructive" });
       if (formActionState.errors) {
         Object.entries(formActionState.errors).forEach(([key, fieldErrorMessages]) => {
@@ -109,6 +123,7 @@ export default function AdminPortfolioPage() {
     setCurrentProject(null);
     form.reset(defaultFormValues);
     setShowForm(true);
+    console.log("AdminPortfolioPage: handleAddNew - form reset, showForm true");
   };
 
   const handleEdit = (project: PortfolioItem) => {
@@ -120,15 +135,22 @@ export default function AdminPortfolioPage() {
       tagsString: project.tags.join(', '),
     });
     setShowForm(true);
+    console.log("AdminPortfolioPage: handleEdit - editing project:", project);
   };
 
   const handleDelete = async (projectId: string) => {
+    console.log("AdminPortfolioPage: handleDelete - projectId:", projectId);
     const result = await deletePortfolioItemAction(projectId);
     if (result.success) {
       toast({ title: "Success!", description: result.message });
-      setProjects(prevProjects => prevProjects.filter(p => p.id !== projectId));
+      setProjects(prevProjects => {
+        const updated = prevProjects.filter(p => p.id !== projectId);
+        console.log("AdminPortfolioPage: handleDelete - projects updated:", updated);
+        return updated;
+      });
     } else {
       toast({ title: "Error Deleting", description: result.message, variant: "destructive" });
+      console.error("AdminPortfolioPage: handleDelete - error:", result.message);
     }
   };
 
@@ -136,6 +158,7 @@ export default function AdminPortfolioPage() {
     setShowForm(false);
     setCurrentProject(null);
     form.reset(defaultFormValues);
+    console.log("AdminPortfolioPage: handleCancelForm - form reset, showForm false");
   }
 
   return (
@@ -150,7 +173,7 @@ export default function AdminPortfolioPage() {
       </div>
 
       {showForm ? (
-        <Card key={currentProject?.id || 'new-project-form'}>
+        <Card> {/* Removed key prop for now to simplify diagnosis */}
           <CardHeader>
             <CardTitle>{currentProject ? 'Edit Project' : 'Add New Project'}</CardTitle>
             <CardDescription>Fill in the details for your portfolio project.</CardDescription>
