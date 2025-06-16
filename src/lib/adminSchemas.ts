@@ -45,8 +45,8 @@ export const portfolioItemAdminSchema = z.object({
 export type PortfolioAdminFormData = z.infer<typeof portfolioItemAdminSchema>;
 
 // Schema for Skill Admin Form
-const validCategories = skillCategories as [string, ...string[]]; // Zod enum helper
-const validIconNames = availableIconNames as [string, ...string[]]; // Zod enum helper
+const validCategories = skillCategories as [string, ...string[]]; 
+const validIconNames = availableIconNames as [string, ...string[]]; 
 
 export const skillAdminSchema = z.object({
   id: z.string().optional(),
