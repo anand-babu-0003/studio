@@ -215,13 +215,26 @@ export default function AdminSkillsPage() {
                   </FormItem>
                 )} />
                 
-                <FormField control={form.control} name="proficiency" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Proficiency (0-100, optional)</FormLabel>
-                    <FormControl><Input type="number" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
+                <FormField
+                  control={form.control}
+                  name="proficiency"
+                  render={({ field: { onChange, onBlur, value, name, ref } }) => (
+                    <FormItem>
+                      <FormLabel>Proficiency (0-100, optional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          name={name}
+                          value={value ?? ''} // Ensures controlled: undefined becomes empty string
+                          onChange={e => onChange(e.target.value === '' ? undefined : Number(e.target.value))}
+                          onBlur={onBlur}
+                          ref={ref}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </CardContent>
               <CardFooter className="flex justify-end gap-2">
                  <Button type="button" variant="outline" onClick={handleCancelForm}>
@@ -279,5 +292,3 @@ export default function AdminSkillsPage() {
     </div>
   );
 }
-
-    
