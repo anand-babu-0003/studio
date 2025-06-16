@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useActionState, useFormStatus } from 'react';
+import { useActionState, useFormStatus } from 'react'; // Updated from react-dom
 import { useForm, type Path } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusCircle, Edit3, Trash2, Save, Loader2, XCircle } from 'lucide-react';
@@ -63,6 +63,8 @@ export default function AdminSkillsPage() {
   });
 
   console.log("AdminSkillsPage: Current skills state rendering:", skills);
+  console.log("AdminSkillsPage: Current showForm state:", showForm);
+  console.log("AdminSkillsPage: Current currentSkill state:", currentSkill);
 
   useEffect(() => {
     console.log("AdminSkillsPage: formActionState changed:", formActionState);
@@ -71,25 +73,25 @@ export default function AdminSkillsPage() {
       console.log("AdminSkillsPage: Success, savedSkill:", savedSkill);
       toast({ title: "Success!", description: formActionState.message });
 
-      let newSkillsArray: Skill[] = [];
       setSkills(prevSkills => {
         console.log("AdminSkillsPage: setSkills - prevSkills:", prevSkills);
         const existingIndex = prevSkills.findIndex(s => s.id === savedSkill.id);
+        let newSkillsArray;
         if (existingIndex > -1) {
           const updatedSkills = [...prevSkills];
           updatedSkills[existingIndex] = savedSkill;
           newSkillsArray = updatedSkills;
           console.log("AdminSkillsPage: setSkills - updating existing skill, newSkillsArray:", newSkillsArray);
-          return updatedSkills;
+        } else {
+          newSkillsArray = [...prevSkills, savedSkill];
+          console.log("AdminSkillsPage: setSkills - adding new skill, newSkillsArray:", newSkillsArray);
         }
-        newSkillsArray = [...prevSkills, savedSkill];
-        console.log("AdminSkillsPage: setSkills - adding new skill, newSkillsArray:", newSkillsArray);
         return newSkillsArray;
       });
       
       setShowForm(false);
-      setCurrentSkill(null);
-      form.reset(defaultFormValues); // Reset form after it's hidden
+      setCurrentSkill(null); // Important to clear current skill
+      form.reset(defaultFormValues);
       console.log("AdminSkillsPage: Form reset to defaultFormValues after successful save.");
 
     } else if (formActionState.status === 'error') {
@@ -110,14 +112,14 @@ export default function AdminSkillsPage() {
 
   const handleAddNew = () => {
     setCurrentSkill(null);
-    form.reset(defaultFormValues);
+    form.reset(defaultFormValues); // Reset form with default values
     setShowForm(true);
     console.log("AdminSkillsPage: handleAddNew - form reset, showForm true");
   };
 
   const handleEdit = (skill: Skill) => {
     setCurrentSkill(skill);
-    form.reset({
+    form.reset({ // Reset form with skill data
       ...skill,
       proficiency: skill.proficiency ?? undefined, 
     });
@@ -144,7 +146,7 @@ export default function AdminSkillsPage() {
   const handleCancelForm = () => {
     setShowForm(false);
     setCurrentSkill(null);
-    form.reset(defaultFormValues);
+    form.reset(defaultFormValues); // Reset form when cancelling
     console.log("AdminSkillsPage: handleCancelForm - form reset, showForm false");
   }
 
@@ -159,8 +161,8 @@ export default function AdminSkillsPage() {
         )}
       </div>
 
-      {showForm ? (
-        <Card> {/* Removed key prop for now to simplify diagnosis */}
+      {showForm && ( // Ensure conditional rendering correctly unmounts/mounts
+        <Card key={currentSkill ? `edit-${currentSkill.id}` : 'add-new-skill-form'}>
           <CardHeader>
             <CardTitle>{currentSkill ? 'Edit Skill' : 'Add New Skill'}</CardTitle>
             <CardDescription>Fill in the details for the skill.</CardDescription>
@@ -224,7 +226,8 @@ export default function AdminSkillsPage() {
             </form>
           </Form>
         </Card>
-      ) : (
+      )}
+      {!showForm && (
         <div className="space-y-4">
           {skills.length === 0 && <p className="text-muted-foreground">No skills yet. Click "Add New Skill" to start.</p>}
           {skills.map(skill => {

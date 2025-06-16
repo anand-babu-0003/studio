@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect } from 'react';
-import { useActionState, useFormStatus } from 'react';
+import { useActionState, useFormStatus } from 'react'; // Updated from react-dom
 import { useForm, type Path } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -74,6 +74,7 @@ export default function AdminAboutPage() {
         };
         form.reset(transformedData);
         console.log("AdminAboutPage: Form reset with new data.");
+        console.log("AdminAboutPage: Form values after reset:", form.getValues());
       }
     } else if (state.status === 'error' && state.message) {
       console.error("AdminAboutPage: Error from server action:", state);

@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useActionState, useFormStatus } from 'react';
+import { useActionState, useFormStatus } from 'react'; // Updated from react-dom
 import { useForm, type Path } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusCircle, Edit3, Trash2, Save, Loader2, XCircle } from 'lucide-react';
@@ -74,6 +74,9 @@ export default function AdminPortfolioPage() {
   });
 
   console.log("AdminPortfolioPage: Current projects state rendering:", projects);
+  console.log("AdminPortfolioPage: Current showForm state:", showForm);
+  console.log("AdminPortfolioPage: Current currentProject state:", currentProject);
+
 
   useEffect(() => {
     console.log("AdminPortfolioPage: formActionState changed:", formActionState);
@@ -82,25 +85,25 @@ export default function AdminPortfolioPage() {
       console.log("AdminPortfolioPage: Success, savedProject:", savedProject);
       toast({ title: "Success!", description: formActionState.message });
 
-      let newProjectsArray: PortfolioItem[] = [];
       setProjects(prevProjects => {
         console.log("AdminPortfolioPage: setProjects - prevProjects:", prevProjects);
         const existingIndex = prevProjects.findIndex(p => p.id === savedProject.id);
+        let newProjectsArray;
         if (existingIndex > -1) {
           const updatedProjects = [...prevProjects];
           updatedProjects[existingIndex] = savedProject;
           newProjectsArray = updatedProjects;
           console.log("AdminPortfolioPage: setProjects - updating existing project, newProjectsArray:", newProjectsArray);
-          return updatedProjects;
+        } else {
+          newProjectsArray = [...prevProjects, savedProject];
+          console.log("AdminPortfolioPage: setProjects - adding new project, newProjectsArray:", newProjectsArray);
         }
-        newProjectsArray = [...prevProjects, savedProject];
-        console.log("AdminPortfolioPage: setProjects - adding new project, newProjectsArray:", newProjectsArray);
         return newProjectsArray;
       });
       
       setShowForm(false);
-      setCurrentProject(null);
-      form.reset(defaultFormValues); // Reset form after it's hidden
+      setCurrentProject(null); // Important to clear current project
+      form.reset(defaultFormValues); 
       console.log("AdminPortfolioPage: Form reset to defaultFormValues after successful save.");
 
     } else if (formActionState.status === 'error') {
@@ -121,14 +124,14 @@ export default function AdminPortfolioPage() {
 
   const handleAddNew = () => {
     setCurrentProject(null);
-    form.reset(defaultFormValues);
+    form.reset(defaultFormValues); // Reset form with default values
     setShowForm(true);
     console.log("AdminPortfolioPage: handleAddNew - form reset, showForm true");
   };
 
   const handleEdit = (project: PortfolioItem) => {
     setCurrentProject(project);
-    form.reset({
+    form.reset({ // Reset form with project data
       ...project,
       image1: project.images[0] || '',
       image2: project.images[1] || '',
@@ -157,7 +160,7 @@ export default function AdminPortfolioPage() {
   const handleCancelForm = () => {
     setShowForm(false);
     setCurrentProject(null);
-    form.reset(defaultFormValues);
+    form.reset(defaultFormValues); // Reset form when cancelling
     console.log("AdminPortfolioPage: handleCancelForm - form reset, showForm false");
   }
 
@@ -172,8 +175,8 @@ export default function AdminPortfolioPage() {
         )}
       </div>
 
-      {showForm ? (
-        <Card> {/* Removed key prop for now to simplify diagnosis */}
+      {showForm && ( // Ensure conditional rendering correctly unmounts/mounts
+        <Card key={currentProject ? `edit-${currentProject.id}` : 'add-new-project-form'}>
           <CardHeader>
             <CardTitle>{currentProject ? 'Edit Project' : 'Add New Project'}</CardTitle>
             <CardDescription>Fill in the details for your portfolio project.</CardDescription>
@@ -262,7 +265,8 @@ export default function AdminPortfolioPage() {
             </form>
           </Form>
         </Card>
-      ) : (
+      )}
+      {!showForm && (
         <div className="space-y-4">
           {projects.length === 0 && <p className="text-muted-foreground">No projects yet. Click "Add New Project" to start.</p>}
           {projects.map(project => (
