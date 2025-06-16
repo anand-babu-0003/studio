@@ -13,6 +13,7 @@ export interface PortfolioItem {
   repoUrl?: string;
   slug: string;
   dataAiHint?: string;
+  readmeContent?: string; // Added for README markdown
 }
 
 export interface Skill {

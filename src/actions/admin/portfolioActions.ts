@@ -64,6 +64,7 @@ export async function savePortfolioItemAction(
     repoUrl: formData.get('repoUrl') as string || undefined,
     slug: formData.get('slug') as string,
     dataAiHint: formData.get('dataAiHint') as string || undefined,
+    readmeContent: formData.get('readmeContent') as string || undefined, // Added
   };
 
   const validatedFields = portfolioItemAdminSchema.safeParse(rawData);
@@ -94,6 +95,7 @@ export async function savePortfolioItemAction(
     repoUrl: data.repoUrl,
     slug: data.slug,
     dataAiHint: data.dataAiHint,
+    readmeContent: data.readmeContent, // Added
   };
 
   try {

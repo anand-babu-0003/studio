@@ -19,7 +19,8 @@
       "liveUrl": "https://truevalidator.netlify.app/",
       "repoUrl": "https://github.com/anand-babu-0003/TrueValidator.git",
       "slug": "email-alidator",
-      "dataAiHint": "Validator"
+      "dataAiHint": "Validator",
+      "readmeContent": ""
     },
     {
       "id": "project-2",
@@ -37,7 +38,8 @@
       ],
       "liveUrl": "#",
       "slug": "social-media-app",
-      "dataAiHint": "social network"
+      "dataAiHint": "social network",
+      "readmeContent": ""
     },
     {
       "id": "project-3",
@@ -56,7 +58,8 @@
       ],
       "repoUrl": "#",
       "slug": "project-management-tool",
-      "dataAiHint": "task manager"
+      "dataAiHint": "task manager",
+      "readmeContent": ""
     }
   ],
   "skills": [

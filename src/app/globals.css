@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import github-markdown-css if it's a separate file, or paste its content here */
+/* Assuming we'll create src/styles/github-markdown.css */
+@import "./styles/github-markdown.css";
+
 body {
   font-family: Arial, Helvetica, sans-serif;
 }
@@ -199,3 +203,110 @@ body {
     animation-delay: -7s; 
   }
 }
+
+/* Ensure markdown-body styles do not get purged by Tailwind and provide some reset */
+.markdown-body {
+  @apply prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none;
+  box-sizing: border-box;
+  min-width: 200px;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 45px;
+}
+
+@media (max-width: 767px) {
+  .markdown-body {
+    padding: 15px;
+  }
+}
+
+/* Apply card background and foreground to markdown body for theme consistency */
+.markdown-body {
+    color: hsl(var(--card-foreground));
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+    color: hsl(var(--primary));
+}
+
+.markdown-body a {
+    color: hsl(var(--accent));
+}
+.markdown-body a:hover {
+    text-decoration: underline;
+}
+
+.markdown-body code,
+.markdown-body pre {
+    background-color: hsl(var(--muted));
+    color: hsl(var(--muted-foreground));
+    border-radius: 6px;
+}
+.markdown-body pre > code {
+    background-color: transparent;
+    padding: 0;
+}
+
+.markdown-body blockquote {
+    border-left-color: hsl(var(--border));
+    color: hsl(var(--muted-foreground));
+}
+
+.markdown-body table th,
+.markdown-body table td {
+    border-color: hsl(var(--border));
+}
+.markdown-body table tr:nth-child(2n) {
+    background-color: hsl(var(--muted) / 0.5);
+}
+
+.markdown-body hr {
+    background-color: hsl(var(--border));
+}
+
+/* Dark mode specific overrides for github-markdown.css if necessary */
+.dark .markdown-body {
+    color: hsl(var(--foreground)); /* Default text in dark mode */
+}
+
+.dark .markdown-body h1,
+.dark .markdown-body h2,
+.dark .markdown-body h3,
+.dark .markdown-body h4,
+.dark .markdown-body h5,
+.dark .markdown-body h6 {
+    color: hsl(var(--primary)); /* Primary color for headings in dark mode */
+}
+
+.dark .markdown-body a {
+    color: hsl(var(--accent)); /* Accent color for links in dark mode */
+}
+
+.dark .markdown-body code,
+.dark .markdown-body pre {
+    background-color: hsl(var(--muted)); /* Muted background for code blocks in dark mode */
+    color: hsl(var(--muted-foreground)); /* Muted foreground for code text in dark mode */
+}
+
+.dark .markdown-body blockquote {
+    border-left-color: hsl(var(--border));
+    color: hsl(var(--muted-foreground));
+}
+
+.dark .markdown-body table th,
+.dark .markdown-body table td {
+    border-color: hsl(var(--border));
+}
+.dark .markdown-body table tr:nth-child(2n) {
+    background-color: hsl(var(--muted) / 0.5); /* Muted background for alternate table rows in dark mode */
+}
+
+.dark .markdown-body hr {
+    background-color: hsl(var(--border));
+}
+

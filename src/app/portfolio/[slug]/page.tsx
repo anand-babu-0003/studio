@@ -1,3 +1,4 @@
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -8,6 +9,9 @@ import { ArrowLeft, ExternalLink, Github } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wrapper';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export async function generateStaticParams() {
   return portfolioItems.map((project) => ({
@@ -65,48 +69,77 @@ export default function PortfolioDetailPage({ params }: { params: { slug: string
         </ScrollAnimationWrapper>
       )}
 
-      <div className="max-w-3xl mx-auto">
-        <ScrollAnimationWrapper className="mb-8" delay={300}>
-          <section>
-            <h2 className="font-headline text-2xl font-semibold text-primary mb-3">About this project</h2>
-            <p className="text-lg text-foreground/80 leading-relaxed">
-              {project.longDescription || project.description}
-            </p>
-          </section>
+      <div className="max-w-3xl mx-auto space-y-12">
+        <ScrollAnimationWrapper delay={300}>
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-headline text-2xl text-primary">About this project</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-lg text-foreground/80 leading-relaxed">
+                {project.longDescription || project.description}
+              </p>
+            </CardContent>
+          </Card>
         </ScrollAnimationWrapper>
 
-        <ScrollAnimationWrapper className="mb-8" delay={400}>
-          <section>
-            <h2 className="font-headline text-2xl font-semibold text-primary mb-3">Technologies Used</h2>
-            <div className="flex flex-wrap gap-2">
-              {project.tags.map((tag) => (
-                <Badge key={tag} variant="default" className="text-sm px-3 py-1">{tag}</Badge>
-              ))}
-            </div>
-          </section>
+        <ScrollAnimationWrapper delay={400}>
+           <Card>
+            <CardHeader>
+              <CardTitle className="font-headline text-2xl text-primary">Technologies Used</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {project.tags.map((tag) => (
+                  <Badge key={tag} variant="default" className="text-sm px-3 py-1">{tag}</Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </ScrollAnimationWrapper>
 
         {(project.liveUrl || project.repoUrl) && (
-          <ScrollAnimationWrapper className="mb-8" delay={500}>
-            <section>
-              <h2 className="font-headline text-2xl font-semibold text-primary mb-4">Links</h2>
-              <div className="flex flex-wrap gap-4">
-                {project.liveUrl && (
-                  <Button asChild variant="default" size="lg">
-                    <Link href={project.liveUrl} target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="mr-2 h-5 w-5" /> View Live Demo
-                    </Link>
-                  </Button>
-                )}
-                {project.repoUrl && (
-                  <Button asChild variant="secondary" size="lg">
-                    <Link href={project.repoUrl} target="_blank" rel="noopener noreferrer">
-                      <Github className="mr-2 h-5 w-5" /> View Code on GitHub
-                    </Link>
-                  </Button>
-                )}
-              </div>
-            </section>
+          <ScrollAnimationWrapper delay={500}>
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline text-2xl text-primary">Links</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-4">
+                  {project.liveUrl && (
+                    <Button asChild variant="default" size="lg">
+                      <Link href={project.liveUrl} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="mr-2 h-5 w-5" /> View Live Demo
+                      </Link>
+                    </Button>
+                  )}
+                  {project.repoUrl && (
+                    <Button asChild variant="secondary" size="lg">
+                      <Link href={project.repoUrl} target="_blank" rel="noopener noreferrer">
+                        <Github className="mr-2 h-5 w-5" /> View Code on GitHub
+                      </Link>
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </ScrollAnimationWrapper>
+        )}
+
+        {project.readmeContent && (
+          <ScrollAnimationWrapper delay={600}>
+            <Card>
+              <CardHeader>
+                 <CardTitle className="font-headline text-2xl text-primary">Project README</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none markdown-body">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {project.readmeContent}
+                  </ReactMarkdown>
+                </div>
+              </CardContent>
+            </Card>
           </ScrollAnimationWrapper>
         )}
       </div>

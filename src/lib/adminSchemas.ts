@@ -40,6 +40,7 @@ export const portfolioItemAdminSchema = z.object({
   repoUrl: z.string().url({ message: "Please enter a valid URL for Code Repo." }).or(z.literal("")).optional(),
   slug: z.string().min(1, "Slug is required.").regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, { message: "Slug can only contain lowercase letters, numbers, and hyphens." }),
   dataAiHint: z.string().max(50, "AI hint too long").optional(),
+  readmeContent: z.string().optional(), // Added for README markdown
 });
 
 export type PortfolioAdminFormData = z.infer<typeof portfolioItemAdminSchema>;
@@ -57,3 +58,4 @@ export const skillAdminSchema = z.object({
 });
 
 export type SkillAdminFormData = z.infer<typeof skillAdminSchema>;
+

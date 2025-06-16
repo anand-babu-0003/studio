@@ -39,6 +39,7 @@ const defaultFormValues: PortfolioAdminFormData = {
   repoUrl: '',
   slug: '',
   dataAiHint: '',
+  readmeContent: '', // Added
 };
 
 function SubmitButton() {
@@ -145,6 +146,7 @@ export default function AdminPortfolioPage() {
       image1: project.images[0] || '',
       image2: project.images[1] || '',
       tagsString: project.tags.join(', '),
+      readmeContent: project.readmeContent || '', // Added
     });
     setShowForm(true);
     console.log("AdminPortfolioPage: handleEdit - editing project:", project);
@@ -261,6 +263,13 @@ export default function AdminPortfolioPage() {
                   <FormItem>
                     <FormLabel>Image AI Hint (Optional, e.g., "website design")</FormLabel>
                     <FormControl><Input {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="readmeContent" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>README Content (Markdown)</FormLabel>
+                    <FormControl><Textarea {...field} rows={15} placeholder="Paste your project's README.md content here..." /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
