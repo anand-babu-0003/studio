@@ -3,7 +3,7 @@
 
 import { useEffect } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
-import { useForm, type SubmitHandler } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { PageHeader } from '@/components/shared/page-header';
@@ -17,13 +17,14 @@ import { useToast } from '@/hooks/use-toast';
 import { Save, Loader2 } from 'lucide-react';
 
 import { aboutMe as initialAboutMeData } from '@/lib/data';
-import type { AboutMeData } from '@/lib/types'; 
+import type { AboutMeData, Experience, Education } from '@/lib/types'; 
 import { updateAboutDataAction, type UpdateAboutDataFormState, aboutMeSchema } from '@/actions/admin/aboutActions';
 
 const initialState: UpdateAboutDataFormState = {
   message: '',
   status: 'idle',
   errors: {},
+  data: undefined, // Ensure data is part of the initial state
 };
 
 function SubmitButton() {
@@ -49,7 +50,7 @@ export default function AdminAboutPage() {
 
   const form = useForm<AboutMeData>({
     resolver: zodResolver(aboutMeSchema),
-    defaultValues: initialAboutMeData, // Load initial data from lib/data.ts
+    defaultValues: initialAboutMeData, 
   });
 
   useEffect(() => {
@@ -58,8 +59,16 @@ export default function AdminAboutPage() {
         title: "Success!",
         description: state.message,
       });
-      // Optionally reset form if needed, or re-fetch data if it were from a DB
-      // form.reset(state.data); // If action returned updated data
+      if (state.data) {
+        // Reset the form with the "saved" data
+        // This ensures all fields, including dynamic ones like experience/education, are updated
+        const transformedData = {
+          ...state.data,
+          experience: state.data.experience || [],
+          education: state.data.education || [],
+        };
+        form.reset(transformedData);
+      }
     } else if (state.status === 'error' && state.message) {
       toast({
         title: "Error Saving",
@@ -67,33 +76,45 @@ export default function AdminAboutPage() {
         variant: "destructive",
       });
       if (state.errors) {
-        Object.entries(state.errors).forEach(([key, value]) => {
+        const allErrors = { ...state.errors };
+        
+        // Handle top-level errors
+        (Object.keys(form.getValues()) as Array<keyof AboutMeData>).forEach(key => {
+          if (allErrors[key]) {
+            form.setError(key, { type: 'server', message: (allErrors[key] as string[]).join(', ') });
+            delete allErrors[key];
+          }
+        });
+
+        // Handle nested errors (experience, education)
+        Object.entries(allErrors).forEach(([key, value]) => {
           if (value && value.length > 0) {
-            form.setError(key as keyof AboutMeData, { type: 'server', message: value.join(', ') });
+            // @ts-ignore - This handles nested field errors like 'experience.0.role'
+            form.setError(key as any, { type: 'server', message: value.join(', ') });
           }
         });
       }
     }
   }, [state, toast, form]);
   
-  // Handle experience and education changes locally if needed for UI before save
-  // For a real DB, these would also be part of the form submission or separate actions
-  const handleExperienceChange = (index: number, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    const currentExperience = form.getValues('experience');
-    const newExperience = [...currentExperience];
-    // @ts-ignore - For nested structure, direct assignment works with react-hook-form
-    newExperience[index][name as keyof typeof newExperience[0]] = value;
-    form.setValue('experience', newExperience, { shouldValidate: true });
+  const addExperience = () => {
+    const currentExperience = form.getValues('experience') || [];
+    form.setValue('experience', [...currentExperience, { id: `new_exp_${Date.now()}`, role: '', company: '', period: '', description: '' }], { shouldValidate: false, shouldDirty: true });
+  };
+
+  const removeExperience = (index: number) => {
+    const currentExperience = form.getValues('experience') || [];
+    form.setValue('experience', currentExperience.filter((_, i) => i !== index), { shouldValidate: true, shouldDirty: true });
+  };
+
+  const addEducation = () => {
+    const currentEducation = form.getValues('education') || [];
+    form.setValue('education', [...currentEducation, { id: `new_edu_${Date.now()}`, degree: '', institution: '', period: '' }], { shouldValidate: false, shouldDirty: true });
   };
   
-  const handleEducationChange = (index: number, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    const currentEducation = form.getValues('education');
-    const newEducation = [...currentEducation];
-    // @ts-ignore
-    newEducation[index][name as keyof typeof newEducation[0]] = value;
-    form.setValue('education', newEducation, { shouldValidate: true });
+  const removeEducation = (index: number) => {
+    const currentEducation = form.getValues('education') || [];
+    form.setValue('education', currentEducation.filter((_, i) => i !== index), { shouldValidate: true, shouldDirty: true });
   };
 
 
@@ -199,15 +220,15 @@ export default function AdminAboutPage() {
               </CardContent>
             </Card>
             
-            {/* Experience Section - Placeholder for full editing */}
             <Card className="lg:col-span-3">
               <CardHeader>
                 <CardTitle>Experience</CardTitle>
-                <CardDescription>Manage your professional experience. (Full editing functionality is a next step)</CardDescription>
+                <CardDescription>Manage your professional experience.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {form.watch('experience').map((exp, index) => (
-                  <div key={exp.id} className="p-4 border rounded-md space-y-2">
+                {form.watch('experience', []).map((exp, index) => (
+                  <Card key={exp.id || `exp-${index}`} className="p-4 space-y-3">
+                    <input type="hidden" {...form.register(`experience.${index}.id`)} />
                     <FormField
                         control={form.control}
                         name={`experience.${index}.role`}
@@ -235,7 +256,7 @@ export default function AdminAboutPage() {
                         name={`experience.${index}.period`}
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Period</FormLabel>
+                                <FormLabel>Period (e.g., 2020 - Present)</FormLabel>
                                 <FormControl><Input {...field} /></FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -252,30 +273,28 @@ export default function AdminAboutPage() {
                             </FormItem>
                         )}
                     />
-                  </div>
+                    <Button type="button" variant="destructive" size="sm" onClick={() => removeExperience(index)}>Remove Experience</Button>
+                  </Card>
                 ))}
-                <Button type="button" variant="outline" onClick={() => {
-                  const newExperience = [...form.getValues('experience'), {id: `new_exp_${Date.now()}`, role: '', company: '', period: '', description: ''}];
-                  form.setValue('experience', newExperience);
-                }}>Add New Experience</Button>
+                <Button type="button" variant="outline" onClick={addExperience}>Add New Experience</Button>
               </CardContent>
             </Card>
 
-            {/* Education Section - Placeholder for full editing */}
             <Card className="lg:col-span-3">
               <CardHeader>
                 <CardTitle>Education</CardTitle>
-                <CardDescription>Manage your academic background. (Full editing functionality is a next step)</CardDescription>
+                <CardDescription>Manage your academic background.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {form.watch('education').map((edu, index) => (
-                  <div key={edu.id} className="p-4 border rounded-md space-y-2">
+                {form.watch('education', []).map((edu, index) => (
+                  <Card key={edu.id || `edu-${index}`} className="p-4 space-y-3">
+                     <input type="hidden" {...form.register(`education.${index}.id`)} />
                      <FormField
                         control={form.control}
                         name={`education.${index}.degree`}
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Degree</FormLabel>
+                                <FormLabel>Degree / Certificate</FormLabel>
                                 <FormControl><Input {...field} /></FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -297,18 +316,16 @@ export default function AdminAboutPage() {
                         name={`education.${index}.period`}
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Period</FormLabel>
+                                <FormLabel>Period (e.g., 2018 - 2022)</FormLabel>
                                 <FormControl><Input {...field} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}
                     />
-                  </div>
+                     <Button type="button" variant="destructive" size="sm" onClick={() => removeEducation(index)}>Remove Education</Button>
+                  </Card>
                 ))}
-                 <Button type="button" variant="outline" onClick={() => {
-                  const newEducation = [...form.getValues('education'), {id: `new_edu_${Date.now()}`, degree: '', institution: '', period: ''}];
-                  form.setValue('education', newEducation);
-                }}>Add New Education</Button>
+                 <Button type="button" variant="outline" onClick={addEducation}>Add New Education</Button>
               </CardContent>
             </Card>
 
@@ -318,5 +335,3 @@ export default function AdminAboutPage() {
     </div>
   );
 }
-
-    
