@@ -52,16 +52,12 @@ export function ScrollAnimationWrapper({
     <div
       ref={targetRef}
       className={cn(
-        'scroll-trigger', 
-        isVisible && 'animate-scroll-in', 
+        'scroll-trigger', // Base class with initial (hidden) state and transition properties
+        isVisible && 'animate-scroll-in', // Class for visible state
         className
       )}
       style={{ 
-        transitionDelay: isVisible ? `${delay}ms` : '0ms',
-        // Ensure opacity resets if not visible to allow fade-in again
-        opacity: isVisible ? 1 : 0, 
-        // Ensure transform resets if not visible to allow slide-in again
-        transform: isVisible ? 'translateY(0)' : 'translateY(30px)', 
+        transitionDelay: isVisible ? `${delay}ms` : '0ms', // Apply delay only when animating in
       }}
     >
       {children}
