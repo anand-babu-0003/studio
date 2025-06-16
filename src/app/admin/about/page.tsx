@@ -9,7 +9,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { PageHeader } from '@/components/shared/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -18,7 +17,8 @@ import { Save, Loader2 } from 'lucide-react';
 
 import { aboutMe as initialAboutMeData } from '@/lib/data';
 import type { AboutMeData, Experience, Education } from '@/lib/types'; 
-import { updateAboutDataAction, type UpdateAboutDataFormState, aboutMeSchema } from '@/actions/admin/aboutActions';
+import { updateAboutDataAction, type UpdateAboutDataFormState } from '@/actions/admin/aboutActions';
+import { aboutMeSchema } from '@/lib/adminSchemas'; // Import the schema
 
 const initialState: UpdateAboutDataFormState = {
   message: '',
@@ -52,7 +52,6 @@ export default function AdminAboutPage() {
     resolver: zodResolver(aboutMeSchema),
     defaultValues: {
       ...initialAboutMeData,
-      // Ensure experience and education are always arrays, even if empty in initial data
       experience: initialAboutMeData.experience || [], 
       education: initialAboutMeData.education || [],
     },

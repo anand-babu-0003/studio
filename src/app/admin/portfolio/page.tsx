@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
-import { useForm, type SubmitHandler } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusCircle, Edit3, Trash2, Save, Loader2, XCircle } from 'lucide-react';
 
@@ -22,10 +22,9 @@ import type { PortfolioItem } from '@/lib/types';
 import {
   savePortfolioItemAction,
   deletePortfolioItemAction,
-  type PortfolioAdminFormData,
   type PortfolioFormState,
-  portfolioItemAdminSchema
 } from '@/actions/admin/portfolioActions';
+import { portfolioItemAdminSchema, type PortfolioAdminFormData } from '@/lib/adminSchemas'; // Import schema and related type
 
 const initialFormState: PortfolioFormState = { message: '', status: 'idle', errors: {} };
 
@@ -78,7 +77,11 @@ export default function AdminPortfolioPage() {
       });
       setShowForm(false);
       setCurrentProject(null);
-      form.reset(); 
+      form.reset({ 
+          title: '', description: '', longDescription: '', 
+          image1: '', image2: '', tagsString: '', 
+          liveUrl: '', repoUrl: '', slug: '', dataAiHint: '' 
+      }); 
     } else if (formActionState.status === 'error') {
       toast({ title: "Error Saving", description: formActionState.message, variant: "destructive" });
       if (formActionState.errors) {
@@ -91,7 +94,7 @@ export default function AdminPortfolioPage() {
 
   const handleAddNew = () => {
     setCurrentProject(null);
-    form.reset({ // Reset with empty strings or specific defaults for "add new"
+    form.reset({ 
       id: undefined, 
       title: '', description: '', longDescription: '',
       image1: '', image2: '', tagsString: '',
@@ -124,7 +127,11 @@ export default function AdminPortfolioPage() {
   const handleCancelForm = () => {
     setShowForm(false);
     setCurrentProject(null);
-    form.reset(); 
+    form.reset({ 
+        title: '', description: '', longDescription: '', 
+        image1: '', image2: '', tagsString: '', 
+        liveUrl: '', repoUrl: '', slug: '', dataAiHint: '' 
+    }); 
   }
 
   return (
@@ -146,7 +153,7 @@ export default function AdminPortfolioPage() {
           </CardHeader>
           <Form {...form}>
             <form action={formAction}>
-              {currentProject && <input type="hidden" {...form.register('id')} value={currentProject.id} />}
+              {currentProject?.id && <input type="hidden" {...form.register('id')} value={currentProject.id} />}
               <CardContent className="space-y-6">
                 <FormField control={form.control} name="title" render={({ field }) => (
                   <FormItem>
