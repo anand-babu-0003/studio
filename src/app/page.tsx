@@ -1,3 +1,4 @@
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -40,14 +41,17 @@ export default function Home() {
       <ScrollAnimationWrapper className="w-full py-16 md:py-24">
         <section>
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="font-headline text-3xl md:text-4xl font-bold text-center text-primary mb-12">
+              About Me
+            </h2>
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>
-                <h2 className="font-headline text-3xl md:text-4xl font-bold text-primary mb-6">A Little About Me</h2>
+                <h3 className="font-headline text-2xl md:text-3xl font-bold text-primary/90 mb-6">A Glimpse Into My Story</h3>
                 <p className="text-muted-foreground text-lg mb-4">
-                  {aboutMe.bio.split('\n')[0]} {/* First paragraph */}
+                  {aboutMe.bio.split('\n\n')[0]} {/* First paragraph */}
                 </p>
                 <p className="text-muted-foreground text-lg mb-6">
-                  {aboutMe.bio.split('\n')[1]} {/* Second paragraph */}
+                  {aboutMe.bio.split('\n\n')[1] || aboutMe.bio.split('\n')[0]} {/* Second paragraph or fallback to first if only one exists */}
                 </p>
                 <Button asChild variant="link" className="text-primary p-0 text-lg hover:text-accent">
                   <Link href="/about">
@@ -61,7 +65,7 @@ export default function Home() {
                   alt={`Profile picture of ${aboutMe.name.split(' ')[0]}`}
                   width={300}
                   height={300}
-                  className="rounded-full shadow-2xl object-cover"
+                  className="rounded-full shadow-2xl object-cover aspect-square"
                   data-ai-hint={aboutMe.dataAiHint}
                 />
               </div>
