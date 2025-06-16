@@ -76,12 +76,13 @@ export default async function Home() {
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div className="flex justify-center md:order-2">
                 <Image
-                  src={aboutMeData.profileImage || 'https://placehold.co/300x300.png'}
+                  src={aboutMeData.profileImage || 'https://placehold.co/320x320.png'}
                   alt={`Profile picture of ${aboutMeData.name.split(' ')[0]}`}
-                  width={300}
-                  height={300}
+                  width={320}
+                  height={320}
                   className="rounded-full shadow-2xl object-cover aspect-square"
                   data-ai-hint={aboutMeData.dataAiHint}
+                  priority
                 />
               </div>
               <div className="md:order-1">

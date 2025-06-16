@@ -43,12 +43,13 @@ export default async function AboutPage() {
       <div className="grid lg:grid-cols-3 gap-12 items-start">
         <ScrollAnimationWrapper className="lg:col-span-1 flex flex-col items-center" delay={100}>
           <Image
-            src={aboutMeData.profileImage || 'https://placehold.co/280x280.png'}
+            src={aboutMeData.profileImage || 'https://placehold.co/350x350.png'}
             alt={`Profile picture of ${aboutMeData.name}`}
-            width={280}
-            height={280}
+            width={350}
+            height={350}
             className="rounded-full shadow-2xl object-cover mb-8 aspect-square"
             data-ai-hint={aboutMeData.dataAiHint}
+            priority
           />
           <h2 className="font-headline text-3xl font-semibold text-primary text-center">{aboutMeData.name}</h2>
           <p className="text-muted-foreground text-center mt-1">{aboutMeData.title}</p>
