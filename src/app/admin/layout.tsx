@@ -53,7 +53,7 @@ export default function AdminLayout({
       <AdminSidebar />
       <div className="flex flex-col flex-1">
         <AdminHeader />
-        <main className="flex-1 p-4 sm:px-6 sm:py-0 md:gap-8 overflow-y-auto">
+        <main className="flex-1 p-6 overflow-y-auto"> {/* Adjusted padding */}
           {children}
         </main>
       </div>

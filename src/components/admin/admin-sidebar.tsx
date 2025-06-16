@@ -1,3 +1,4 @@
+
 "use client"; 
 
 import Link from 'next/link';
@@ -28,21 +29,22 @@ export function AdminSidebarContent() {
       </div>
       <div className="flex-1">
         <nav className="grid items-start px-2 text-sm font-medium lg:px-4 gap-1 py-4">
-          {adminNavItems.map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-primary/5",
-                pathname === item.href && "bg-muted text-primary hover:text-primary",
-                pathname.startsWith(item.href) && item.href !== "/admin/dashboard" && "bg-muted text-primary hover:text-primary"
-
-              )}
-            >
-              <item.icon className="h-4 w-4" />
-              {item.label}
-            </Link>
-          ))}
+          {adminNavItems.map((item) => {
+            const isActive = (pathname === item.href) || (item.href !== '/admin/dashboard' && pathname.startsWith(item.href));
+            return (
+              <Link
+                key={item.label}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-muted hover:text-primary",
+                  isActive && "bg-muted text-primary font-semibold"
+                )}
+              >
+                <item.icon className="h-4 w-4" />
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
       </div>
     </>

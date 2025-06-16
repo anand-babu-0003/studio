@@ -3,7 +3,7 @@
 
 import { useEffect } from 'react';
 import { useActionState } from 'react';
-import { useFormStatus } from 'react-dom'; // Corrected import
+import { useFormStatus } from 'react-dom';
 import { useForm, type Path } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -13,10 +13,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from '@/hooks/use-toast';
 import { Save, Loader2 } from 'lucide-react';
 
-// Import initial data from data.ts (which now reads from data.json)
 import { aboutMe as initialAboutMeDataFromLib } from '@/lib/data';
 import type { AboutMeData, Experience, Education } from '@/lib/types';
 import { updateAboutDataAction, type UpdateAboutDataFormState } from '@/actions/admin/aboutActions';
@@ -40,7 +40,7 @@ function SubmitButton() {
           Saving...
         </>
       ) : (
-        'Save Changes'
+        'Save All Changes'
       )}
     </Button>
   );
@@ -64,14 +64,12 @@ export default function AdminAboutPage() {
   });
 
   useEffect(() => {
-    console.log("AdminAboutPage: state changed:", state);
     if (state.status === 'success' && state.message) {
       toast({
         title: "Success!",
         description: state.message,
       });
       if (state.data) {
-        console.log("AdminAboutPage: Server action returned success. Data for form.reset:", JSON.stringify(state.data, null, 2));
         const transformedData = {
           ...state.data,
           experience: state.data.experience || [],
@@ -82,11 +80,8 @@ export default function AdminAboutPage() {
           twitterUrl: state.data.twitterUrl || '',
         };
         form.reset(transformedData);
-        console.log("AdminAboutPage: Form reset with new data.");
-        console.log("AdminAboutPage: Form values after reset:", form.getValues());
       }
     } else if (state.status === 'error' && state.message) {
-      console.error("AdminAboutPage: Error from server action:", state);
       toast({
         title: "Error Saving",
         description: state.message,
@@ -127,278 +122,188 @@ export default function AdminAboutPage() {
 
 
   return (
-    <div className="py-6">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <PageHeader
+          title="Manage About Page"
+          subtitle="Edit your profile, bio, contact, experience, and education details."
+          className="py-0 text-left"
+        />
+        <SubmitButton />
+      </div>
+      
       <Form {...form}>
         <form action={formAction} className="space-y-8">
-          <div className="flex items-center justify-between mb-8">
-            <PageHeader
-              title="Manage About Page"
-              subtitle="Edit your bio, profile, experience, and education details."
-              className="py-0 md:py-0 text-left"
-            />
-            <SubmitButton />
-          </div>
+          <Tabs defaultValue="profile" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-6">
+              <TabsTrigger value="profile">Profile & Bio</TabsTrigger>
+              <TabsTrigger value="contact">Contact & Socials</TabsTrigger>
+              <TabsTrigger value="experience">Experience</TabsTrigger>
+              <TabsTrigger value="education">Education</TabsTrigger>
+            </TabsList>
 
-          <div className="grid gap-8 lg:grid-cols-3">
-            <Card className="lg:col-span-1">
-              <CardHeader>
-                <CardTitle>Your Profile</CardTitle>
-                <CardDescription>Update your name, title, and profile picture.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Full Name</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Title / Tagline</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="profileImage"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Profile Image URL</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="https://placehold.co/400x400.png" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="dataAiHint"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Profile Image AI Hint</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="e.g., developer portrait" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
+            <TabsContent value="profile">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Profile & Biography</CardTitle>
+                  <CardDescription>Update your name, title, profile picture and main biography.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Full Name</FormLabel>
+                        <FormControl><Input {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Title / Tagline</FormLabel>
+                        <FormControl><Input {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="profileImage"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Profile Image URL</FormLabel>
+                        <FormControl><Input {...field} placeholder="https://placehold.co/400x400.png" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="dataAiHint"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Profile Image AI Hint</FormLabel>
+                        <FormControl><Input {...field} placeholder="e.g., developer portrait" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="bio"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Biography</FormLabel>
+                        <FormControl><Textarea rows={10} placeholder="Write about yourself..." {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle>Your Bio</CardTitle>
-                <CardDescription>Tell your story. This will appear on your About page and homepage.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <FormField
-                  control={form.control}
-                  name="bio"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Biography</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          rows={10}
-                          placeholder="Write about yourself..."
-                          className="mt-1"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
-
-            <Card className="lg:col-span-3">
-              <CardHeader>
-                <CardTitle>Contact & Social Links</CardTitle>
-                <CardDescription>Update your email and social media URLs.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
+            <TabsContent value="contact">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Contact & Social Links</CardTitle>
+                  <CardDescription>Update your email and social media URLs.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <FormField control={form.control} name="email" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Email Address</FormLabel>
-                      <FormControl>
-                        <Input {...field} type="email" placeholder="your.email@example.com" />
-                      </FormControl>
+                      <FormControl><Input {...field} type="email" placeholder="your.email@example.com" /></FormControl>
                       <FormMessage />
                     </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="linkedinUrl"
-                  render={({ field }) => (
+                  )} />
+                  <FormField control={form.control} name="linkedinUrl" render={({ field }) => (
                     <FormItem>
                       <FormLabel>LinkedIn Profile URL</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="https://linkedin.com/in/yourprofile" />
-                      </FormControl>
+                      <FormControl><Input {...field} placeholder="https://linkedin.com/in/yourprofile" /></FormControl>
                       <FormMessage />
                     </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="githubUrl"
-                  render={({ field }) => (
+                  )} />
+                  <FormField control={form.control} name="githubUrl" render={({ field }) => (
                     <FormItem>
                       <FormLabel>GitHub Profile URL</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="https://github.com/yourusername" />
-                      </FormControl>
+                      <FormControl><Input {...field} placeholder="https://github.com/yourusername" /></FormControl>
                       <FormMessage />
                     </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="twitterUrl"
-                  render={({ field }) => (
+                  )} />
+                  <FormField control={form.control} name="twitterUrl" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Twitter Profile URL (Optional)</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="https://twitter.com/yourusername" />
-                      </FormControl>
+                      <FormControl><Input {...field} placeholder="https://twitter.com/yourusername" /></FormControl>
                       <FormMessage />
                     </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
+                  )} />
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-            <Card className="lg:col-span-3">
-              <CardHeader>
-                <CardTitle>Experience</CardTitle>
-                <CardDescription>Manage your professional experience.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {(form.watch('experience') || []).map((exp, index) => (
-                  <Card key={exp.id} className="p-4 space-y-3">
-                    <input type="hidden" {...form.register(`experience.${index}.id`)} defaultValue={exp.id} />
-                    <FormField
-                        control={form.control}
-                        name={`experience.${index}.role`}
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Role</FormLabel>
-                                <FormControl><Input {...field} /></FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name={`experience.${index}.company`}
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Company</FormLabel>
-                                <FormControl><Input {...field} /></FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                     <FormField
-                        control={form.control}
-                        name={`experience.${index}.period`}
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Period (e.g., 2020 - Present)</FormLabel>
-                                <FormControl><Input {...field} /></FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name={`experience.${index}.description`}
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Description</FormLabel>
-                                <FormControl><Textarea {...field} rows={3} /></FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <Button type="button" variant="destructive" size="sm" onClick={() => removeExperience(index)}>Remove Experience</Button>
-                  </Card>
-                ))}
-                <Button type="button" variant="outline" onClick={addExperience}>Add New Experience</Button>
-              </CardContent>
-            </Card>
+            <TabsContent value="experience">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Professional Experience</CardTitle>
+                  <CardDescription>Manage your work history.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {(form.watch('experience') || []).map((exp, index) => (
+                    <Card key={exp.id} className="p-4 space-y-3 bg-muted/30">
+                      <input type="hidden" {...form.register(`experience.${index}.id`)} defaultValue={exp.id} />
+                      <FormField control={form.control} name={`experience.${index}.role`} render={({ field }) => (
+                        <FormItem><FormLabel>Role</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                      )} />
+                      <FormField control={form.control} name={`experience.${index}.company`} render={({ field }) => (
+                        <FormItem><FormLabel>Company</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                      )} />
+                      <FormField control={form.control} name={`experience.${index}.period`} render={({ field }) => (
+                        <FormItem><FormLabel>Period (e.g., 2020 - Present)</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                      )} />
+                      <FormField control={form.control} name={`experience.${index}.description`} render={({ field }) => (
+                        <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea {...field} rows={3} /></FormControl><FormMessage /></FormItem>
+                      )} />
+                      <Button type="button" variant="destructive" size="sm" onClick={() => removeExperience(index)}>Remove Experience</Button>
+                    </Card>
+                  ))}
+                  <Button type="button" variant="outline" onClick={addExperience}>Add New Experience</Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-            <Card className="lg:col-span-3">
-              <CardHeader>
-                <CardTitle>Education</CardTitle>
-                <CardDescription>Manage your academic background.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {(form.watch('education') || []).map((edu, index) => (
-                  <Card key={edu.id} className="p-4 space-y-3">
-                     <input type="hidden" {...form.register(`education.${index}.id`)} defaultValue={edu.id} />
-                     <FormField
-                        control={form.control}
-                        name={`education.${index}.degree`}
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Degree / Certificate</FormLabel>
-                                <FormControl><Input {...field} /></FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name={`education.${index}.institution`}
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Institution</FormLabel>
-                                <FormControl><Input {...field} /></FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                     <FormField
-                        control={form.control}
-                        name={`education.${index}.period`}
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Period (e.g., 2018 - 2022)</FormLabel>
-                                <FormControl><Input {...field} /></FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                     <Button type="button" variant="destructive" size="sm" onClick={() => removeEducation(index)}>Remove Education</Button>
-                  </Card>
-                ))}
-                 <Button type="button" variant="outline" onClick={addEducation}>Add New Education</Button>
-              </CardContent>
-            </Card>
-
-          </div>
+            <TabsContent value="education">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Academic Background</CardTitle>
+                  <CardDescription>Manage your education history.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {(form.watch('education') || []).map((edu, index) => (
+                    <Card key={edu.id} className="p-4 space-y-3 bg-muted/30">
+                      <input type="hidden" {...form.register(`education.${index}.id`)} defaultValue={edu.id} />
+                      <FormField control={form.control} name={`education.${index}.degree`} render={({ field }) => (
+                        <FormItem><FormLabel>Degree / Certificate</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                      )} />
+                      <FormField control={form.control} name={`education.${index}.institution`} render={({ field }) => (
+                        <FormItem><FormLabel>Institution</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                      )} />
+                      <FormField control={form.control} name={`education.${index}.period`} render={({ field }) => (
+                        <FormItem><FormLabel>Period (e.g., 2018 - 2022)</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                      )} />
+                      <Button type="button" variant="destructive" size="sm" onClick={() => removeEducation(index)}>Remove Education</Button>
+                    </Card>
+                  ))}
+                  <Button type="button" variant="outline" onClick={addEducation}>Add New Education</Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </form>
       </Form>
     </div>
