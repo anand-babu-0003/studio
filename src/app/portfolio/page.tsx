@@ -1,9 +1,26 @@
+
 import { PageHeader } from '@/components/shared/page-header';
 import { PortfolioCard } from '@/components/portfolio/portfolio-card';
-import { portfolioItems } from '@/lib/data';
 import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wrapper';
+import type { PortfolioItem, AppData } from '@/lib/types';
+import fs from 'fs/promises';
+import path from 'path';
 
-export default function PortfolioPage() {
+async function getFreshPortfolioItems(): Promise<PortfolioItem[]> {
+  const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
+  try {
+    const fileContent = await fs.readFile(dataFilePath, 'utf-8');
+    const appData = JSON.parse(fileContent) as AppData;
+    return appData.portfolioItems;
+  } catch (error) {
+    console.error("Error reading data.json for Portfolio page, returning empty array:", error);
+    return [];
+  }
+}
+
+export default async function PortfolioPage() {
+  const portfolioItems = await getFreshPortfolioItems();
+
   return (
     <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
       <ScrollAnimationWrapper>

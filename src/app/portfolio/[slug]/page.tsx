@@ -2,7 +2,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { portfolioItems } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, ExternalLink, Github } from 'lucide-react';
@@ -12,14 +11,31 @@ import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wra
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { PortfolioItem, AppData } from '@/lib/types';
+import fs from 'fs/promises';
+import path from 'path';
+
+async function getFreshPortfolioItemsForSlug(): Promise<PortfolioItem[]> {
+  const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
+  try {
+    const fileContent = await fs.readFile(dataFilePath, 'utf-8');
+    const appData = JSON.parse(fileContent) as AppData;
+    return appData.portfolioItems;
+  } catch (error) {
+    console.error("Error reading data.json for Portfolio slug page, returning empty array:", error);
+    return [];
+  }
+}
 
 export async function generateStaticParams() {
+  const portfolioItems = await getFreshPortfolioItemsForSlug();
   return portfolioItems.map((project) => ({
     slug: project.slug,
   }));
 }
 
-export default function PortfolioDetailPage({ params }: { params: { slug: string } }) {
+export default async function PortfolioDetailPage({ params }: { params: { slug: string } }) {
+  const portfolioItems = await getFreshPortfolioItemsForSlug();
   const project = portfolioItems.find((p) => p.slug === params.slug);
 
   if (!project) {
@@ -48,7 +64,7 @@ export default function PortfolioDetailPage({ params }: { params: { slug: string
                 <CarouselItem key={index}>
                   <div className="aspect-video relative">
                     <Image 
-                      src={src} 
+                      src={src || 'https://placehold.co/600x400.png'}
                       alt={`${project.title} - Screenshot ${index + 1}`} 
                       fill
                       className="object-cover"

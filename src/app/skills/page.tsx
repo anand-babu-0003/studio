@@ -2,14 +2,30 @@
 import { PageHeader } from '@/components/shared/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { skills, skillCategories, lucideIconsMap } from '@/lib/data';
-import type { Skill } from '@/lib/types';
+import { skillCategories, lucideIconsMap } from '@/lib/data'; // Static configs are fine
+import type { Skill, AppData } from '@/lib/types';
 import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wrapper';
 import { Package } from 'lucide-react'; 
-import { cn } from '@/lib/utils';
+// import { cn } from '@/lib/utils'; // cn was unused
 import { Badge } from '@/components/ui/badge';
+import fs from 'fs/promises';
+import path from 'path';
 
-export default function SkillsPage() {
+async function getFreshSkillsData(): Promise<Skill[]> {
+  const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
+  try {
+    const fileContent = await fs.readFile(dataFilePath, 'utf-8');
+    const appData = JSON.parse(fileContent) as AppData;
+    return appData.skills;
+  } catch (error) {
+    console.error("Error reading data.json for Skills page, returning empty array:", error);
+    return [];
+  }
+}
+
+export default async function SkillsPage() { 
+  const skillsData = await getFreshSkillsData();
+
   return (
     <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
       <ScrollAnimationWrapper>
@@ -21,7 +37,7 @@ export default function SkillsPage() {
 
       <div className="space-y-12">
         {skillCategories.map((category, categoryIndex) => {
-          const categorySkills = skills.filter((skill) => skill.category === category);
+          const categorySkills = skillsData.filter((skill) => skill.category === category);
           if (categorySkills.length === 0) return null;
 
           return (

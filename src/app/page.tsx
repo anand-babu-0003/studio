@@ -4,13 +4,40 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { ArrowRight, Eye, Code2 } from 'lucide-react';
-import { portfolioItems, aboutMe } from '@/lib/data';
-import type { PortfolioItem } from '@/lib/types';
+import type { PortfolioItem, AboutMeData, AppData } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wrapper';
+import fs from 'fs/promises';
+import path from 'path';
 
-export default function Home() {
-  const featuredProjects = portfolioItems.slice(0, 2);
+async function getFreshAppData(): Promise<AppData> {
+  const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
+  try {
+    const fileContent = await fs.readFile(dataFilePath, 'utf-8');
+    return JSON.parse(fileContent) as AppData;
+  } catch (error) {
+    console.error("Error reading data.json for Home page, returning default structure:", error);
+    return {
+      portfolioItems: [],
+      skills: [],
+      aboutMe: {
+        name: 'Default Name',
+        title: 'Default Title',
+        bio: 'Default bio.',
+        profileImage: 'https://placehold.co/400x400.png',
+        dataAiHint: 'placeholder image',
+        experience: [],
+        education: [],
+      },
+    };
+  }
+}
+
+export default async function Home() {
+  const appData = await getFreshAppData();
+  const aboutMeData = appData.aboutMe;
+  const allPortfolioItems = appData.portfolioItems;
+  const featuredProjects = allPortfolioItems.slice(0, 2);
 
   return (
     <div className="flex flex-col">
@@ -19,11 +46,11 @@ export default function Home() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col justify-center items-center flex-grow">
           <div> {/* Added a wrapper div for easier centering control of the content block */}
             <h1 className="font-headline text-5xl md:text-7xl font-bold tracking-tight">
-              <span className="block animate-fadeInUp-1">Hi, I&apos;m <span className="text-primary">{aboutMe.name.split(' ')[0]}</span></span>
-              <span className="block text-primary/80 animate-fadeInUp-2">{aboutMe.title}</span>
+              <span className="block animate-fadeInUp-1">Hi, I&apos;m <span className="text-primary">{aboutMeData.name.split(' ')[0]}</span></span>
+              <span className="block text-primary/80 animate-fadeInUp-2">{aboutMeData.title}</span>
             </h1>
             <p className="mt-6 max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground animate-fadeInUp-2" style={{ animationDelay: '0.5s' }}>
-              {aboutMe.bio.substring(0, 150)}... {/* Short intro */}
+              {(aboutMeData.bio || '').substring(0, 150)}... {/* Short intro */}
             </p>
             <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4 animate-fadeInUp-2" style={{ animationDelay: '0.7s' }}>
               <Button asChild size="lg" className="text-lg px-8 py-6 shadow-lg hover:shadow-primary/30 transition-shadow duration-300">
@@ -50,10 +77,10 @@ export default function Home() {
               <div>
                 <h3 className="font-headline text-2xl md:text-3xl font-bold text-primary/90 mb-6">A Glimpse Into My Story</h3>
                 <p className="text-muted-foreground text-lg mb-4">
-                  {aboutMe.bio.split('\n\n')[0]} {/* First paragraph */}
+                  {(aboutMeData.bio || '').split('\n\n')[0]} {/* First paragraph */}
                 </p>
                 <p className="text-muted-foreground text-lg mb-6">
-                  {aboutMe.bio.split('\n\n')[1] || aboutMe.bio.split('\n')[0]} {/* Second paragraph or fallback to first if only one exists */}
+                  {(aboutMeData.bio || '').split('\n\n')[1] || (aboutMeData.bio || '').split('\n')[0]} {/* Second paragraph or fallback */}
                 </p>
                 <Button asChild variant="link" className="text-primary p-0 text-lg hover:text-accent">
                   <Link href="/about">
@@ -63,12 +90,12 @@ export default function Home() {
               </div>
               <div className="flex justify-center">
                 <Image
-                  src={aboutMe.profileImage}
-                  alt={`Profile picture of ${aboutMe.name.split(' ')[0]}`}
+                  src={aboutMeData.profileImage || 'https://placehold.co/300x300.png'}
+                  alt={`Profile picture of ${aboutMeData.name.split(' ')[0]}`}
                   width={300}
                   height={300}
                   className="rounded-full shadow-2xl object-cover aspect-square"
-                  data-ai-hint={aboutMe.dataAiHint}
+                  data-ai-hint={aboutMeData.dataAiHint}
                 />
               </div>
             </div>
@@ -90,7 +117,7 @@ export default function Home() {
                   <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col h-full">
                     <CardHeader className="p-0">
                       <Image
-                        src={project.images[0]}
+                        src={project.images[0] || 'https://placehold.co/600x400.png'}
                         alt={project.title}
                         width={600}
                         height={400}

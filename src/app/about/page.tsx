@@ -2,32 +2,56 @@
 import Image from 'next/image';
 import { PageHeader } from '@/components/shared/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { aboutMe } from '@/lib/data';
 import { Briefcase, GraduationCap } from 'lucide-react';
 import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wrapper';
+import type { AboutMeData, AppData } from '@/lib/types';
+import fs from 'fs/promises';
+import path from 'path';
 
-export default function AboutPage() {
+async function getFreshAboutMeData(): Promise<AboutMeData> {
+  const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
+  try {
+    const fileContent = await fs.readFile(dataFilePath, 'utf-8');
+    const appData = JSON.parse(fileContent) as AppData;
+    return appData.aboutMe;
+  } catch (error) {
+    console.error("Error reading data.json for About page, returning default structure:", error);
+    return { 
+      name: 'Default Name', 
+      title: 'Default Title', 
+      bio: 'Default bio.', 
+      profileImage: 'https://placehold.co/400x400.png', 
+      dataAiHint: 'placeholder image',
+      experience: [], 
+      education: [] 
+    };
+  }
+}
+
+export default async function AboutPage() {
+  const aboutMeData = await getFreshAboutMeData();
+
   return (
     <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
       <ScrollAnimationWrapper>
         <PageHeader 
           title="About Me" 
-          subtitle={`Get to know the person behind the code: ${aboutMe.name.split(' ')[0]}.`}
+          subtitle={`Get to know the person behind the code: ${aboutMeData.name.split(' ')[0]}.`}
         />
       </ScrollAnimationWrapper>
 
       <div className="grid lg:grid-cols-3 gap-12 items-start">
         <ScrollAnimationWrapper className="lg:col-span-1 flex flex-col items-center" delay={100}>
           <Image
-            src={aboutMe.profileImage}
-            alt={`Profile picture of ${aboutMe.name}`}
+            src={aboutMeData.profileImage || 'https://placehold.co/280x280.png'}
+            alt={`Profile picture of ${aboutMeData.name}`}
             width={280}
             height={280}
             className="rounded-full shadow-2xl object-cover mb-8 aspect-square"
-            data-ai-hint={aboutMe.dataAiHint}
+            data-ai-hint={aboutMeData.dataAiHint}
           />
-          <h2 className="font-headline text-3xl font-semibold text-primary text-center">{aboutMe.name}</h2>
-          <p className="text-muted-foreground text-center mt-1">{aboutMe.title}</p>
+          <h2 className="font-headline text-3xl font-semibold text-primary text-center">{aboutMeData.name}</h2>
+          <p className="text-muted-foreground text-center mt-1">{aboutMeData.title}</p>
         </ScrollAnimationWrapper>
 
         <ScrollAnimationWrapper className="lg:col-span-2" delay={200}>
@@ -36,7 +60,7 @@ export default function AboutPage() {
               <CardTitle className="font-headline text-2xl text-primary">My Story</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-lg text-foreground/80 leading-relaxed">
-              {aboutMe.bio.split('\n\n').map((paragraph, index) => (
+              {(aboutMeData.bio || '').split('\n\n').map((paragraph, index) => (
                 <p key={index}>{paragraph}</p>
               ))}
             </CardContent>
@@ -54,7 +78,7 @@ export default function AboutPage() {
                 <Briefcase className="mr-3 h-7 w-7 text-primary" /> Professional Journey
               </h3>
               <div className="space-y-6">
-                {aboutMe.experience.map((exp, index) => (
+                {aboutMeData.experience.map((exp, index) => (
                   <ScrollAnimationWrapper key={exp.id} delay={index * 100}>
                     <Card className="shadow-md hover:shadow-lg transition-shadow">
                       <CardHeader>
@@ -76,7 +100,7 @@ export default function AboutPage() {
                 <GraduationCap className="mr-3 h-7 w-7 text-primary" /> Academic Background
               </h3>
               <div className="space-y-6">
-                {aboutMe.education.map((edu, index) => (
+                {aboutMeData.education.map((edu, index) => (
                   <ScrollAnimationWrapper key={edu.id} delay={index * 100}>
                     <Card className="shadow-md hover:shadow-lg transition-shadow">
                       <CardHeader>
