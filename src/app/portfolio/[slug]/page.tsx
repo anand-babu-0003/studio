@@ -80,7 +80,7 @@ export default async function PortfolioDetailPage({ params }: { params: { slug: 
         </div>
       )}
 
-      <div className="max-w-4xl mx-auto space-y-16"> {/* Increased max-width from 3xl to 4xl */}
+      <div className="max-w-5xl mx-auto space-y-16"> {/* Changed max-w-4xl to max-w-5xl */}
         <Card>
           <CardHeader>
             <CardTitle className="font-headline text-2xl text-primary">About this project</CardTitle>
@@ -149,3 +149,4 @@ export default async function PortfolioDetailPage({ params }: { params: { slug: 
     </div>
   );
 }
+
