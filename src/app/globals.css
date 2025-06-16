@@ -131,9 +131,9 @@ body {
     animation: fadeInUp 0.6s ease-out 0.3s forwards; /* 0.3s delay */
     opacity: 0; /* Start hidden */
   }
-  .animate-fadeInUp-delayed {
-    animation: fadeInUp 0.6s ease-out 0.6s forwards; /* 0.6s delay for subsequent sections */
-    opacity: 0; /* Start hidden */
+  .animate-fadeInUp-delayed { /* This class might be replaced by scroll animations for sections below the fold */
+    animation: fadeInUp 0.6s ease-out 0.6s forwards; 
+    opacity: 0; 
   }
 
   @keyframes animatedGradient {
@@ -145,5 +145,19 @@ body {
   .bg-animated-gradient {
     background-size: 200% 200%;
     animation: animatedGradient 15s ease infinite;
+  }
+
+  /* Styles for scroll-triggered animations */
+  .scroll-trigger {
+    opacity: 0;
+    transform: translateY(30px); /* Start slightly lower */
+    transition-property: opacity, transform;
+    transition-duration: 0.5s; /* Adjust duration as needed */
+    transition-timing-function: ease-out;
+  }
+
+  .scroll-trigger.animate-scroll-in {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
