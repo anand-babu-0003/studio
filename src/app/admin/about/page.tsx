@@ -18,7 +18,7 @@ import { Save, Loader2 } from 'lucide-react';
 import { aboutMe as initialAboutMeData } from '@/lib/data';
 import type { AboutMeData, Experience, Education } from '@/lib/types'; 
 import { updateAboutDataAction, type UpdateAboutDataFormState } from '@/actions/admin/aboutActions';
-import { aboutMeSchema } from '@/lib/adminSchemas'; // Import the schema
+import { aboutMeSchema } from '@/lib/adminSchemas'; 
 
 const initialState: UpdateAboutDataFormState = {
   message: '',
@@ -227,7 +227,7 @@ export default function AdminAboutPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {(form.watch('experience') || []).map((exp, index) => (
-                  <Card key={exp.id || `exp-idx-${index}`} className="p-4 space-y-3">
+                  <Card key={exp.id} className="p-4 space-y-3">
                     <input type="hidden" {...form.register(`experience.${index}.id`)} defaultValue={exp.id} />
                     <FormField
                         control={form.control}
@@ -287,7 +287,7 @@ export default function AdminAboutPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {(form.watch('education') || []).map((edu, index) => (
-                  <Card key={edu.id || `edu-idx-${index}`} className="p-4 space-y-3">
+                  <Card key={edu.id} className="p-4 space-y-3">
                      <input type="hidden" {...form.register(`education.${index}.id`)} defaultValue={edu.id} />
                      <FormField
                         control={form.control}

@@ -2,7 +2,7 @@
 "use server";
 
 import type { AboutMeData, Experience, Education } from '@/lib/types';
-import { aboutMeSchema } from '@/lib/adminSchemas'; // Import the schema
+import { aboutMeSchema } from '@/lib/adminSchemas';
 
 export type UpdateAboutDataFormState = {
   message: string;
@@ -16,39 +16,51 @@ export async function updateAboutDataAction(
   formData: FormData
 ): Promise<UpdateAboutDataFormState> {
 
-  const experienceEntries = Array.from(formData.entries())
-    .filter(([key]) => key.startsWith('experience.'))
-    .reduce((acc, [key, value]) => {
-      const parts = key.split('.');
-      const index = parseInt(parts[1]);
-      const field = parts[2] as keyof Experience;
-      if (!acc[index]) acc[index] = { id: formData.get(`experience.${index}.id`) as string || `exp_temp_${Date.now()}_${index}`}; 
-      // @ts-ignore
-      acc[index][field] = value;
-      return acc;
-    }, [] as any[]);
-    
-  const educationEntries = Array.from(formData.entries())
-    .filter(([key]) => key.startsWith('education.'))
-    .reduce((acc, [key, value]) => {
-      const parts = key.split('.');
-      const index = parseInt(parts[1]);
-      const field = parts[2] as keyof Education;
-      if (!acc[index]) acc[index] = { id: formData.get(`education.${index}.id`) as string || `edu_temp_${Date.now()}_${index}` }; 
-      // @ts-ignore
-      acc[index][field] = value;
-      return acc;
-    }, [] as any[]);
+  const experienceEntries: Experience[] = [];
+  const educationEntries: Education[] = [];
+  const experienceIndices = new Set<string>();
+  const educationIndices = new Set<string>();
 
-  const rawData = {
-    name: formData.get('name'),
-    title: formData.get('title'),
-    bio: formData.get('bio'),
-    profileImage: formData.get('profileImage'),
-    dataAiHint: formData.get('dataAiHint'),
-    // Filter out entries that might be entirely empty if a user adds then clears all fields of an item
-    experience: experienceEntries.filter(e => e && e.role && e.company && e.period && e.description), 
-    education: educationEntries.filter(e => e && e.degree && e.institution && e.period),
+  // Collect all unique indices for experience and education
+  for (const [key] of formData.entries()) {
+    if (key.startsWith('experience.')) {
+      experienceIndices.add(key.split('.')[1]);
+    } else if (key.startsWith('education.')) {
+      educationIndices.add(key.split('.')[1]);
+    }
+  }
+
+  // Reconstruct experience entries
+  for (const index of Array.from(experienceIndices).sort((a,b) => parseInt(a) - parseInt(b))) {
+    const id = formData.get(`experience.${index}.id`) as string || `exp_temp_${Date.now()}_${index}`;
+    experienceEntries.push({
+      id: id,
+      role: formData.get(`experience.${index}.role`) as string || '',
+      company: formData.get(`experience.${index}.company`) as string || '',
+      period: formData.get(`experience.${index}.period`) as string || '',
+      description: formData.get(`experience.${index}.description`) as string || '',
+    });
+  }
+    
+  // Reconstruct education entries
+  for (const index of Array.from(educationIndices).sort((a,b) => parseInt(a) - parseInt(b))) {
+    const id = formData.get(`education.${index}.id`) as string || `edu_temp_${Date.now()}_${index}`;
+    educationEntries.push({
+      id: id,
+      degree: formData.get(`education.${index}.degree`) as string || '',
+      institution: formData.get(`education.${index}.institution`) as string || '',
+      period: formData.get(`education.${index}.period`) as string || '',
+    });
+  }
+
+  const rawData: AboutMeData = {
+    name: formData.get('name') as string,
+    title: formData.get('title') as string,
+    bio: formData.get('bio') as string,
+    profileImage: formData.get('profileImage') as string,
+    dataAiHint: formData.get('dataAiHint') as string,
+    experience: experienceEntries, 
+    education: educationEntries,
   };
   
   const validatedFields = aboutMeSchema.safeParse(rawData);
@@ -58,20 +70,21 @@ export async function updateAboutDataAction(
     return {
       message: "Failed to update data. Please check the errors below.",
       status: 'error',
-      errors: fieldErrors as UpdateAboutDataFormState['errors'],
+      errors: fieldErrors as UpdateAboutDataFormState['errors'], // Cast needed due to complex nested error types
     };
   }
 
   const dataToSave = validatedFields.data;
 
   try {
-    console.log("Saving About Me data (simulation):", JSON.stringify(dataToSave, null, 2));
-    await new Promise(resolve => setTimeout(resolve, 1000)); 
+    // Simulate saving the data
+    console.log("Simulating save of About Me data:", JSON.stringify(dataToSave, null, 2));
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
 
     return {
       message: "About page data updated successfully! (Simulated Save)",
       status: 'success',
-      data: dataToSave,
+      data: dataToSave, // Return the "saved" data
     };
 
   } catch (error) {
