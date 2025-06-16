@@ -102,7 +102,11 @@ export default function AdminSkillsPage() {
 
     } else if (formActionState.status === 'error') {
       console.error("AdminSkillsPage: Error from server action:", formActionState);
-      toast({ title: "Error Saving", description: formActionState.message, variant: "destructive" });
+      const errorMessage = typeof formActionState.message === 'string' && formActionState.message.trim() !== ''
+        ? formActionState.message
+        : "An unspecified error occurred. Please check server logs for more details.";
+      toast({ title: "Error Saving", description: errorMessage, variant: "destructive" });
+      
       if (formActionState.errors) {
         Object.entries(formActionState.errors).forEach(([key, fieldErrorMessages]) => {
           if (Array.isArray(fieldErrorMessages) && fieldErrorMessages.length > 0) {

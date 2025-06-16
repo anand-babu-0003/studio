@@ -81,10 +81,13 @@ export default function AdminAboutPage() {
         };
         form.reset(transformedData);
       }
-    } else if (state.status === 'error' && state.message) {
+    } else if (state.status === 'error') {
+      const errorMessage = typeof state.message === 'string' && state.message.trim() !== ''
+        ? state.message
+        : "An unspecified error occurred. Please check server logs for more details.";
       toast({
         title: "Error Saving",
-        description: state.message,
+        description: errorMessage,
         variant: "destructive",
       });
       if (state.errors) {
