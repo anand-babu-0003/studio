@@ -1,41 +1,55 @@
 
 "use server";
 
-import type { AboutMeData, Experience, Education } from '@/lib/types';
+import type { AboutMeData, Experience, Education, AppData, Skill, PortfolioItem } from '@/lib/types';
 import { aboutMeSchema } from '@/lib/adminSchemas';
 import fs from 'fs/promises';
 import path from 'path';
 
 const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
 
-async function readDataFromFile(): Promise<{ portfolioItems: any[], skills: any[], aboutMe: AboutMeData }> {
+const localDefaultAppData: AppData = {
+  portfolioItems: [],
+  skills: [],
+  aboutMe: {
+    name: 'Default Name',
+    title: 'Default Title',
+    bio: 'Default bio.',
+    profileImage: 'https://placehold.co/400x400.png',
+    dataAiHint: 'placeholder image',
+    experience: [],
+    education: [],
+    email: 'default@example.com',
+    linkedinUrl: '',
+    githubUrl: '',
+    twitterUrl: '',
+  },
+};
+
+async function readDataFromFile(): Promise<AppData> {
   try {
     const fileContent = await fs.readFile(dataFilePath, 'utf-8');
-    return JSON.parse(fileContent);
-  } catch (error) {
-    console.error("Error reading data file, returning empty structure:", error);
-    // Ensure a default structure is returned if file is missing or corrupt
-    return { 
-        portfolioItems: [], 
-        skills: [], 
-        aboutMe: { 
-            name: '', 
-            title: '', 
-            bio: '', 
-            profileImage: '', 
-            dataAiHint: '', 
-            experience: [], 
-            education: [],
-            email: '',
-            linkedinUrl: '',
-            githubUrl: '',
-            twitterUrl: '',
-        } 
+    if (!fileContent.trim()) {
+        console.warn("Data file is empty in aboutActions, returning default structure.");
+        return localDefaultAppData;
+    }
+    const parsedData = JSON.parse(fileContent);
+
+    return {
+      portfolioItems: parsedData.portfolioItems ?? localDefaultAppData.portfolioItems,
+      skills: parsedData.skills ?? localDefaultAppData.skills,
+      aboutMe: {
+        ...localDefaultAppData.aboutMe,
+        ...(parsedData.aboutMe ?? {}),
+      },
     };
+  } catch (error) {
+    console.error("Error reading or parsing data file in aboutActions, returning default structure:", error);
+    return localDefaultAppData;
   }
 }
 
-async function writeDataToFile(data: any): Promise<void> {
+async function writeDataToFile(data: AppData): Promise<void> {
   await fs.writeFile(dataFilePath, JSON.stringify(data, null, 2), 'utf-8');
 }
 
@@ -114,7 +128,7 @@ export async function updateAboutDataAction(
 
   try {
     const allData = await readDataFromFile();
-    allData.aboutMe = dataToSave;
+    allData.aboutMe = dataToSave; // dataToSave is already a fully conformed AboutMeData
     await writeDataToFile(allData);
 
     return {

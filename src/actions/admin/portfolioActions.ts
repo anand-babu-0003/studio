@@ -1,39 +1,51 @@
 
 "use server";
 
-import type { PortfolioItem } from '@/lib/types';
+import type { PortfolioItem, AppData, Skill, AboutMeData } from '@/lib/types';
 import { portfolioItemAdminSchema, type PortfolioAdminFormData } from '@/lib/adminSchemas';
 import fs from 'fs/promises';
 import path from 'path';
-import type { AboutMeData, Skill } from '@/lib/types';
 
 const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
 
-interface AppData {
-  portfolioItems: PortfolioItem[];
-  skills: Skill[]; 
-  aboutMe: AboutMeData; 
-}
+const localDefaultAppData: AppData = {
+  portfolioItems: [],
+  skills: [],
+  aboutMe: {
+    name: 'Default Name',
+    title: 'Default Title',
+    bio: 'Default bio.',
+    profileImage: 'https://placehold.co/400x400.png',
+    dataAiHint: 'placeholder image',
+    experience: [],
+    education: [],
+    email: 'default@example.com',
+    linkedinUrl: '',
+    githubUrl: '',
+    twitterUrl: '',
+  },
+};
 
 async function readDataFromFile(): Promise<AppData> {
   try {
     const fileContent = await fs.readFile(dataFilePath, 'utf-8');
-    return JSON.parse(fileContent);
-  } catch (error) {
-     console.error("Error reading data file in portfolioActions, returning empty structure:", error);
-     return { 
-        portfolioItems: [], 
-        skills: [], 
-        aboutMe: { 
-            name: '', 
-            title: '', 
-            bio: '', 
-            profileImage: '', 
-            dataAiHint: '', 
-            experience: [], 
-            education: [] 
-        } 
+     if (!fileContent.trim()) {
+        console.warn("Data file is empty in portfolioActions, returning default structure.");
+        return localDefaultAppData;
+    }
+    const parsedData = JSON.parse(fileContent);
+    
+    return {
+      portfolioItems: parsedData.portfolioItems ?? localDefaultAppData.portfolioItems,
+      skills: parsedData.skills ?? localDefaultAppData.skills,
+      aboutMe: {
+        ...localDefaultAppData.aboutMe,
+        ...(parsedData.aboutMe ?? {}),
+      },
     };
+  } catch (error) {
+     console.error("Error reading or parsing data file in portfolioActions, returning default structure:", error);
+     return localDefaultAppData;
   }
 }
 
@@ -64,7 +76,7 @@ export async function savePortfolioItemAction(
     repoUrl: formData.get('repoUrl') as string || undefined,
     slug: formData.get('slug') as string,
     dataAiHint: formData.get('dataAiHint') as string || undefined,
-    readmeContent: formData.get('readmeContent') as string || undefined, // Added
+    readmeContent: formData.get('readmeContent') as string || undefined,
   };
 
   const validatedFields = portfolioItemAdminSchema.safeParse(rawData);
@@ -95,20 +107,19 @@ export async function savePortfolioItemAction(
     repoUrl: data.repoUrl,
     slug: data.slug,
     dataAiHint: data.dataAiHint,
-    readmeContent: data.readmeContent, // Added
+    readmeContent: data.readmeContent,
   };
 
   try {
     const allData = await readDataFromFile();
-    if (data.id) { // Editing existing project
+    if (data.id) { 
       const projectIndex = allData.portfolioItems.findIndex(p => p.id === data.id);
       if (projectIndex > -1) {
         allData.portfolioItems[projectIndex] = projectToSave;
       } else {
-        // Should not happen if ID is present, but handle defensively
         allData.portfolioItems.push(projectToSave);
       }
-    } else { // Adding new project
+    } else { 
       allData.portfolioItems.push(projectToSave);
     }
     await writeDataToFile(allData);
@@ -153,5 +164,3 @@ export async function deletePortfolioItemAction(itemId: string): Promise<DeleteP
         return { success: false, message: "Failed to delete project." };
     }
 }
-
-    

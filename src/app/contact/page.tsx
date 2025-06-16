@@ -8,30 +8,38 @@ import type { AboutMeData, AppData } from '@/lib/types';
 import fs from 'fs/promises';
 import path from 'path';
 
+const defaultAboutMeData: AboutMeData = { 
+  name: 'Default Name', 
+  title: 'Default Title', 
+  bio: 'Default bio.', 
+  profileImage: 'https://placehold.co/400x400.png', 
+  dataAiHint: 'placeholder image',
+  experience: [], 
+  education: [],
+  email: 'default@example.com',
+  linkedinUrl: '',
+  githubUrl: '',
+  twitterUrl: '',
+};
+
 async function getFreshAboutMeData(): Promise<AboutMeData> {
   const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
   try {
     const fileContent = await fs.readFile(dataFilePath, 'utf-8');
-    const appData = JSON.parse(fileContent) as AppData;
-    return appData.aboutMe;
-  } catch (error) {
-    console.error("Error reading data.json for Contact page, returning default structure:", error);
-    return { 
-      name: 'Default Name', 
-      title: 'Default Title', 
-      bio: 'Default bio.', 
-      profileImage: 'https://placehold.co/400x400.png', 
-      dataAiHint: 'placeholder image',
-      experience: [], 
-      education: [],
-      email: 'default@example.com',
-      linkedinUrl: '',
-      githubUrl: '',
-      twitterUrl: '',
+    if (!fileContent.trim()) {
+        console.warn("Data file is empty for Contact page, returning default structure.");
+        return defaultAboutMeData;
+    }
+    const appData = JSON.parse(fileContent) as Partial<AppData>;
+    return {
+      ...defaultAboutMeData,
+      ...(appData.aboutMe ?? {}),
     };
+  } catch (error) {
+    console.error("Error reading or parsing data.json for Contact page, returning default structure:", error);
+    return defaultAboutMeData;
   }
 }
-
 
 export default async function ContactPage() {
   const aboutMeData = await getFreshAboutMeData();

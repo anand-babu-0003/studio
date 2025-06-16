@@ -8,23 +8,36 @@ import type { AboutMeData, AppData } from '@/lib/types';
 import fs from 'fs/promises';
 import path from 'path';
 
+const defaultAboutMeData: AboutMeData = { 
+  name: 'Default Name', 
+  title: 'Default Title', 
+  bio: 'Default bio.', 
+  profileImage: 'https://placehold.co/350x350.png', 
+  dataAiHint: 'placeholder image',
+  experience: [], 
+  education: [],
+  email: 'default@example.com',
+  linkedinUrl: '',
+  githubUrl: '',
+  twitterUrl: '',
+};
+
 async function getFreshAboutMeData(): Promise<AboutMeData> {
   const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
   try {
     const fileContent = await fs.readFile(dataFilePath, 'utf-8');
-    const appData = JSON.parse(fileContent) as AppData;
-    return appData.aboutMe;
-  } catch (error) {
-    console.error("Error reading data.json for About page, returning default structure:", error);
-    return { 
-      name: 'Default Name', 
-      title: 'Default Title', 
-      bio: 'Default bio.', 
-      profileImage: 'https://placehold.co/400x400.png', 
-      dataAiHint: 'placeholder image',
-      experience: [], 
-      education: [] 
+    if (!fileContent.trim()) {
+        console.warn("Data file is empty for About page, returning default structure.");
+        return defaultAboutMeData;
+    }
+    const appData = JSON.parse(fileContent) as Partial<AppData>;
+    return {
+      ...defaultAboutMeData,
+      ...(appData.aboutMe ?? {}),
     };
+  } catch (error) {
+    console.error("Error reading or parsing data.json for About page, returning default structure:", error);
+    return defaultAboutMeData;
   }
 }
 
@@ -79,7 +92,7 @@ export default async function AboutPage() {
                 <Briefcase className="mr-3 h-7 w-7 text-primary" /> Professional Journey
               </h3>
               <div className="space-y-6">
-                {aboutMeData.experience.map((exp, index) => (
+                {(aboutMeData.experience || []).map((exp, index) => (
                   <ScrollAnimationWrapper key={exp.id} delay={index * 100}>
                     <Card className="shadow-md hover:shadow-lg transition-shadow">
                       <CardHeader>
@@ -101,7 +114,7 @@ export default async function AboutPage() {
                 <GraduationCap className="mr-3 h-7 w-7 text-primary" /> Academic Background
               </h3>
               <div className="space-y-6">
-                {aboutMeData.education.map((edu, index) => (
+                {(aboutMeData.education || []).map((edu, index) => (
                   <ScrollAnimationWrapper key={edu.id} delay={index * 100}>
                     <Card className="shadow-md hover:shadow-lg transition-shadow">
                       <CardHeader>

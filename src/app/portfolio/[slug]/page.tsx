@@ -14,15 +14,21 @@ import type { PortfolioItem, AppData } from '@/lib/types';
 import fs from 'fs/promises';
 import path from 'path';
 
+const defaultPortfolioItems: PortfolioItem[] = [];
+
 async function getFreshPortfolioItemsForSlug(): Promise<PortfolioItem[]> {
   const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
   try {
     const fileContent = await fs.readFile(dataFilePath, 'utf-8');
-    const appData = JSON.parse(fileContent) as AppData;
-    return appData.portfolioItems;
+     if (!fileContent.trim()) {
+        console.warn("Data file is empty for Portfolio slug page, returning empty array.");
+        return defaultPortfolioItems;
+    }
+    const appData = JSON.parse(fileContent) as Partial<AppData>;
+    return appData.portfolioItems ?? defaultPortfolioItems;
   } catch (error) {
-    console.error("Error reading data.json for Portfolio slug page, returning empty array:", error);
-    return [];
+    console.error("Error reading or parsing data.json for Portfolio slug page, returning empty array:", error);
+    return defaultPortfolioItems;
   }
 }
 
@@ -55,7 +61,7 @@ export default async function PortfolioDetailPage({ params }: { params: { slug: 
         <div className="mb-16">
           <Carousel className="w-full max-w-3xl mx-auto shadow-2xl rounded-lg overflow-hidden">
             <CarouselContent>
-              {project.images.map((src, index) => (
+              {(project.images || []).map((src, index) => (
                 <CarouselItem key={index}>
                   <div className="aspect-video relative">
                     <Image 
@@ -70,7 +76,7 @@ export default async function PortfolioDetailPage({ params }: { params: { slug: 
                 </CarouselItem>
               ))}
             </CarouselContent>
-            {project.images.length > 1 && (
+            {(project.images || []).length > 1 && (
               <>
                 <CarouselPrevious />
                 <CarouselNext />
@@ -98,7 +104,7 @@ export default async function PortfolioDetailPage({ params }: { params: { slug: 
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
-              {project.tags.map((tag) => (
+              {(project.tags || []).map((tag) => (
                 <Badge key={tag} variant="default" className="text-sm px-3 py-1">{tag}</Badge>
               ))}
             </div>

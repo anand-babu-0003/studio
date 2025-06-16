@@ -8,15 +8,15 @@ import path from 'path';
 const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
 
 // Default structure to return in case of errors or if the file is empty/corrupted.
-const defaultAboutMeData: AboutMeData = {
-  name: 'User Name',
-  title: 'Professional Title',
-  bio: 'A brief bio will appear here.',
+const defaultFullAboutMeData: AboutMeData = {
+  name: 'Default Name',
+  title: 'Default Title',
+  bio: 'Default bio.',
   profileImage: 'https://placehold.co/300x300.png',
   dataAiHint: 'profile picture',
   experience: [],
   education: [],
-  email: 'contact@example.com',
+  email: 'default@example.com',
   linkedinUrl: '',
   githubUrl: '',
   twitterUrl: '',
@@ -25,14 +25,18 @@ const defaultAboutMeData: AboutMeData = {
 export async function getAboutMeDataAction(): Promise<AboutMeData> {
   try {
     const fileContent = await fs.readFile(dataFilePath, 'utf-8');
-    const appData = JSON.parse(fileContent) as AppData;
-    // Ensure all expected fields are present, falling back to defaults if necessary
+    if (!fileContent.trim()) {
+        console.warn("Data file is empty in getAboutMeDataAction, returning default structure.");
+        return defaultFullAboutMeData;
+    }
+    const appData = JSON.parse(fileContent) as Partial<AppData>;
+    
     return {
-      ...defaultAboutMeData, // Start with defaults
-      ...(appData.aboutMe || {}), // Overlay with data from file
+      ...defaultFullAboutMeData, 
+      ...(appData.aboutMe ?? {}), 
     };
   } catch (error) {
-    console.error("Error reading or parsing data.json in getAboutMeDataAction:", error);
-    return defaultAboutMeData; // Return default data on error
+    console.error("Error reading or parsing data.json in getAboutMeDataAction, returning default structure:", error);
+    return defaultFullAboutMeData;
   }
 }

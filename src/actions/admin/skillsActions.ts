@@ -1,39 +1,51 @@
 
 "use server";
 
-import type { Skill } from '@/lib/types';
+import type { Skill, AppData, PortfolioItem, AboutMeData } from '@/lib/types';
 import { skillAdminSchema, type SkillAdminFormData } from '@/lib/adminSchemas';
 import fs from 'fs/promises';
 import path from 'path';
-import type { PortfolioItem, AboutMeData } from '@/lib/types';
 
 const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
 
-interface AppData {
-  portfolioItems: PortfolioItem[]; 
-  skills: Skill[];
-  aboutMe: AboutMeData; 
-}
+const localDefaultAppData: AppData = {
+  portfolioItems: [],
+  skills: [],
+  aboutMe: {
+    name: 'Default Name',
+    title: 'Default Title',
+    bio: 'Default bio.',
+    profileImage: 'https://placehold.co/400x400.png',
+    dataAiHint: 'placeholder image',
+    experience: [],
+    education: [],
+    email: 'default@example.com',
+    linkedinUrl: '',
+    githubUrl: '',
+    twitterUrl: '',
+  },
+};
 
 async function readDataFromFile(): Promise<AppData> {
   try {
     const fileContent = await fs.readFile(dataFilePath, 'utf-8');
-    return JSON.parse(fileContent);
-  } catch (error) {
-    console.error("Error reading data file in skillsActions, returning empty structure:", error);
-    return { 
-        portfolioItems: [], 
-        skills: [], 
-        aboutMe: { 
-            name: '', 
-            title: '', 
-            bio: '', 
-            profileImage: '', 
-            dataAiHint: '', 
-            experience: [], 
-            education: [] 
-        } 
+    if (!fileContent.trim()) {
+        console.warn("Data file is empty in skillsActions, returning default structure.");
+        return localDefaultAppData;
+    }
+    const parsedData = JSON.parse(fileContent);
+
+    return {
+      portfolioItems: parsedData.portfolioItems ?? localDefaultAppData.portfolioItems,
+      skills: parsedData.skills ?? localDefaultAppData.skills,
+      aboutMe: {
+        ...localDefaultAppData.aboutMe,
+        ...(parsedData.aboutMe ?? {}),
+      },
     };
+  } catch (error) {
+    console.error("Error reading or parsing data file in skillsActions, returning default structure:", error);
+    return localDefaultAppData;
   }
 }
 
@@ -85,15 +97,14 @@ export async function saveSkillAction(
 
   try {
     const allData = await readDataFromFile();
-    if (data.id) { // Editing existing skill
+    if (data.id) { 
       const skillIndex = allData.skills.findIndex(s => s.id === data.id);
       if (skillIndex > -1) {
         allData.skills[skillIndex] = skillToSave;
       } else {
-        // Should not happen if ID is present, but handle defensively
         allData.skills.push(skillToSave);
       }
-    } else { // Adding new skill
+    } else { 
       allData.skills.push(skillToSave);
     }
     await writeDataToFile(allData);
@@ -138,5 +149,3 @@ export async function deleteSkillAction(itemId: string): Promise<DeleteSkillResu
         return { success: false, message: "Failed to delete skill." };
     }
 }
-
-    

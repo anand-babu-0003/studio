@@ -2,24 +2,29 @@
 import { PageHeader } from '@/components/shared/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { skillCategories, lucideIconsMap } from '@/lib/data'; // Static configs are fine
+import { skillCategories, lucideIconsMap } from '@/lib/data'; 
 import type { Skill, AppData } from '@/lib/types';
 import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wrapper';
 import { Package } from 'lucide-react'; 
-// import { cn } from '@/lib/utils'; // cn was unused
 import { Badge } from '@/components/ui/badge';
 import fs from 'fs/promises';
 import path from 'path';
+
+const defaultSkillsData: Skill[] = [];
 
 async function getFreshSkillsData(): Promise<Skill[]> {
   const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
   try {
     const fileContent = await fs.readFile(dataFilePath, 'utf-8');
-    const appData = JSON.parse(fileContent) as AppData;
-    return appData.skills;
+    if (!fileContent.trim()) {
+        console.warn("Data file is empty for Skills page, returning empty array.");
+        return defaultSkillsData;
+    }
+    const appData = JSON.parse(fileContent) as Partial<AppData>;
+    return appData.skills ?? defaultSkillsData;
   } catch (error) {
-    console.error("Error reading data.json for Skills page, returning empty array:", error);
-    return [];
+    console.error("Error reading or parsing data.json for Skills page, returning empty array:", error);
+    return defaultSkillsData;
   }
 }
 
@@ -37,7 +42,7 @@ export default async function SkillsPage() {
 
       <div className="space-y-12">
         {skillCategories.map((category, categoryIndex) => {
-          const categorySkills = skillsData.filter((skill) => skill.category === category);
+          const categorySkills = (skillsData || []).filter((skill) => skill.category === category);
           if (categorySkills.length === 0) return null;
 
           return (

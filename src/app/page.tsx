@@ -4,36 +4,50 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { ArrowRight, Eye, Code2 } from 'lucide-react';
-import type { PortfolioItem, AboutMeData, AppData } from '@/lib/types';
+import type { PortfolioItem, AboutMeData, AppData, Skill } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wrapper';
 import fs from 'fs/promises';
 import path from 'path';
 
+const defaultAppData: AppData = {
+  portfolioItems: [],
+  skills: [],
+  aboutMe: {
+    name: 'Default Name',
+    title: 'Default Title',
+    bio: 'Default bio.',
+    profileImage: 'https://placehold.co/320x320.png',
+    dataAiHint: 'placeholder image',
+    experience: [],
+    education: [],
+    email: 'default@example.com',
+    linkedinUrl: '',
+    githubUrl: '',
+    twitterUrl: '',
+  },
+};
+
 async function getFreshAppData(): Promise<AppData> {
   const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
   try {
     const fileContent = await fs.readFile(dataFilePath, 'utf-8');
-    return JSON.parse(fileContent) as AppData;
-  } catch (error) {
-    console.error("Error reading data.json for Home page, returning default structure:", error);
+    if (!fileContent.trim()) {
+        console.warn("Data file is empty for Home page, returning default structure.");
+        return defaultAppData;
+    }
+    const parsedData = JSON.parse(fileContent) as Partial<AppData>;
     return {
-      portfolioItems: [],
-      skills: [],
+      portfolioItems: parsedData.portfolioItems ?? defaultAppData.portfolioItems,
+      skills: parsedData.skills ?? defaultAppData.skills,
       aboutMe: {
-        name: 'Default Name',
-        title: 'Default Title',
-        bio: 'Default bio.',
-        profileImage: 'https://placehold.co/400x400.png',
-        dataAiHint: 'placeholder image',
-        experience: [],
-        education: [],
-        email: 'contact@example.com',
-        linkedinUrl: '',
-        githubUrl: '',
-        twitterUrl: '',
+        ...defaultAppData.aboutMe,
+        ...(parsedData.aboutMe ?? {}),
       },
     };
+  } catch (error) {
+    console.error("Error reading or parsing data.json for Home page, returning default structure:", error);
+    return defaultAppData;
   }
 }
 
@@ -43,7 +57,6 @@ export default async function Home() {
   const allPortfolioItems = appData.portfolioItems;
   const featuredProjects = allPortfolioItems.slice(0, 2);
 
-  // Extract the first paragraph for the glimpse
   const firstParagraphBio = (aboutMeData.bio || '').split('\n\n')[0];
 
   return (
@@ -51,13 +64,13 @@ export default async function Home() {
       {/* Hero Section */}
       <section className="w-full min-h-screen flex flex-col justify-center items-center py-20 md:py-32 bg-gradient-to-br from-primary/5 via-background to-accent/5 bg-animated-gradient">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col justify-center items-center flex-grow">
-          <div> {/* Added a wrapper div for easier centering control of the content block */}
+          <div> 
             <h1 className="font-headline text-5xl md:text-7xl font-bold tracking-tight">
               <span className="block animate-fadeInUp-1">Hi, I&apos;m <span className="text-primary">{aboutMeData.name.split(' ')[0]}</span></span>
               <span className="block text-primary/80 animate-fadeInUp-2">{aboutMeData.title}</span>
             </h1>
             <p className="mt-6 max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground animate-fadeInUp-2" style={{ animationDelay: '0.5s' }}>
-              {(aboutMeData.bio || '').substring(0, 150)}... {/* Short intro */}
+              {(aboutMeData.bio || '').substring(0, 150)}... 
             </p>
             <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4 animate-fadeInUp-2" style={{ animationDelay: '0.7s' }}>
               <Button asChild size="lg" className="text-lg px-8 py-6 shadow-lg hover:shadow-primary/30 transition-shadow duration-300">
@@ -108,7 +121,6 @@ export default async function Home() {
         </section>
       </ScrollAnimationWrapper>
 
-
       {/* Featured Projects Section */}
       <ScrollAnimationWrapper className="w-full py-16 md:py-24 bg-primary/5">
         <section>
@@ -133,7 +145,7 @@ export default async function Home() {
                     <CardContent className="p-6 flex-grow">
                       <CardTitle className="font-headline text-2xl text-primary mb-2">{project.title}</CardTitle>
                       <div className="mb-3 space-x-2">
-                        {project.tags.slice(0, 3).map(tag => (
+                        {(project.tags || []).slice(0, 3).map(tag => (
                           <Badge key={tag} variant="secondary" className="font-normal">{tag}</Badge>
                         ))}
                       </div>
