@@ -129,7 +129,9 @@
   "aboutMe": {
     "name": "Anand (Demo)",
     "title": "Full Stack Developer & UI/UX Enthusiast",
-    "bio": "Hello! I'm a passionate and results-driven Full Stack Developer with a keen eye for UI/UX design. I thrive on transforming complex problems into intuitive, user-friendly applications. My journey in tech has been fueled by a constant curiosity and a desire to build things that make a difference.\n\nI have experience across the entire development lifecycle, from conceptualization and design to development, testing, and deployment. I enjoy working with modern technologies and continuously learning new skills to stay at the forefront of innovation.\n\nWhen I'm not coding, you can find me exploring new design trends, contributing to open-source projects, or enjoying a good cup of coffee while brainstorming my next big idea. I believe in the power of collaboration and am always excited to work with like-minded individuals to create impactful digital experiences.",
+    "bio": "Hello! I'm a passionate and results-driven Full Stack Developer with a keen eye for UI/UX design. I thrive on transforming complex problems into intuitive, user-friendly applications. My journey in tech has been fueled by a constant curiosity and a desire to build things that make a difference.\r\n\r\nI have experience across the entire development lifecycle, from conceptualization and design to development, testing, and deployment. I enjoy working with modern technologies and continuously learning new skills to stay at the forefront of innovation.\r\n\r\nWhen I'm not coding, you can find me exploring new design trends, contributing to open-source projects, or enjoying a good cup of coffee while brainstorming my next big idea. I believe in the power of collaboration and am always excited to work with like-minded individuals to create impactful digital experiences.",
+    "profileImage": "https://photos.fife.usercontent.google.com/pw/AP1GczPB9DPrUEks_XFUKHq1oKZUg3MzQ3RdlzI4-BPrfGSJrqJQEZsWdqijAg=w582-h881-s-no-gm?authuser=0",
+    "dataAiHint": "developer portrait",
     "experience": [
       {
         "id": "exp1",
@@ -159,8 +161,6 @@
         "institution": "State Engineering College",
         "period": "2013 - 2017"
       }
-    ],
-    "profileImage": "https://placehold.co/400x400.png?text=Profile",
-    "dataAiHint": "developer portrait"
+    ]
   }
 }
