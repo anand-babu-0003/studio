@@ -5,13 +5,14 @@ import type { Skill } from '@/lib/types';
 import { skillAdminSchema, type SkillAdminFormData } from '@/lib/adminSchemas';
 import fs from 'fs/promises';
 import path from 'path';
+import type { PortfolioItem, AboutMeData } from '@/lib/types';
 
 const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
 
 interface AppData {
-  portfolioItems: any[]; // Assuming portfolio structure
+  portfolioItems: PortfolioItem[]; 
   skills: Skill[];
-  aboutMe: any; // Assuming aboutMe structure
+  aboutMe: AboutMeData; 
 }
 
 async function readDataFromFile(): Promise<AppData> {
@@ -20,7 +21,19 @@ async function readDataFromFile(): Promise<AppData> {
     return JSON.parse(fileContent);
   } catch (error) {
     console.error("Error reading data file in skillsActions, returning empty structure:", error);
-    return { portfolioItems: [], skills: [], aboutMe: {} };
+    return { 
+        portfolioItems: [], 
+        skills: [], 
+        aboutMe: { 
+            name: '', 
+            title: '', 
+            bio: '', 
+            profileImage: '', 
+            dataAiHint: '', 
+            experience: [], 
+            education: [] 
+        } 
+    };
   }
 }
 
