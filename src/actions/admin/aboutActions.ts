@@ -84,7 +84,7 @@ export async function updateAboutDataAction(
     const company = formData.get(`experience.${index}.company`) as string || '';
     const period = formData.get(`experience.${index}.period`) as string || '';
     const description = formData.get(`experience.${index}.description`) as string || '';
-    if (id) {
+    if (id) { // Only push if id exists, assuming id is critical
         experienceEntries.push({ id, role, company, period, description });
     }
   }
@@ -94,7 +94,7 @@ export async function updateAboutDataAction(
     const degree = formData.get(`education.${index}.degree`) as string || '';
     const institution = formData.get(`education.${index}.institution`) as string || '';
     const period = formData.get(`education.${index}.period`) as string || '';
-    if (id) {
+    if (id) { // Only push if id exists
         educationEntries.push({ id, degree, institution, period });
     }
   }
@@ -128,20 +128,22 @@ export async function updateAboutDataAction(
 
   try {
     const allData = await readDataFromFile();
-    allData.aboutMe = dataToSave; // dataToSave is already a fully conformed AboutMeData
+    allData.aboutMe = dataToSave;
     await writeDataToFile(allData);
 
     return {
       message: "About page data updated successfully!",
       status: 'success',
       data: dataToSave,
+      errors: {}, // Ensure errors is present even on success
     };
 
   } catch (error) {
-    console.error("Error updating About Me data:", error);
+    console.error("Error updating About Me data:", error); // Server-side log
     return {
-      message: "An unexpected error occurred while trying to save. Please try again later.",
+      message: "An unexpected server error occurred while saving About Me data. Please try again.",
       status: 'error',
+      errors: {}, // Ensure errors object is present
     };
   }
 }

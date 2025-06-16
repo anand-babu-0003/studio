@@ -117,6 +117,7 @@ export async function savePortfolioItemAction(
       if (projectIndex > -1) {
         allData.portfolioItems[projectIndex] = projectToSave;
       } else {
+        // If ID provided but not found, treat as new add
         allData.portfolioItems.push(projectToSave);
       }
     } else { 
@@ -128,13 +129,15 @@ export async function savePortfolioItemAction(
       message: `Project "${projectToSave.title}" ${data.id ? 'updated' : 'added'} successfully!`,
       status: 'success',
       project: projectToSave,
+      errors: {}, // Ensure errors is present even on success
     };
 
   } catch (error) {
-    console.error("Error saving portfolio project:", error);
+    console.error("Error saving portfolio project:", error); // Server-side log
     return {
-      message: "An unexpected error occurred. Please try again.",
+      message: "An unexpected server error occurred while saving the project. Please try again.",
       status: 'error',
+      errors: {}, // Ensure errors object is present
     };
   }
 }
@@ -161,6 +164,6 @@ export async function deletePortfolioItemAction(itemId: string): Promise<DeleteP
         }
     } catch (error) {
         console.error("Error deleting portfolio item:", error);
-        return { success: false, message: "Failed to delete project." };
+        return { success: false, message: "Failed to delete project due to a server error." };
     }
 }

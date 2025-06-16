@@ -102,6 +102,7 @@ export async function saveSkillAction(
       if (skillIndex > -1) {
         allData.skills[skillIndex] = skillToSave;
       } else {
+        // If ID provided but not found, treat as new add (or could error, but adding is safer)
         allData.skills.push(skillToSave);
       }
     } else { 
@@ -113,13 +114,15 @@ export async function saveSkillAction(
       message: `Skill "${skillToSave.name}" ${data.id ? 'updated' : 'added'} successfully!`,
       status: 'success',
       skill: skillToSave,
+      errors: {}, // Ensure errors is present even on success
     };
 
   } catch (error) {
-    console.error("Error saving skill:", error);
+    console.error("Error saving skill:", error); // Server-side log of the actual error
     return {
-      message: "An unexpected error occurred. Please try again.",
+      message: "An unexpected server error occurred while saving the skill. Please try again.",
       status: 'error',
+      errors: {}, // Ensure errors object is present
     };
   }
 }
@@ -146,6 +149,6 @@ export async function deleteSkillAction(itemId: string): Promise<DeleteSkillResu
         }
     } catch (error) {
         console.error("Error deleting skill:", error);
-        return { success: false, message: "Failed to delete skill." };
+        return { success: false, message: "Failed to delete skill due to a server error." };
     }
 }
