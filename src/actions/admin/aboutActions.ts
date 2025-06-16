@@ -28,26 +28,42 @@ export async function updateAboutDataAction(
       educationIndices.add(key.split('.')[1]);
     }
   }
-
+  
   for (const index of Array.from(experienceIndices).sort((a,b) => parseInt(a) - parseInt(b))) {
-    const id = formData.get(`experience.${index}.id`) as string; // ID should always be present from client
-    experienceEntries.push({
-      id: id || `exp_fallback_${Date.now()}_${index}`, // Fallback ID, though client should always send one
-      role: formData.get(`experience.${index}.role`) as string || '',
-      company: formData.get(`experience.${index}.company`) as string || '',
-      period: formData.get(`experience.${index}.period`) as string || '',
-      description: formData.get(`experience.${index}.description`) as string || '',
-    });
+    const id = formData.get(`experience.${index}.id`) as string; 
+    const role = formData.get(`experience.${index}.role`) as string || '';
+    const company = formData.get(`experience.${index}.company`) as string || '';
+    const period = formData.get(`experience.${index}.period`) as string || '';
+    const description = formData.get(`experience.${index}.description`) as string || '';
+
+    // Only add if it's a meaningful entry, e.g., if role or company is filled.
+    // Or simply add all and let Zod validation handle emptiness if fields are required.
+    // For now, we add if an ID is present, which it always should be from client.
+    if (id) {
+        experienceEntries.push({
+          id: id, // Client should always send an ID
+          role,
+          company,
+          period,
+          description,
+        });
+    }
   }
     
   for (const index of Array.from(educationIndices).sort((a,b) => parseInt(a) - parseInt(b))) {
-    const id = formData.get(`education.${index}.id`) as string; // ID should always be present
-    educationEntries.push({
-      id: id || `edu_fallback_${Date.now()}_${index}`, // Fallback ID
-      degree: formData.get(`education.${index}.degree`) as string || '',
-      institution: formData.get(`education.${index}.institution`) as string || '',
-      period: formData.get(`education.${index}.period`) as string || '',
-    });
+    const id = formData.get(`education.${index}.id`) as string; 
+    const degree = formData.get(`education.${index}.degree`) as string || '';
+    const institution = formData.get(`education.${index}.institution`) as string || '';
+    const period = formData.get(`education.${index}.period`) as string || '';
+    
+    if (id) {
+        educationEntries.push({
+          id: id, 
+          degree,
+          institution,
+          period,
+        });
+    }
   }
 
   const rawData: AboutMeData = {
