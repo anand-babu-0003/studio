@@ -1,10 +1,12 @@
+@import "./styles/github-markdown.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* Import github-markdown-css if it's a separate file, or paste its content here */
 /* Assuming we'll create src/styles/github-markdown.css */
-@import "./styles/github-markdown.css";
+
 
 body {
   font-family: Arial, Helvetica, sans-serif;
@@ -309,4 +311,3 @@ body {
 .dark .markdown-body hr {
     background-color: hsl(var(--border));
 }
-
