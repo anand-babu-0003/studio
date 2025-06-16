@@ -6,7 +6,7 @@ import type { Skill } from '@/lib/types';
 
 export default function SkillsPage() {
   return (
-    <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
+    <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8 animate-fadeInUp-1">
       <PageHeader 
         title="My Skills" 
         subtitle="A showcase of my technical expertise and the tools I love to work with."

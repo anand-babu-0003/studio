@@ -22,7 +22,7 @@ export default function PortfolioDetailPage({ params }: { params: { slug: string
   }
 
   return (
-    <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
+    <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8 animate-fadeInUp-1">
       <Button asChild variant="outline" className="mb-8">
         <Link href="/portfolio">
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to Portfolio

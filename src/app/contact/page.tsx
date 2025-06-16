@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 
 export default function ContactPage() {
   return (
-    <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
+    <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8 animate-fadeInUp-1">
       <PageHeader 
         title="Get in Touch"
         subtitle="Have a project in mind, a question, or just want to say hi? I'd love to hear from you."

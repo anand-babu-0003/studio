@@ -4,7 +4,7 @@ import { portfolioItems } from '@/lib/data';
 
 export default function PortfolioPage() {
   return (
-    <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
+    <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8 animate-fadeInUp-1">
       <PageHeader 
         title="My Portfolio"
         subtitle="A collection of projects I've passionately built. Explore my work to see how I transform ideas into reality."
