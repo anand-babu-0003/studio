@@ -1,3 +1,4 @@
+
 import type React from 'react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -28,3 +29,30 @@ export interface SocialLink {
   url: string;
   icon: LucideIcon | React.ElementType;
 }
+
+export interface Experience {
+  id: string;
+  role: string;
+  company: string;
+  period: string;
+  description: string;
+}
+
+export interface Education {
+  id: string;
+  degree: string;
+  institution: string;
+  period: string;
+}
+
+export interface AboutMeData {
+  name: string;
+  title: string;
+  bio: string;
+  profileImage: string;
+  dataAiHint: string;
+  experience: Experience[];
+  education: Education[];
+}
+
+    

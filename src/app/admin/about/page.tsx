@@ -1,157 +1,322 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
+import { useForm, type SubmitHandler } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+
 import { PageHeader } from '@/components/shared/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Save } from 'lucide-react';
-import { aboutMe as initialAboutMeData } from '@/lib/data'; // Import the initial data
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useToast } from '@/hooks/use-toast';
+import { Save, Loader2 } from 'lucide-react';
 
-type AboutMeData = typeof initialAboutMeData;
+import { aboutMe as initialAboutMeData } from '@/lib/data';
+import type { AboutMeData } from '@/lib/types'; 
+import { updateAboutDataAction, type UpdateAboutDataFormState, aboutMeSchema } from '@/actions/admin/aboutActions';
+
+const initialState: UpdateAboutDataFormState = {
+  message: '',
+  status: 'idle',
+  errors: {},
+};
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" disabled={pending}>
+      <Save className="mr-2 h-4 w-4" />
+      {pending ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Saving...
+        </>
+      ) : (
+        'Save Changes'
+      )}
+    </Button>
+  );
+}
 
 export default function AdminAboutPage() {
-  const [formData, setFormData] = useState<AboutMeData>(initialAboutMeData);
-  const [isSaving, setIsSaving] = useState(false);
+  const [state, formAction] = useFormState(updateAboutDataAction, initialState);
+  const { toast } = useToast();
 
-  // Effect to load data if it changes elsewhere (though not strictly necessary with current static import)
+  const form = useForm<AboutMeData>({
+    resolver: zodResolver(aboutMeSchema),
+    defaultValues: initialAboutMeData, // Load initial data from lib/data.ts
+  });
+
   useEffect(() => {
-    setFormData(initialAboutMeData);
-  }, []);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
+    if (state.status === 'success' && state.message) {
+      toast({
+        title: "Success!",
+        description: state.message,
+      });
+      // Optionally reset form if needed, or re-fetch data if it were from a DB
+      // form.reset(state.data); // If action returned updated data
+    } else if (state.status === 'error' && state.message) {
+      toast({
+        title: "Error Saving",
+        description: state.message,
+        variant: "destructive",
+      });
+      if (state.errors) {
+        Object.entries(state.errors).forEach(([key, value]) => {
+          if (value && value.length > 0) {
+            form.setError(key as keyof AboutMeData, { type: 'server', message: value.join(', ') });
+          }
+        });
+      }
+    }
+  }, [state, toast, form]);
+  
+  // Handle experience and education changes locally if needed for UI before save
+  // For a real DB, these would also be part of the form submission or separate actions
   const handleExperienceChange = (index: number, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    const newExperience = [...formData.experience];
-    // @ts-ignore
-    newExperience[index][name] = value;
-    setFormData(prev => ({ ...prev, experience: newExperience }));
+    const currentExperience = form.getValues('experience');
+    const newExperience = [...currentExperience];
+    // @ts-ignore - For nested structure, direct assignment works with react-hook-form
+    newExperience[index][name as keyof typeof newExperience[0]] = value;
+    form.setValue('experience', newExperience, { shouldValidate: true });
   };
   
   const handleEducationChange = (index: number, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    const newEducation = [...formData.education];
+    const currentEducation = form.getValues('education');
+    const newEducation = [...currentEducation];
     // @ts-ignore
-    newEducation[index][name] = value;
-    setFormData(prev => ({ ...prev, education: newEducation }));
+    newEducation[index][name as keyof typeof newEducation[0]] = value;
+    form.setValue('education', newEducation, { shouldValidate: true });
   };
 
-  const handleSaveChanges = async () => {
-    setIsSaving(true);
-    console.log("Saving data:", formData);
-    // In a real application, you would call a server action here to save the data
-    // For example: await updateAboutMeData(formData);
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-    setIsSaving(false);
-    // Potentially show a success toast/message
-    alert("Changes saved (logged to console). Implement actual saving to see persistent changes.");
-  };
 
   return (
     <div className="py-6">
-      <div className="flex items-center justify-between mb-8">
-        <PageHeader 
-          title="Manage About Page" 
-          subtitle="Edit your bio, profile, experience, and education details." 
-          className="py-0 md:py-0 text-left" 
-        />
-        <Button onClick={handleSaveChanges} disabled={isSaving}>
-          <Save className="mr-2 h-4 w-4" /> 
-          {isSaving ? 'Saving...' : 'Save Changes'}
-        </Button>
-      </div>
-
-      <div className="grid gap-8 lg:grid-cols-3">
-        {/* Profile Details Card */}
-        <Card className="lg:col-span-1">
-          <CardHeader>
-            <CardTitle>Your Profile</CardTitle>
-            <CardDescription>Update your name, title, and profile picture.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input id="name" name="name" value={formData.name} onChange={handleChange} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="title">Title / Tagline</Label>
-              <Input id="title" name="title" value={formData.title} onChange={handleChange} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="profileImage">Profile Image URL</Label>
-              <Input id="profileImage" name="profileImage" value={formData.profileImage} onChange={handleChange} placeholder="https://placehold.co/400x400.png" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="dataAiHint">Profile Image AI Hint</Label>
-              <Input id="dataAiHint" name="dataAiHint" value={formData.dataAiHint} onChange={handleChange} placeholder="e.g., developer portrait" />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Bio Card */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Your Bio</CardTitle>
-            <CardDescription>Tell your story. This will appear on your About page and homepage.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Label htmlFor="bio">Biography</Label>
-            <Textarea 
-              id="bio" 
-              name="bio" 
-              value={formData.bio} 
-              onChange={handleChange} 
-              rows={10} 
-              placeholder="Write about yourself..."
-              className="mt-1"
+      <Form {...form}>
+        <form action={formAction} className="space-y-8">
+          <div className="flex items-center justify-between mb-8">
+            <PageHeader
+              title="Manage About Page"
+              subtitle="Edit your bio, profile, experience, and education details."
+              className="py-0 md:py-0 text-left"
             />
-          </CardContent>
-        </Card>
+            <SubmitButton />
+          </div>
 
-        {/* Experience Section - Placeholder for now */}
-        <Card className="lg:col-span-3">
-          <CardHeader>
-            <CardTitle>Experience</CardTitle>
-            <CardDescription>Manage your professional experience. (Full editing coming soon)</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {formData.experience.map((exp, index) => (
-              <div key={exp.id} className="p-4 border rounded-md">
-                <p className="font-semibold">{exp.role} at {exp.company}</p>
-                <p className="text-sm text-muted-foreground">{exp.period}</p>
-                <p className="mt-1 text-sm">{exp.description}</p>
-                {/* Add input fields here for editing in a future step */}
-              </div>
-            ))}
-            <Button variant="outline" disabled>Add New Experience (Coming Soon)</Button>
-          </CardContent>
-        </Card>
+          <div className="grid gap-8 lg:grid-cols-3">
+            <Card className="lg:col-span-1">
+              <CardHeader>
+                <CardTitle>Your Profile</CardTitle>
+                <CardDescription>Update your name, title, and profile picture.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Full Name</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Title / Tagline</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="profileImage"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Profile Image URL</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="https://placehold.co/400x400.png" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="dataAiHint"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Profile Image AI Hint</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="e.g., developer portrait" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
 
-        {/* Education Section - Placeholder for now */}
-        <Card className="lg:col-span-3">
-          <CardHeader>
-            <CardTitle>Education</CardTitle>
-            <CardDescription>Manage your academic background. (Full editing coming soon)</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {formData.education.map((edu, index) => (
-              <div key={edu.id} className="p-4 border rounded-md">
-                <p className="font-semibold">{edu.degree}</p>
-                <p className="text-sm text-muted-foreground">{edu.institution} | {edu.period}</p>
-                {/* Add input fields here for editing in a future step */}
-              </div>
-            ))}
-            <Button variant="outline" disabled>Add New Education (Coming Soon)</Button>
-          </CardContent>
-        </Card>
-      </div>
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle>Your Bio</CardTitle>
+                <CardDescription>Tell your story. This will appear on your About page and homepage.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <FormField
+                  control={form.control}
+                  name="bio"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Biography</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          rows={10}
+                          placeholder="Write about yourself..."
+                          className="mt-1"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+            
+            {/* Experience Section - Placeholder for full editing */}
+            <Card className="lg:col-span-3">
+              <CardHeader>
+                <CardTitle>Experience</CardTitle>
+                <CardDescription>Manage your professional experience. (Full editing functionality is a next step)</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {form.watch('experience').map((exp, index) => (
+                  <div key={exp.id} className="p-4 border rounded-md space-y-2">
+                    <FormField
+                        control={form.control}
+                        name={`experience.${index}.role`}
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Role</FormLabel>
+                                <FormControl><Input {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name={`experience.${index}.company`}
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Company</FormLabel>
+                                <FormControl><Input {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                     <FormField
+                        control={form.control}
+                        name={`experience.${index}.period`}
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Period</FormLabel>
+                                <FormControl><Input {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name={`experience.${index}.description`}
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Description</FormLabel>
+                                <FormControl><Textarea {...field} rows={3} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                  </div>
+                ))}
+                <Button type="button" variant="outline" onClick={() => {
+                  const newExperience = [...form.getValues('experience'), {id: `new_exp_${Date.now()}`, role: '', company: '', period: '', description: ''}];
+                  form.setValue('experience', newExperience);
+                }}>Add New Experience</Button>
+              </CardContent>
+            </Card>
+
+            {/* Education Section - Placeholder for full editing */}
+            <Card className="lg:col-span-3">
+              <CardHeader>
+                <CardTitle>Education</CardTitle>
+                <CardDescription>Manage your academic background. (Full editing functionality is a next step)</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {form.watch('education').map((edu, index) => (
+                  <div key={edu.id} className="p-4 border rounded-md space-y-2">
+                     <FormField
+                        control={form.control}
+                        name={`education.${index}.degree`}
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Degree</FormLabel>
+                                <FormControl><Input {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name={`education.${index}.institution`}
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Institution</FormLabel>
+                                <FormControl><Input {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                     <FormField
+                        control={form.control}
+                        name={`education.${index}.period`}
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Period</FormLabel>
+                                <FormControl><Input {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                  </div>
+                ))}
+                 <Button type="button" variant="outline" onClick={() => {
+                  const newEducation = [...form.getValues('education'), {id: `new_edu_${Date.now()}`, degree: '', institution: '', period: ''}];
+                  form.setValue('education', newEducation);
+                }}>Add New Education</Button>
+              </CardContent>
+            </Card>
+
+          </div>
+        </form>
+      </Form>
     </div>
   );
 }
+
+    
