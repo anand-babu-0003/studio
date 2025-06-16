@@ -61,71 +61,7 @@
       "readmeContent": ""
     }
   ],
-  "skills": [
-    {
-      "id": "express",
-      "name": "Express.js",
-      "iconName": "Server",
-      "category": "Backend",
-      "proficiency": 80
-    },
-    {
-      "id": "django",
-      "name": "Django",
-      "iconName": "Server",
-      "category": "Backend",
-      "proficiency": 70
-    },
-    {
-      "id": "postgres",
-      "name": "PostgreSQL",
-      "iconName": "Database",
-      "category": "Backend",
-      "proficiency": 75
-    },
-    {
-      "id": "mongodb",
-      "name": "MongoDB",
-      "iconName": "Database",
-      "category": "Backend",
-      "proficiency": 80
-    },
-    {
-      "id": "docker",
-      "name": "Docker",
-      "iconName": "Settings",
-      "category": "DevOps",
-      "proficiency": 70
-    },
-    {
-      "id": "aws",
-      "name": "AWS",
-      "iconName": "Cloud",
-      "category": "DevOps",
-      "proficiency": 65
-    },
-    {
-      "id": "git",
-      "name": "Git",
-      "iconName": "Briefcase",
-      "category": "Tools",
-      "proficiency": 95
-    },
-    {
-      "id": "figma",
-      "name": "Figma",
-      "iconName": "PenTool",
-      "category": "Tools",
-      "proficiency": 70
-    },
-    {
-      "id": "vscode",
-      "name": "VS Code",
-      "iconName": "Terminal",
-      "category": "Tools",
-      "proficiency": 95
-    }
-  ],
+  "skills": [],
   "aboutMe": {
     "name": "Anand (Demo)",
     "title": "Full Stack Developer & UI/UX Enthusiast",

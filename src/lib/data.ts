@@ -24,20 +24,16 @@ const defaultAppData: AppData = {
   },
 };
 
-// Ensure appDataForClient is always a valid AppData object,
-// merging jsonDataFromFile with defaults to prevent issues if jsonDataFromFile is incomplete.
-const rawAppData = jsonDataFromFile as any; // Cast to any to safely check structure
+// Cast imported JSON directly and use nullish coalescing for defaults.
+const importedData = jsonDataFromFile as AppData;
 
 const appDataForClient: AppData = {
-  portfolioItems: Array.isArray(rawAppData?.portfolioItems) 
-    ? rawAppData.portfolioItems 
-    : defaultAppData.portfolioItems,
-  skills: Array.isArray(rawAppData?.skills) 
-    ? rawAppData.skills 
-    : defaultAppData.skills,
-  aboutMe: (typeof rawAppData?.aboutMe === 'object' && rawAppData.aboutMe !== null)
-    ? { ...defaultAppData.aboutMe, ...rawAppData.aboutMe }
-    : defaultAppData.aboutMe,
+  portfolioItems: importedData?.portfolioItems ?? defaultAppData.portfolioItems,
+  skills: importedData?.skills ?? defaultAppData.skills,
+  aboutMe: {
+    ...defaultAppData.aboutMe,
+    ...(importedData?.aboutMe ?? {}), // Spread imported aboutMe over defaults
+  },
 };
 
 export const portfolioItems: PortfolioItem[] = appDataForClient.portfolioItems;
