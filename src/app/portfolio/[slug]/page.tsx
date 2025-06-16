@@ -57,7 +57,7 @@ export default async function PortfolioDetailPage({ params }: { params: { slug: 
       </ScrollAnimationWrapper>
       
       {project.images && project.images.length > 0 && (
-        <ScrollAnimationWrapper className="mb-12" delay={200}>
+        <ScrollAnimationWrapper className="mb-16" delay={200}> {/* Increased mb-12 to mb-16 */}
           <Carousel className="w-full max-w-3xl mx-auto shadow-2xl rounded-lg overflow-hidden">
             <CarouselContent>
               {project.images.map((src, index) => (
@@ -85,7 +85,7 @@ export default async function PortfolioDetailPage({ params }: { params: { slug: 
         </ScrollAnimationWrapper>
       )}
 
-      <div className="max-w-3xl mx-auto space-y-12">
+      <div className="max-w-3xl mx-auto space-y-16"> {/* Increased space-y-12 to space-y-16 */}
         <ScrollAnimationWrapper delay={300}>
           <Card>
             <CardHeader>
@@ -162,3 +162,4 @@ export default async function PortfolioDetailPage({ params }: { params: { slug: 
     </div>
   );
 }
+
