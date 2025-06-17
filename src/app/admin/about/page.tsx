@@ -11,7 +11,7 @@ import { PageHeader } from '@/components/shared/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from '@/hooks/use-toast';
@@ -77,8 +77,8 @@ const prepareFullAboutMeDataForForm = (data?: AboutMeData): AboutMeData => {
     bio: data.bio || '',
     profileImage: data.profileImage || '',
     dataAiHint: data.dataAiHint || '',
-    experience: (data.experience || []).map(exp => ({ ...exp, role: exp.role || '', company: exp.company || '', period: exp.period || '', description: exp.description || '' })),
-    education: (data.education || []).map(edu => ({ ...edu, degree: edu.degree || '', institution: edu.institution || '', period: edu.period || '' })),
+    experience: (data.experience || []).map(exp => ({ id: exp.id || `exp_fallback_${Date.now()}_${Math.random()}`, role: exp.role || '', company: exp.company || '', period: exp.period || '', description: exp.description || '' })),
+    education: (data.education || []).map(edu => ({ id: edu.id || `edu_fallback_${Date.now()}_${Math.random()}`, degree: edu.degree || '', institution: edu.institution || '', period: edu.period || '' })),
     email: data.email || '',
     linkedinUrl: data.linkedinUrl || '',
     githubUrl: data.githubUrl || '',
@@ -122,9 +122,11 @@ export default function AdminAboutPage() {
         ? profileBioState.message : "An error occurred.";
       toast({ title: "Error Saving Profile & Bio", description: errorMessage, variant: "destructive" });
       
+      // Repopulate form with attempted data on error
       if (profileBioState.data) {
         profileBioForm.reset(prepareProfileBioDataForForm(profileBioState.data));
       } else {
+         // Fallback: reset with current values if no specific error data
          profileBioForm.reset(prepareProfileBioDataForForm(profileBioForm.getValues()));
       }
       if (profileBioState.errors && typeof profileBioState.errors === 'object') {
@@ -255,6 +257,16 @@ export default function AdminAboutPage() {
         {/* Other tabs will use the fullForm for now, to be refactored later */}
         <Form {...fullForm}> 
           <form id="about-full-form" action={fullFormAction} className="space-y-8">
+            {/* Hidden fields for profile/bio data to ensure updateAboutDataAction receives them
+                These values will be synced from profileBioForm if it's successfully saved,
+                or from initial data otherwise. This is part of the temporary state.
+            */}
+            <input type="hidden" {...fullForm.register('name')} />
+            <input type="hidden" {...fullForm.register('title')} />
+            <input type="hidden" {...fullForm.register('bio')} />
+            <input type="hidden" {...fullForm.register('profileImage')} />
+            <input type="hidden" {...fullForm.register('dataAiHint')} />
+
             <TabsContent value="contact">
               <Card>
                 <CardHeader>
