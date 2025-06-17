@@ -45,18 +45,28 @@ async function getFreshAppData(): Promise<AppData> {
         return defaultAppData;
     }
     const parsedData = JSON.parse(fileContent) as Partial<AppData>;
+    
+    // Robust merging for all parts of AppData
+    const portfolioItems = Array.isArray(parsedData.portfolioItems) ? parsedData.portfolioItems : defaultAppData.portfolioItems;
+    const skills = Array.isArray(parsedData.skills) ? parsedData.skills : defaultAppData.skills;
+    
+    const validAboutMe = (typeof parsedData.aboutMe === 'object' && parsedData.aboutMe !== null) 
+                         ? parsedData.aboutMe 
+                         : {};
+    const aboutMe = { ...defaultAppData.aboutMe, ...validAboutMe };
+
+    const validSiteSettings = (typeof parsedData.siteSettings === 'object' && parsedData.siteSettings !== null)
+                              ? parsedData.siteSettings
+                              : {};
+    const siteSettings = { ...defaultAppData.siteSettings, ...validSiteSettings };
+
     return {
-      portfolioItems: parsedData.portfolioItems ?? defaultAppData.portfolioItems,
-      skills: parsedData.skills ?? defaultAppData.skills,
-      aboutMe: {
-        ...defaultAppData.aboutMe,
-        ...(parsedData.aboutMe ?? {}),
-      },
-      siteSettings: { 
-        ...defaultAppData.siteSettings, 
-        ...(parsedData.siteSettings ?? {}), 
-      }
+      portfolioItems,
+      skills,
+      aboutMe,
+      siteSettings,
     };
+
   } catch (error) {
     console.error("Error reading or parsing data.json for Home page, returning default structure:", error);
     return defaultAppData; 

@@ -21,7 +21,7 @@ async function getFreshSkillsData(): Promise<Skill[]> {
         return defaultSkillsData;
     }
     const appData = JSON.parse(fileContent) as Partial<AppData>;
-    return appData.skills ?? defaultSkillsData;
+    return Array.isArray(appData.skills) ? appData.skills : defaultSkillsData;
   } catch (error) {
     console.error("Error reading or parsing data.json for Skills page, returning empty array:", error);
     return defaultSkillsData;

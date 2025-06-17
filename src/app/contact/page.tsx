@@ -32,10 +32,13 @@ async function getFreshAboutMeData(): Promise<AboutMeData> {
         return defaultAboutMeData;
     }
     const appData = JSON.parse(fileContent) as Partial<AppData>;
-    // Merge the loaded aboutMe data with the complete default structure
+    // Robust merge: ensure appData.aboutMe is an object before spreading
+    const validAboutMeFromData = (typeof appData.aboutMe === 'object' && appData.aboutMe !== null)
+                                 ? appData.aboutMe
+                                 : {};
     return {
-      ...defaultAboutMeData, // Start with the full default
-      ...(appData.aboutMe ?? {}), // Override with parsed data if appData.aboutMe exists
+      ...defaultAboutMeData, 
+      ...validAboutMeFromData, 
     };
   } catch (error) {
     console.error("Error reading or parsing data.json for Contact page, returning default structure:", error);

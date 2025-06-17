@@ -25,7 +25,7 @@ async function getFreshPortfolioItemsForSlug(): Promise<PortfolioItem[]> {
         return defaultPortfolioItems;
     }
     const appData = JSON.parse(fileContent) as Partial<AppData>;
-    return appData.portfolioItems ?? defaultPortfolioItems;
+    return Array.isArray(appData.portfolioItems) ? appData.portfolioItems : defaultPortfolioItems;
   } catch (error) {
     console.error("Error reading or parsing data.json for Portfolio slug page, returning empty array:", error);
     return defaultPortfolioItems;
