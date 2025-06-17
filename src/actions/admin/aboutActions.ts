@@ -64,6 +64,8 @@ export async function updateAboutDataAction(
   prevState: UpdateAboutDataFormState,
   formData: FormData
 ): Promise<UpdateAboutDataFormState> {
+  let rawData: AboutMeData | undefined = undefined; // Initialize to hold data for potential error return
+
   try {
     const experienceEntries: Experience[] = [];
     const educationEntries: Education[] = [];
@@ -105,7 +107,7 @@ export async function updateAboutDataAction(
       }
     }
 
-    const rawData: AboutMeData = {
+    rawData = { // Assign to rawData here
       name: formData.get('name') as string,
       title: formData.get('title') as string,
       bio: formData.get('bio') as string,
@@ -130,7 +132,7 @@ export async function updateAboutDataAction(
         message: "Failed to update data. Please check the errors below.",
         status: 'error',
         errors: fieldErrors as UpdateAboutDataFormState['errors'],
-        data: undefined, 
+        data: rawData, // Return the raw (erroneous) data
       };
     }
 
@@ -154,8 +156,8 @@ export async function updateAboutDataAction(
       return {
         message: "An error occurred while saving data to the file. Please try again.",
         status: 'error',
-        errors: {}, // No specific field errors, but a general file operation error
-        data: undefined, 
+        errors: {}, 
+        data: rawData, // Return the raw (erroneous) data
       };
     }
 
@@ -165,9 +167,20 @@ export async function updateAboutDataAction(
     return {
       message: "An unexpected server error occurred. Please check logs and try again.",
       status: 'error',
-      errors: {}, // No specific field errors, this is a general server error
-      data: undefined,
+      errors: {}, 
+      data: rawData ?? { // Fallback if rawData wasn't even formed
+        name: formData.get('name') as string || '', // Try to get some data if possible
+        title: formData.get('title') as string || '',
+        bio: formData.get('bio') as string || '',
+        profileImage: formData.get('profileImage') as string || '',
+        dataAiHint: formData.get('dataAiHint') as string || '',
+        experience: [], // Default to empty if error happened early
+        education: [],  // Default to empty
+        email: formData.get('email') as string || undefined,
+        linkedinUrl: formData.get('linkedinUrl') as string || undefined,
+        githubUrl: formData.get('githubUrl') as string || undefined,
+        twitterUrl: formData.get('twitterUrl') as string || undefined,
+      },
     };
   }
 }
-

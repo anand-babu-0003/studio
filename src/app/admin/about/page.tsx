@@ -68,22 +68,26 @@ export default function AdminAboutPage() {
   });
 
   useEffect(() => {
+    // Helper to transform data for form.reset
+    const prepareDataForForm = (data: AboutMeData): AboutMeData => {
+      return {
+        ...data,
+        experience: data.experience || [],
+        education: data.education || [],
+        email: data.email || '',
+        linkedinUrl: data.linkedinUrl || '',
+        githubUrl: data.githubUrl || '',
+        twitterUrl: data.twitterUrl || '',
+      };
+    };
+    
     if (state.status === 'success' && state.message) {
       toast({
         title: "Success!",
         description: state.message,
       });
       if (state.data) {
-        const transformedData = {
-          ...state.data,
-          experience: state.data.experience || [],
-          education: state.data.education || [],
-          email: state.data.email || '',
-          linkedinUrl: state.data.linkedinUrl || '',
-          githubUrl: state.data.githubUrl || '',
-          twitterUrl: state.data.twitterUrl || '',
-        };
-        form.reset(transformedData);
+        form.reset(prepareDataForForm(state.data));
       }
     } else if (state.status === 'error') {
       console.error("AdminAboutPage: Error from server action (raw object):", state);
@@ -97,6 +101,12 @@ export default function AdminAboutPage() {
         description: errorMessage,
         variant: "destructive",
       });
+
+      // If server returned data (even if it's the erroneous data), reset form with it
+      if (state.data) {
+        console.log("AdminAboutPage: Resetting form with data returned from server on error:", state.data);
+        form.reset(prepareDataForForm(state.data));
+      }
 
       if (state.errors) {
         console.log("AdminAboutPage: Server returned errors, attempting to set on form:", JSON.stringify(state.errors, null, 2));
@@ -322,4 +332,3 @@ export default function AdminAboutPage() {
     </div>
   );
 }
-
