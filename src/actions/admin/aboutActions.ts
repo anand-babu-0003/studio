@@ -108,24 +108,24 @@ export async function updateAboutDataAction(
     }
 
     rawData = { 
-      name: formData.get('name') as string,
-      title: formData.get('title') as string,
-      bio: formData.get('bio') as string,
-      profileImage: formData.get('profileImage') as string,
-      dataAiHint: formData.get('dataAiHint') as string,
+      name: (formData.get('name') as string | null) || '',
+      title: (formData.get('title') as string | null) || '',
+      bio: (formData.get('bio') as string | null) || '',
+      profileImage: (formData.get('profileImage') as string | null) || '',
+      dataAiHint: (formData.get('dataAiHint') as string | null) || '',
       experience: experienceEntries,
       education: educationEntries,
-      email: formData.get('email') as string || undefined,
-      linkedinUrl: formData.get('linkedinUrl') as string || undefined,
-      githubUrl: formData.get('githubUrl') as string || undefined,
-      twitterUrl: formData.get('twitterUrl') as string || undefined,
+      email: (formData.get('email') as string | null) || undefined,
+      linkedinUrl: (formData.get('linkedinUrl') as string | null) || undefined,
+      githubUrl: (formData.get('githubUrl') as string | null) || undefined,
+      twitterUrl: (formData.get('twitterUrl') as string | null) || undefined,
     };
     
     const validatedFields = aboutMeSchema.safeParse(rawData);
 
     if (!validatedFields.success) {
       const fieldErrors = validatedFields.error.flatten().fieldErrors;
-      console.error("Admin About Action: Zod validation failed. Errors:", JSON.stringify(fieldErrors, null, 2));
+      // console.error("Admin About Action: Zod validation failed. Errors:", JSON.stringify(fieldErrors, null, 2));
       return {
         message: "Failed to update data. Please check the errors below.",
         status: 'error',
@@ -160,26 +160,27 @@ export async function updateAboutDataAction(
 
   } catch (error) {
     console.error("Admin About Action: An unexpected error occurred in the action:", error);
-    // Ensure a fully populated UpdateAboutDataFormState is returned
+    
     const errorResponseData: AboutMeData = {
-      name: (formData.get('name') as string) || localDefaultAppData.aboutMe.name,
-      title: (formData.get('title') as string) || localDefaultAppData.aboutMe.title,
-      bio: (formData.get('bio') as string) || localDefaultAppData.aboutMe.bio,
-      profileImage: (formData.get('profileImage') as string) || localDefaultAppData.aboutMe.profileImage,
-      dataAiHint: (formData.get('dataAiHint') as string) || localDefaultAppData.aboutMe.dataAiHint,
-      experience: rawData?.experience || [], // Use parsed experience if available, else empty
-      education: rawData?.education || [],   // Use parsed education if available, else empty
-      email: (formData.get('email') as string) || localDefaultAppData.aboutMe.email,
-      linkedinUrl: (formData.get('linkedinUrl') as string) || localDefaultAppData.aboutMe.linkedinUrl,
-      githubUrl: (formData.get('githubUrl') as string) || localDefaultAppData.aboutMe.githubUrl,
-      twitterUrl: (formData.get('twitterUrl') as string) || localDefaultAppData.aboutMe.twitterUrl,
+      name: (formData.get('name') as string | null) || localDefaultAppData.aboutMe.name,
+      title: (formData.get('title') as string | null) || localDefaultAppData.aboutMe.title,
+      bio: (formData.get('bio') as string | null) || localDefaultAppData.aboutMe.bio,
+      profileImage: (formData.get('profileImage') as string | null) || localDefaultAppData.aboutMe.profileImage,
+      dataAiHint: (formData.get('dataAiHint') as string | null) || localDefaultAppData.aboutMe.dataAiHint,
+      experience: rawData?.experience || [], 
+      education: rawData?.education || [],  
+      email: (formData.get('email') as string | null) || localDefaultAppData.aboutMe.email,
+      linkedinUrl: (formData.get('linkedinUrl') as string | null) || localDefaultAppData.aboutMe.linkedinUrl,
+      githubUrl: (formData.get('githubUrl') as string | null) || localDefaultAppData.aboutMe.githubUrl,
+      twitterUrl: (formData.get('twitterUrl') as string | null) || localDefaultAppData.aboutMe.twitterUrl,
     };
 
     return {
       message: "An unexpected server error occurred. Please check logs and try again.",
       status: 'error',
       errors: {}, 
-      data: rawData || errorResponseData, // Prefer rawData if it exists from earlier in try block
+      data: rawData || errorResponseData, 
     };
   }
 }
+
