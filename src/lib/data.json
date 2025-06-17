@@ -29,6 +29,12 @@
       "category": "Frontend",
       "proficiency": 40,
       "iconName": "Laptop"
+    },
+    {
+      "id": "skill_1750146248867_ow47c",
+      "name": "HTML",
+      "category": "Languages",
+      "iconName": "Code"
     }
   ],
   "aboutMe": {

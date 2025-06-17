@@ -84,7 +84,7 @@ export async function updateAboutDataAction(
     const company = formData.get(`experience.${index}.company`) as string || '';
     const period = formData.get(`experience.${index}.period`) as string || '';
     const description = formData.get(`experience.${index}.description`) as string || '';
-    if (id) { // Only push if id exists, assuming id is critical
+    if (id) { 
         experienceEntries.push({ id, role, company, period, description });
     }
   }
@@ -94,7 +94,7 @@ export async function updateAboutDataAction(
     const degree = formData.get(`education.${index}.degree`) as string || '';
     const institution = formData.get(`education.${index}.institution`) as string || '';
     const period = formData.get(`education.${index}.period`) as string || '';
-    if (id) { // Only push if id exists
+    if (id) { 
         educationEntries.push({ id, degree, institution, period });
     }
   }
@@ -112,16 +112,19 @@ export async function updateAboutDataAction(
     githubUrl: formData.get('githubUrl') as string || undefined,
     twitterUrl: formData.get('twitterUrl') as string || undefined,
   };
+  
+  console.log("Admin About Action: Raw data received for validation:", JSON.stringify(rawData, null, 2));
 
   const validatedFields = aboutMeSchema.safeParse(rawData);
 
   if (!validatedFields.success) {
     const fieldErrors = validatedFields.error.flatten().fieldErrors;
+    console.error("Admin About Action: Zod validation failed. Errors:", JSON.stringify(fieldErrors, null, 2));
     return {
       message: "Failed to update data. Please check the errors below.",
       status: 'error',
       errors: fieldErrors as UpdateAboutDataFormState['errors'],
-      data: undefined, // Explicitly add optional fields
+      data: undefined, 
     };
   }
 
@@ -140,12 +143,12 @@ export async function updateAboutDataAction(
     };
 
   } catch (error) {
-    console.error("Error updating About Me data:", error); // Server-side log
+    console.error("Admin About Action: Error updating About Me data:", error); 
     return {
       message: "An unexpected server error occurred while saving About Me data. Please try again.",
       status: 'error',
       errors: {},
-      data: undefined, // Explicitly add optional fields
+      data: undefined, 
     };
   }
 }
