@@ -18,6 +18,38 @@ export const staticMetadata: Metadata = {
   description: 'Personal portfolio of a passionate developer.', // Default description
 };
 
+// Helper function to create or update a meta tag
+function updateMetaTag(name: string, content: string, isProperty: boolean = false) {
+  if (typeof document === 'undefined') return; // Guard against server-side execution
+
+  let element = isProperty 
+    ? document.querySelector(`meta[property="${name}"]`)
+    : document.querySelector(`meta[name="${name}"]`);
+
+  if (!element) {
+    element = document.createElement('meta');
+    if (isProperty) {
+      element.setAttribute('property', name);
+    } else {
+      element.setAttribute('name', name);
+    }
+    document.head.appendChild(element);
+  }
+  element.setAttribute('content', content);
+}
+
+// Helper function to remove a meta tag
+function removeMetaTag(name: string, isProperty: boolean = false) {
+  if (typeof document === 'undefined') return;
+  const element = isProperty
+    ? document.querySelector(`meta[property="${name}"]`)
+    : document.querySelector(`meta[name="${name}"]`);
+  if (element) {
+    element.remove();
+  }
+}
+
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -41,7 +73,9 @@ export default function RootLayout({
         // Use defaults if fetch fails
         setSiteSettings({ 
           siteName: String(staticMetadata.title || 'Portfolio'), 
-          defaultMetaDescription: String(staticMetadata.description || 'Default description') 
+          defaultMetaDescription: String(staticMetadata.description || 'Default description'),
+          defaultMetaKeywords: '',
+          siteOgImageUrl: '',
         });
       }
     }
@@ -80,15 +114,23 @@ export default function RootLayout({
       }
       // For admin routes, title is usually handled by the page itself or a generic admin title
 
-      const metaDescriptionTag = document.querySelector('meta[name="description"]');
-      if (metaDescriptionTag) {
-        metaDescriptionTag.setAttribute('content', siteSettings.defaultMetaDescription);
+      // Update Meta Tags
+      updateMetaTag('description', siteSettings.defaultMetaDescription);
+      updateMetaTag('og:title', siteSettings.siteName, true);
+      updateMetaTag('og:description', siteSettings.defaultMetaDescription, true);
+      
+      if (siteSettings.defaultMetaKeywords) {
+        updateMetaTag('keywords', siteSettings.defaultMetaKeywords);
       } else {
-        const newMetaTag = document.createElement('meta');
-        newMetaTag.name = 'description';
-        newMetaTag.content = siteSettings.defaultMetaDescription;
-        document.head.appendChild(newMetaTag);
+        removeMetaTag('keywords');
       }
+
+      if (siteSettings.siteOgImageUrl) {
+        updateMetaTag('og:image', siteSettings.siteOgImageUrl, true);
+      } else {
+        removeMetaTag('og:image', true);
+      }
+
     }
   }, [siteSettings, pathname, isAdminRoute]);
 
@@ -103,6 +145,7 @@ export default function RootLayout({
         {/* Initial title and meta description (will be updated by useEffect) */}
         <title>{siteSettings?.siteName || String(staticMetadata.title)}</title>
         <meta name="description" content={siteSettings?.defaultMetaDescription || String(staticMetadata.description)} />
+        {/* Placeholder for other meta tags that will be dynamically added */}
       </head>
       <body className="font-body antialiased flex flex-col min-h-screen">
         {isMounted && !isAdminRoute && (
@@ -138,3 +181,4 @@ export default function RootLayout({
     </html>
   );
 }
+

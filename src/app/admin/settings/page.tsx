@@ -27,6 +27,8 @@ const initialFormState: UpdateSiteSettingsFormState = { message: '', status: 'id
 const defaultFormValues: SiteSettingsAdminFormData = {
   siteName: '',
   defaultMetaDescription: '',
+  defaultMetaKeywords: '',
+  siteOgImageUrl: '',
 };
 
 function SubmitButton() {
@@ -62,7 +64,12 @@ export default function AdminSettingsPage() {
       try {
         const currentSettings = await getSiteSettingsAction();
         if (currentSettings) {
-          form.reset(currentSettings);
+          form.reset({
+            siteName: currentSettings.siteName || '',
+            defaultMetaDescription: currentSettings.defaultMetaDescription || '',
+            defaultMetaKeywords: currentSettings.defaultMetaKeywords || '',
+            siteOgImageUrl: currentSettings.siteOgImageUrl || '',
+          });
         }
       } catch (error) {
         console.error("Failed to fetch initial site settings:", error);
@@ -109,14 +116,14 @@ export default function AdminSettingsPage() {
         className="py-0 text-left"
       />
 
-      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-1"> {/* Changed to 1 column for better layout */}
         <Form {...form}>
           <form action={settingsFormAction} className="space-y-8">
             <Card>
               <CardHeader>
-                <CardTitle>General Site Information</CardTitle>
+                <CardTitle>General Site Information & SEO</CardTitle>
                 <CardDescription>
-                  Basic information about your website. These will be used for the site title and default meta tags.
+                  Basic information and default SEO settings for your website.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -126,7 +133,7 @@ export default function AdminSettingsPage() {
                     <FormControl><Input {...field} placeholder="Your Awesome Portfolio" /></FormControl>
                     <FormMessage />
                     <p className="text-xs text-muted-foreground">
-                      This will be used in the browser tab title (e.g., Site Name | Page Title).
+                      Used in browser tab titles (e.g., Site Name | Page Title) and default Open Graph title.
                     </p>
                   </FormItem>
                 )} />
@@ -136,7 +143,27 @@ export default function AdminSettingsPage() {
                     <FormControl><Input {...field} placeholder="A brief description of your site for search engines." /></FormControl>
                     <FormMessage />
                     <p className="text-xs text-muted-foreground">
-                      A general description for SEO purposes (max 160 characters).
+                      General SEO description (max 160 characters) and default Open Graph description.
+                    </p>
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="defaultMetaKeywords" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Default Meta Keywords (Optional)</FormLabel>
+                    <FormControl><Input {...field} placeholder="e.g., web developer, portfolio, react" /></FormControl>
+                    <FormMessage />
+                    <p className="text-xs text-muted-foreground">
+                        Comma-separated keywords. Modern SEO largely ignores this, but can be included.
+                    </p>
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="siteOgImageUrl" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Default Open Graph Image URL (Optional)</FormLabel>
+                    <FormControl><Input {...field} placeholder="https://example.com/default-og-image.png" /></FormControl>
+                    <FormMessage />
+                    <p className="text-xs text-muted-foreground">
+                        URL for a default image (e.g., 1200x630px) used when sharing your site on social media.
                     </p>
                   </FormItem>
                 )} />
@@ -150,28 +177,13 @@ export default function AdminSettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>SEO & Favicon</CardTitle>
+            <CardTitle>Favicon Management</CardTitle>
             <CardDescription>
-              Manage Search Engine Optimization basics and your site's browser icon.
+              Information on managing your site's browser icon.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-                <Label htmlFor="seoKeywords">Default Meta Keywords (Optional)</Label>
-                <Input id="seoKeywords" placeholder="e.g., web developer, portfolio, react" disabled />
-                <p className="text-xs text-muted-foreground">
-                    Comma-separated keywords. Modern SEO largely ignores this, but can be included. (Not implemented)
-                </p>
-            </div>
-             <Alert variant="default" className="mt-4">
-              <Search className="h-4 w-4" />
-              <AlertTitle>Advanced SEO</AlertTitle>
-              <AlertDescription>
-                Advanced SEO settings (like sitemap generation, robots.txt management) would typically be handled via Next.js configurations or specialized services. The general settings above cover the basics.
-              </AlertDescription>
-            </Alert>
-
-            <Alert variant="default" className="mt-4">
+          <CardContent>
+            <Alert variant="default" className="mt-0"> {/* Changed margin from mt-4 to mt-0 */}
               <UploadCloud className="h-4 w-4" />
               <AlertTitle>Favicon Management</AlertTitle>
               <AlertDescription>

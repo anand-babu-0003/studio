@@ -1,3 +1,4 @@
+
 {
   "portfolioItems": [
     {
@@ -67,6 +68,8 @@
   },
   "siteSettings": {
     "siteName": "AnandVerse space",
-    "defaultMetaDescription": "Personal portfolio of Anand, a passionate developer showcasing projects and skills."
+    "defaultMetaDescription": "Personal portfolio of Anand, a passionate developer showcasing projects and skills.",
+    "defaultMetaKeywords": "web developer, portfolio, react, nextjs, anand",
+    "siteOgImageUrl": "https://placehold.co/1200x630.png?text=AnandVerse+Portfolio"
   }
 }

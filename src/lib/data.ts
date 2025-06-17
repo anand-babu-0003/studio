@@ -25,6 +25,8 @@ const defaultAppData: AppData = {
   siteSettings: {
     siteName: 'My Portfolio',
     defaultMetaDescription: 'A showcase of my projects and skills.',
+    defaultMetaKeywords: '',
+    siteOgImageUrl: '',
   },
 };
 

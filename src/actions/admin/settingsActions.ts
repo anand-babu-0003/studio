@@ -29,6 +29,8 @@ const defaultAppData: AppData = {
   siteSettings: {
     siteName: 'My Portfolio',
     defaultMetaDescription: 'A showcase of my projects and skills.',
+    defaultMetaKeywords: '',
+    siteOgImageUrl: '',
   },
 };
 
@@ -86,6 +88,8 @@ export async function updateSiteSettingsAction(
     rawData = {
       siteName: String(formData.get('siteName') || ''),
       defaultMetaDescription: String(formData.get('defaultMetaDescription') || ''),
+      defaultMetaKeywords: String(formData.get('defaultMetaKeywords') || ''),
+      siteOgImageUrl: String(formData.get('siteOgImageUrl') || ''),
     };
 
     const validatedFields = siteSettingsAdminSchema.safeParse(rawData);
@@ -134,6 +138,8 @@ export async function updateSiteSettingsAction(
     const errorResponseData: SiteSettings = rawData || {
       siteName: String(formData.get('siteName') || currentSettings.siteName),
       defaultMetaDescription: String(formData.get('defaultMetaDescription') || currentSettings.defaultMetaDescription),
+      defaultMetaKeywords: String(formData.get('defaultMetaKeywords') || currentSettings.defaultMetaKeywords),
+      siteOgImageUrl: String(formData.get('siteOgImageUrl') || currentSettings.siteOgImageUrl),
     };
     return {
       message: "An unexpected server error occurred while updating site settings.",
@@ -143,3 +149,4 @@ export async function updateSiteSettingsAction(
     };
   }
 }
+

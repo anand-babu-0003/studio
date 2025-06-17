@@ -64,6 +64,8 @@ export interface AboutMeData {
 export interface SiteSettings {
   siteName: string;
   defaultMetaDescription: string;
+  defaultMetaKeywords?: string;
+  siteOgImageUrl?: string;
 }
 
 export interface AppData {
