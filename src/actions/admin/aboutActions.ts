@@ -1,7 +1,7 @@
 
 "use server";
 
-import type { AboutMeData, Experience, Education, AppData, Skill, PortfolioItem } from '@/lib/types';
+import type { AboutMeData, Experience, Education, AppData } from '@/lib/types';
 import { aboutMeSchema } from '@/lib/adminSchemas';
 import fs from 'fs/promises';
 import path from 'path';
@@ -64,7 +64,7 @@ export async function updateAboutDataAction(
   prevState: UpdateAboutDataFormState,
   formData: FormData
 ): Promise<UpdateAboutDataFormState> {
-  let rawData: AboutMeData | undefined = undefined; // Initialize to hold data for potential error return
+  let rawData: AboutMeData | undefined = undefined; 
 
   try {
     const experienceEntries: Experience[] = [];
@@ -107,7 +107,7 @@ export async function updateAboutDataAction(
       }
     }
 
-    rawData = { // Assign to rawData here
+    rawData = { 
       name: formData.get('name') as string,
       title: formData.get('title') as string,
       bio: formData.get('bio') as string,
@@ -121,8 +121,6 @@ export async function updateAboutDataAction(
       twitterUrl: formData.get('twitterUrl') as string || undefined,
     };
     
-    // console.log("Admin About Action: Raw data prepared for validation (empty array items filtered):", JSON.stringify(rawData, null, 2));
-
     const validatedFields = aboutMeSchema.safeParse(rawData);
 
     if (!validatedFields.success) {
@@ -132,13 +130,12 @@ export async function updateAboutDataAction(
         message: "Failed to update data. Please check the errors below.",
         status: 'error',
         errors: fieldErrors as UpdateAboutDataFormState['errors'],
-        data: rawData, // Return the raw (erroneous) data
+        data: rawData, 
       };
     }
 
     const dataToSave = validatedFields.data;
 
-    // Inner try-catch for file operations specifically
     try {
       const allData = await readDataFromFile();
       allData.aboutMe = dataToSave;
@@ -157,30 +154,32 @@ export async function updateAboutDataAction(
         message: "An error occurred while saving data to the file. Please try again.",
         status: 'error',
         errors: {}, 
-        data: rawData, // Return the raw (erroneous) data
+        data: rawData, 
       };
     }
 
   } catch (error) {
-    // Top-level catch for any other unexpected errors in the action
     console.error("Admin About Action: An unexpected error occurred in the action:", error);
+    // Ensure a fully populated UpdateAboutDataFormState is returned
+    const errorResponseData: AboutMeData = {
+      name: (formData.get('name') as string) || localDefaultAppData.aboutMe.name,
+      title: (formData.get('title') as string) || localDefaultAppData.aboutMe.title,
+      bio: (formData.get('bio') as string) || localDefaultAppData.aboutMe.bio,
+      profileImage: (formData.get('profileImage') as string) || localDefaultAppData.aboutMe.profileImage,
+      dataAiHint: (formData.get('dataAiHint') as string) || localDefaultAppData.aboutMe.dataAiHint,
+      experience: rawData?.experience || [], // Use parsed experience if available, else empty
+      education: rawData?.education || [],   // Use parsed education if available, else empty
+      email: (formData.get('email') as string) || localDefaultAppData.aboutMe.email,
+      linkedinUrl: (formData.get('linkedinUrl') as string) || localDefaultAppData.aboutMe.linkedinUrl,
+      githubUrl: (formData.get('githubUrl') as string) || localDefaultAppData.aboutMe.githubUrl,
+      twitterUrl: (formData.get('twitterUrl') as string) || localDefaultAppData.aboutMe.twitterUrl,
+    };
+
     return {
       message: "An unexpected server error occurred. Please check logs and try again.",
       status: 'error',
       errors: {}, 
-      data: rawData ?? { // Fallback if rawData wasn't even formed
-        name: formData.get('name') as string || '', // Try to get some data if possible
-        title: formData.get('title') as string || '',
-        bio: formData.get('bio') as string || '',
-        profileImage: formData.get('profileImage') as string || '',
-        dataAiHint: formData.get('dataAiHint') as string || '',
-        experience: [], // Default to empty if error happened early
-        education: [],  // Default to empty
-        email: formData.get('email') as string || undefined,
-        linkedinUrl: formData.get('linkedinUrl') as string || undefined,
-        githubUrl: formData.get('githubUrl') as string || undefined,
-        twitterUrl: formData.get('twitterUrl') as string || undefined,
-      },
+      data: rawData || errorResponseData, // Prefer rawData if it exists from earlier in try block
     };
   }
 }

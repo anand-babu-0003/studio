@@ -30,7 +30,7 @@ const initialState: UpdateAboutDataFormState = {
 };
 
 interface SubmitButtonProps {
-  form?: string; // HTML form attribute to associate button with a form
+  form?: string; 
 }
 
 function SubmitButton({ form: formId }: SubmitButtonProps) {
@@ -50,37 +50,45 @@ function SubmitButton({ form: formId }: SubmitButtonProps) {
   );
 }
 
+// Helper to transform data for form.reset, now robust to undefined input
+const prepareDataForForm = (data?: AboutMeData): AboutMeData => {
+  if (!data) {
+    // Return a default structure if input data is undefined or null
+    return {
+      name: '',
+      title: '',
+      bio: '',
+      profileImage: '',
+      dataAiHint: '',
+      experience: [],
+      education: [],
+      email: '',
+      linkedinUrl: '',
+      githubUrl: '',
+      twitterUrl: '',
+    };
+  }
+  return {
+    ...data,
+    experience: data.experience || [],
+    education: data.education || [],
+    email: data.email || '',
+    linkedinUrl: data.linkedinUrl || '',
+    githubUrl: data.githubUrl || '',
+    twitterUrl: data.twitterUrl || '',
+  };
+};
+
 export default function AdminAboutPage() {
   const [state, formAction] = useActionState(updateAboutDataAction, initialState);
   const { toast } = useToast();
 
   const form = useForm<AboutMeData>({
     resolver: zodResolver(aboutMeSchema),
-    defaultValues: {
-      ...initialAboutMeDataFromLib,
-      experience: initialAboutMeDataFromLib.experience || [],
-      education: initialAboutMeDataFromLib.education || [],
-      email: initialAboutMeDataFromLib.email || '',
-      linkedinUrl: initialAboutMeDataFromLib.linkedinUrl || '',
-      githubUrl: initialAboutMeDataFromLib.githubUrl || '',
-      twitterUrl: initialAboutMeDataFromLib.twitterUrl || '',
-    },
+    defaultValues: prepareDataForForm(initialAboutMeDataFromLib), // Use prepareDataForForm for defaultValues
   });
 
   useEffect(() => {
-    // Helper to transform data for form.reset
-    const prepareDataForForm = (data: AboutMeData): AboutMeData => {
-      return {
-        ...data,
-        experience: data.experience || [],
-        education: data.education || [],
-        email: data.email || '',
-        linkedinUrl: data.linkedinUrl || '',
-        githubUrl: data.githubUrl || '',
-        twitterUrl: data.twitterUrl || '',
-      };
-    };
-    
     if (state.status === 'success' && state.message) {
       toast({
         title: "Success!",
@@ -93,7 +101,7 @@ export default function AdminAboutPage() {
       console.error("AdminAboutPage: Error from server action (raw object):", state);
       console.error("AdminAboutPage: Error from server action (JSON.stringify):", JSON.stringify(state));
 
-      const errorMessage = typeof state.message === 'string' && state.message.trim() !== ''
+      const errorMessage = (typeof state.message === 'string' && state.message.trim() !== '')
         ? state.message
         : "An unspecified error occurred. Please check server logs for more details.";
       toast({
@@ -102,17 +110,13 @@ export default function AdminAboutPage() {
         variant: "destructive",
       });
 
-      // If server returned data (even if it's the erroneous data), reset form with it
       if (state.data) {
-        // console.log("AdminAboutPage: Resetting form with data returned from server on error:", state.data);
         form.reset(prepareDataForForm(state.data));
       }
 
       if (state.errors) {
-        // console.log("AdminAboutPage: Server returned errors, attempting to set on form:", JSON.stringify(state.errors, null, 2));
         Object.entries(state.errors).forEach(([fieldName, fieldErrorMessages]) => {
           if (Array.isArray(fieldErrorMessages) && fieldErrorMessages.length > 0) {
-            // console.log(`AdminAboutPage: Calling form.setError for field: '${fieldName}', message: '${fieldErrorMessages.join(', ')}'`);
             form.setError(fieldName as Path<AboutMeData>, {
               type: 'server',
               message: fieldErrorMessages.join(', '),
