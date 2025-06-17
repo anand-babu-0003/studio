@@ -56,11 +56,10 @@ export default function AdminSkillsPage() {
   const [showForm, setShowForm] = useState(false);
   const { toast } = useToast();
 
-  // Renamed formAction to dispatchServerAction for clarity with manual invocation
   const [formActionState, dispatchServerAction] = useActionState(saveSkillAction, initialFormState);
 
   const form = useForm<SkillAdminFormData>({
-    resolver: zodResolver(skillAdminSchema),
+    resolver: zodResolver(skillAdminSchema), // Client-side validation against the same schema
     defaultValues: defaultFormValues,
   });
 
@@ -152,6 +151,9 @@ export default function AdminSkillsPage() {
 
     if (data.id) formData.append('id', data.id);
     formData.append('name', data.name || ''); 
+    
+    // data.category and data.iconName are non-optional in SkillAdminFormData
+    // and should be valid strings from the enums due to react-hook-form state.
     formData.append('category', data.category); 
     formData.append('iconName', data.iconName); 
 
@@ -160,6 +162,11 @@ export default function AdminSkillsPage() {
     }
     // If proficiency is undefined or null, it won't be appended.
     // The server action's Zod schema handles optional/nullable proficiency.
+
+    console.log("Client-side FormData before dispatch Server Action:");
+    for (const [key, value] of formData.entries()) {
+      console.log(`FormData Entry: ${key}: ${value} (typeof: ${typeof value})`);
+    }
     
     dispatchServerAction(formData);
   };
@@ -183,11 +190,8 @@ export default function AdminSkillsPage() {
             <CardDescription>Fill in the details for the skill.</CardDescription>
           </CardHeader>
           <Form {...form}>
-            {/* Changed from <form action={formAction}> to <form onSubmit={...}> */}
             <form onSubmit={form.handleSubmit(handleFormSubmit)}>
-              {/* Hidden input for ID is still useful if editing */}
               {currentSkill?.id && <input type="hidden" {...form.register('id')} value={currentSkill.id} />}
-              {/* Hidden inputs for category and iconName are removed as they are now part of `data` in handleFormSubmit */}
               
               <CardContent className="space-y-6">
                 <FormField control={form.control} name="name" render={({ field }) => (
@@ -253,7 +257,7 @@ export default function AdminSkillsPage() {
                  <Button type="button" variant="outline" onClick={handleCancelForm}>
                   <XCircle className="mr-2 h-4 w-4" /> Cancel
                 </Button>
-                <SubmitButton /> {/* SubmitButton will work with form.handleSubmit */}
+                <SubmitButton /> 
               </CardFooter>
             </form>
           </Form>

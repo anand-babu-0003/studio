@@ -5,7 +5,7 @@ import type { Skill, AppData } from '@/lib/types';
 import { skillAdminSchema, type SkillAdminFormData } from '@/lib/adminSchemas';
 import fs from 'fs/promises';
 import path from 'path';
-import { skillCategories, availableIconNames } from '@/lib/data'; // Ensure this import is correct and used
+import { skillCategories, availableIconNames } from '@/lib/data'; 
 
 const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
 
@@ -65,8 +65,13 @@ export async function saveSkillAction(
   prevState: SkillFormState,
   formData: FormData
 ): Promise<SkillFormState> {
-  const proficiencyString = formData.get('proficiency') as string;
+  const proficiencyString = formData.get('proficiency') as string; // Can be null if not appended
   const proficiencyValue = proficiencyString && proficiencyString.trim() !== '' ? Number(proficiencyString) : undefined;
+
+  console.log("Server Action (skillsActions.ts): Received FormData. Entries:");
+  for (const [key, value] of formData.entries()) {
+    console.log(`FormData Entry: ${key}: ${value} (typeof: ${typeof value})`);
+  }
 
   console.log("Server Action (skillsActions.ts): formData.get('category') =", formData.get('category'));
   console.log("Server Action (skillsActions.ts): formData.get('iconName') =", formData.get('iconName'));
@@ -74,29 +79,32 @@ export async function saveSkillAction(
   console.log("Server Action (skillsActions.ts): formData.get('id') =", formData.get('id'));
   console.log("Server Action (skillsActions.ts): formData.get('proficiency') =", formData.get('proficiency'));
 
+  console.log("Server Action (skillsActions.ts): skillCategories from @/lib/data (used by Zod schema):", skillCategories);
+  console.log("Server Action (skillsActions.ts): availableIconNames from @/lib/data (used by Zod schema):", availableIconNames);
+  
+  const categoryFromForm = formData.get('category');
+  const iconNameFromForm = formData.get('iconName');
+  const nameFromForm = formData.get('name');
+  const idFromForm = formData.get('id');
 
-  const rawData: SkillAdminFormData = {
-    id: formData.get('id') as string || undefined,
-    name: formData.get('name') as string,
-    category: formData.get('category') as Skill['category'],
-    proficiency: proficiencyValue,
-    iconName: formData.get('iconName') as string,
+  const dataForZod = {
+    id: idFromForm !== null ? String(idFromForm) : undefined,
+    name: nameFromForm !== null ? String(nameFromForm) : '', // Zod min(1) will catch if empty
+    category: categoryFromForm !== null ? String(categoryFromForm) : undefined, // Let Zod check if undefined or not in enum
+    proficiency: proficiencyValue, // Already handles undefined
+    iconName: iconNameFromForm !== null ? String(iconNameFromForm) : undefined, // Let Zod check
   };
 
-  console.log("Server Action (skillsActions.ts): rawData for Zod validation:", rawData);
+  console.log("Server Action (skillsActions.ts): dataForZod for Zod validation:", dataForZod);
 
-  // Log the enum arrays as seen by this server action instance
-  console.log("Server Action (skillsActions.ts): skillCategories from @/lib/data:", skillCategories);
-  console.log("Server Action (skillsActions.ts): availableIconNames from @/lib/data:", availableIconNames);
-
-  const validatedFields = skillAdminSchema.safeParse(rawData);
+  const validatedFields = skillAdminSchema.safeParse(dataForZod);
 
   if (!validatedFields.success) {
     console.error("Server Action (skillsActions.ts): Zod validation failed. Errors:", JSON.stringify(validatedFields.error.flatten().fieldErrors));
     return {
       message: "Failed to save skill. Please check errors.",
       status: 'error',
-      errors: validatedFields.error.flatten().fieldErrors,
+      errors: validatedFields.error.flatten().fieldErrors as SkillFormState['errors'],
       skill: undefined,
     };
   }
@@ -106,9 +114,9 @@ export async function saveSkillAction(
   const skillToSave: Skill = {
     id: data.id || `skill_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
     name: data.name,
-    category: data.category,
-    proficiency: data.proficiency ?? undefined,
-    iconName: data.iconName,
+    category: data.category, // This is now correctly typed by Zod
+    proficiency: data.proficiency ?? undefined, // Ensure optional proficiency is handled
+    iconName: data.iconName, // This is now correctly typed by Zod
   };
 
   try {
@@ -168,4 +176,3 @@ export async function deleteSkillAction(itemId: string): Promise<DeleteSkillResu
         return { success: false, message: "Failed to delete skill due to a server error." };
     }
 }
-
