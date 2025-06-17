@@ -2,7 +2,11 @@
 import { z } from 'zod';
 import type { Experience as LibExperienceType, Education as LibEducationType } from '@/lib/types'; // Renamed to avoid conflict with Zod types below
 // Import Lucide icons directly for deriving availableIconNames within this file
-import { Code, Database, Server, Cloud, PenTool, Terminal, Briefcase, Zap, Brain, MessageSquare, Settings, LayoutDashboard, Smartphone, Laptop } from 'lucide-react';
+import { 
+  Code, Database, Server, Cloud, PenTool, Terminal, Briefcase, Zap, Brain, MessageSquare, 
+  Settings, LayoutDashboard, Smartphone, Laptop, GitMerge, Palette, Cog, Lightbulb, 
+  Network, Puzzle, ShieldCheck, LineChart, Bot, Cpu
+} from 'lucide-react';
 import { SKILL_CATEGORIES } from './constants'; // Import the centralized categories
 
 // --- Self-contained enum definitions for Zod validation ---
@@ -13,7 +17,9 @@ import { SKILL_CATEGORIES } from './constants'; // Import the centralized catego
 const ZOD_SKILL_CATEGORIES = SKILL_CATEGORIES; // Use the imported constant
 
 const ZOD_LUCIDE_ICONS_MAP: { [key: string]: React.ElementType } = {
-  Code, Database, Server, Cloud, PenTool, Terminal, Briefcase, Zap, Brain, MessageSquare, Settings, LayoutDashboard, Smartphone, Laptop
+  Code, Database, Server, Cloud, PenTool, Terminal, Briefcase, Zap, Brain, MessageSquare, 
+  Settings, LayoutDashboard, Smartphone, Laptop, GitMerge, Palette, Cog, Lightbulb, 
+  Network, Puzzle, ShieldCheck, LineChart, Bot, Cpu
 };
 const ZOD_AVAILABLE_ICON_NAMES = Object.keys(ZOD_LUCIDE_ICONS_MAP) as [string, ...string[]]; // Cast for z.enum if map isn't empty
 

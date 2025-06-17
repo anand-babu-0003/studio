@@ -3,7 +3,11 @@ import type React from 'react';
 import type { PortfolioItem, Skill, AboutMeData, AppData, SiteSettings } from '@/lib/types';
 // This imports the content of data.json for initial/client-side use by admin panel.
 import jsonDataFromFile from './data.json'; 
-import { Code, Database, Server, Cloud, PenTool, Terminal, Briefcase, Zap, Brain, MessageSquare, Settings, LayoutDashboard, Smartphone, Laptop } from 'lucide-react';
+import { 
+  Code, Database, Server, Cloud, PenTool, Terminal, Briefcase, Zap, Brain, MessageSquare, 
+  Settings, LayoutDashboard, Smartphone, Laptop, GitMerge, Palette, Cog, Lightbulb, 
+  Network, Puzzle, ShieldCheck, LineChart, Bot, Cpu 
+} from 'lucide-react';
 import { SKILL_CATEGORIES } from './constants'; // Import the centralized categories
 
 // Define a default, well-structured AppData object for fallbacks, aligned with server action defaults
@@ -89,6 +93,16 @@ export const lucideIconsMap: { [key: string]: React.ElementType } = {
   LayoutDashboard,
   Smartphone,
   Laptop,
+  GitMerge,
+  Palette,
+  Cog,
+  Lightbulb,
+  Network,
+  Puzzle,
+  ShieldCheck,
+  LineChart,
+  Bot,
+  Cpu,
 };
 export const availableIconNames = Object.keys(lucideIconsMap);
     
