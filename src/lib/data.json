@@ -1,3 +1,4 @@
+
 {
   "portfolioItems": [
     {
@@ -64,5 +65,9 @@
     "linkedinUrl": "",
     "githubUrl": "",
     "twitterUrl": ""
+  },
+  "siteSettings": {
+    "siteName": "AnandVerse Portfolio",
+    "defaultMetaDescription": "Personal portfolio of Anand, a passionate developer showcasing projects and skills."
   }
 }

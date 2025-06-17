@@ -1,8 +1,8 @@
 
 import type React from 'react';
-import type { PortfolioItem, Skill, AboutMeData, AppData } from '@/lib/types';
+import type { PortfolioItem, Skill, AboutMeData, AppData, SiteSettings } from '@/lib/types';
 // This imports the content of data.json for initial/client-side use by admin panel.
-import jsonDataFromFile from './data.json'; // Removed assert { type: 'json' }
+import jsonDataFromFile from './data.json'; 
 import { Code, Database, Server, Cloud, PenTool, Terminal, Briefcase, Zap, Brain, MessageSquare, Settings, LayoutDashboard, Smartphone, Laptop } from 'lucide-react';
 
 // Define a default, well-structured AppData object for fallbacks, aligned with server action defaults
@@ -21,6 +21,10 @@ const defaultAppData: AppData = {
     linkedinUrl: '',
     githubUrl: '',
     twitterUrl: '',
+  },
+  siteSettings: {
+    siteName: 'My Portfolio',
+    defaultMetaDescription: 'A showcase of my projects and skills.',
   },
 };
 
@@ -44,7 +48,14 @@ const appDataForClient: AppData = {
     ...defaultAppData.aboutMe,
     ...( (typeof importedData.aboutMe === 'object' && importedData.aboutMe !== null) 
         ? importedData.aboutMe 
-        : {} // Ensure importedData.aboutMe is an object before spreading
+        : {} 
+      ),
+  },
+  siteSettings: {
+    ...defaultAppData.siteSettings,
+    ...( (typeof importedData.siteSettings === 'object' && importedData.siteSettings !== null)
+        ? importedData.siteSettings
+        : {}
       ),
   },
 };
@@ -52,6 +63,7 @@ const appDataForClient: AppData = {
 export const portfolioItems: PortfolioItem[] = appDataForClient.portfolioItems;
 export const skills: Skill[] = appDataForClient.skills;
 export const aboutMe: AboutMeData = appDataForClient.aboutMe;
+export const siteSettings: SiteSettings = appDataForClient.siteSettings;
 
 
 // --- Static Configs (Client-Safe) ---

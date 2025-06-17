@@ -105,3 +105,9 @@ export const skillAdminSchema = z.object({
 
 export type SkillAdminFormData = z.infer<typeof skillAdminSchema>;
 
+// Schema for Site Settings
+export const siteSettingsAdminSchema = z.object({
+  siteName: z.string().min(3, { message: "Site Name must be at least 3 characters." }),
+  defaultMetaDescription: z.string().min(10, { message: "Meta Description must be at least 10 characters." }).max(160, {message: "Meta Description should not exceed 160 characters."}),
+});
+export type SiteSettingsAdminFormData = z.infer<typeof siteSettingsAdminSchema>;

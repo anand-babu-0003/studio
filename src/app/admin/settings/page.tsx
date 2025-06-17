@@ -1,19 +1,106 @@
 
+"use client";
+
+import { useEffect } from 'react';
+import { useActionState, useFormState as useActionStateReactDom } from 'react'; // useActionState is preferred from React for newer versions
+import { useFormStatus } from 'react-dom';
+import { useForm, type Path, type SubmitHandler } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import type { z } from 'zod';
+
 import { PageHeader } from '@/components/shared/page-header';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Info, UploadCloud, Search } from 'lucide-react';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useToast } from '@/hooks/use-toast';
+import { Info, UploadCloud, Search, Save, Loader2 } from 'lucide-react';
 
-// Note: This is a UI-only page for now. 
-// Saving these settings would require:
-// 1. Updating src/lib/data.json structure.
-// 2. Creating server actions to write to data.json.
-// 3. Modifying src/app/layout.tsx and potentially individual pages to consume these settings for metadata.
+import type { SiteSettings } from '@/lib/types';
+import { siteSettingsAdminSchema, type SiteSettingsAdminFormData } from '@/lib/adminSchemas';
+import { getSiteSettingsAction, updateSiteSettingsAction, type UpdateSiteSettingsFormState } from '@/actions/admin/settingsActions';
+
+const initialFormState: UpdateSiteSettingsFormState = { message: '', status: 'idle', errors: {}, data: undefined };
+
+const defaultFormValues: SiteSettingsAdminFormData = {
+  siteName: '',
+  defaultMetaDescription: '',
+};
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" disabled={pending}>
+      {pending ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Saving...
+        </>
+      ) : (
+        <>
+          <Save className="mr-2 h-4 w-4" />
+          Save Settings
+        </>
+      )}
+    </Button>
+  );
+}
 
 export default function AdminSettingsPage() {
+  const { toast } = useToast();
+  const [settingsState, settingsFormAction] = useActionState(updateSiteSettingsAction, initialFormState);
+
+  const form = useForm<SiteSettingsAdminFormData>({
+    resolver: zodResolver(siteSettingsAdminSchema),
+    defaultValues: defaultFormValues, 
+  });
+
+  useEffect(() => {
+    async function fetchInitialSettings() {
+      try {
+        const currentSettings = await getSiteSettingsAction();
+        if (currentSettings) {
+          form.reset(currentSettings);
+        }
+      } catch (error) {
+        console.error("Failed to fetch initial site settings:", error);
+        toast({
+          title: "Error",
+          description: "Could not load current site settings.",
+          variant: "destructive",
+        });
+      }
+    }
+    fetchInitialSettings();
+  }, [form, toast]);
+
+  useEffect(() => {
+    if (settingsState.status === 'success' && settingsState.message) {
+      toast({ title: "Success!", description: settingsState.message });
+      if (settingsState.data) {
+        form.reset(settingsState.data);
+      }
+    } else if (settingsState.status === 'error') {
+      const errorMessage = (typeof settingsState.message === 'string' && settingsState.message.trim() !== '')
+        ? settingsState.message : "An error occurred saving site settings.";
+      toast({ title: "Error Saving Settings", description: errorMessage, variant: "destructive" });
+      
+      const dataToResetWith = settingsState.data ? settingsState.data : form.getValues();
+      form.reset(dataToResetWith);
+      
+      if (settingsState.errors && typeof settingsState.errors === 'object') {
+        Object.entries(settingsState.errors).forEach(([fieldName, fieldErrorMessages]) => {
+          if (Array.isArray(fieldErrorMessages) && fieldErrorMessages.length > 0) {
+            form.setError(fieldName as Path<SiteSettingsAdminFormData>, { type: 'server', message: fieldErrorMessages.join(', ') });
+          }
+        });
+      }
+    }
+  }, [settingsState, toast, form]);
+  
+
   return (
     <div className="space-y-8">
       <PageHeader
@@ -23,37 +110,43 @@ export default function AdminSettingsPage() {
       />
 
       <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>General Site Information</CardTitle>
-            <CardDescription>
-              Basic information about your website. These might be used in metadata or footers.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="siteName">Site Name</Label>
-              <Input id="siteName" placeholder="Your Awesome Portfolio" defaultValue="AnandVerse Portfolio" disabled />
-              <p className="text-xs text-muted-foreground">
-                This would typically be used in the browser tab title.
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="siteDescription">Default Meta Description</Label>
-              <Input id="siteDescription" placeholder="A brief description of your site for search engines." defaultValue="Personal portfolio of a passionate developer." disabled />
-               <p className="text-xs text-muted-foreground">
-                A general description for SEO purposes (can be overridden per page).
-              </p>
-            </div>
-             <Alert>
-              <Info className="h-4 w-4" />
-              <AlertTitle>Coming Soon!</AlertTitle>
-              <AlertDescription>
-                Saving these general settings is not yet implemented.
-              </AlertDescription>
-            </Alert>
-          </CardContent>
-        </Card>
+        <Form {...form}>
+          <form action={settingsFormAction} className="space-y-8">
+            <Card>
+              <CardHeader>
+                <CardTitle>General Site Information</CardTitle>
+                <CardDescription>
+                  Basic information about your website. These will be used for the site title and default meta tags.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <FormField control={form.control} name="siteName" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Site Name</FormLabel>
+                    <FormControl><Input {...field} placeholder="Your Awesome Portfolio" /></FormControl>
+                    <FormMessage />
+                    <p className="text-xs text-muted-foreground">
+                      This will be used in the browser tab title (e.g., Site Name | Page Title).
+                    </p>
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="defaultMetaDescription" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Default Meta Description</FormLabel>
+                    <FormControl><Input {...field} placeholder="A brief description of your site for search engines." /></FormControl>
+                    <FormMessage />
+                    <p className="text-xs text-muted-foreground">
+                      A general description for SEO purposes (max 160 characters).
+                    </p>
+                  </FormItem>
+                )} />
+              </CardContent>
+              <CardFooter className="flex justify-end">
+                <SubmitButton />
+              </CardFooter>
+            </Card>
+          </form>
+        </Form>
 
         <Card>
           <CardHeader>
@@ -67,14 +160,14 @@ export default function AdminSettingsPage() {
                 <Label htmlFor="seoKeywords">Default Meta Keywords (Optional)</Label>
                 <Input id="seoKeywords" placeholder="e.g., web developer, portfolio, react" disabled />
                 <p className="text-xs text-muted-foreground">
-                    Comma-separated keywords. Modern SEO largely ignores this, but can be included.
+                    Comma-separated keywords. Modern SEO largely ignores this, but can be included. (Not implemented)
                 </p>
             </div>
              <Alert variant="default" className="mt-4">
               <Search className="h-4 w-4" />
-              <AlertTitle>SEO Management</AlertTitle>
+              <AlertTitle>Advanced SEO</AlertTitle>
               <AlertDescription>
-                Advanced SEO settings (like sitemap generation, robots.txt management) would typically be handled via Next.js configurations or specialized services. Saving these basic meta tags is not yet implemented.
+                Advanced SEO settings (like sitemap generation, robots.txt management) would typically be handled via Next.js configurations or specialized services. The general settings above cover the basics.
               </AlertDescription>
             </Alert>
 
@@ -93,9 +186,6 @@ export default function AdminSettingsPage() {
             </Alert>
           </CardContent>
         </Card>
-      </div>
-       <div className="flex justify-end mt-6">
-          <Button disabled>Save All Settings (Not Implemented)</Button>
       </div>
     </div>
   );

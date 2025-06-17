@@ -60,3 +60,16 @@ export interface AboutMeData {
   githubUrl?: string;
   twitterUrl?: string;
 }
+
+export interface SiteSettings {
+  siteName: string;
+  defaultMetaDescription: string;
+}
+
+export interface AppData {
+  portfolioItems: PortfolioItem[];
+  skills: Skill[];
+  aboutMe: AboutMeData;
+  siteSettings: SiteSettings; // Added site settings
+}
+
