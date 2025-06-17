@@ -18,6 +18,14 @@ export const staticMetadata: Metadata = {
   description: 'Personal portfolio of a passionate developer.', // Default description
 };
 
+// Default complete site settings for fallback
+const defaultSiteSettings: SiteSettings = {
+  siteName: String(staticMetadata.title || 'Portfolio'), 
+  defaultMetaDescription: String(staticMetadata.description || 'Default description for my portfolio.'),
+  defaultMetaKeywords: '', // Default to empty string
+  siteOgImageUrl: '', // Default to empty string
+};
+
 // Helper function to create or update a meta tag
 function updateMetaTag(name: string, content: string, isProperty: boolean = false) {
   if (typeof document === 'undefined') return; // Guard against server-side execution
@@ -67,16 +75,15 @@ export default function RootLayout({
     async function fetchSettings() {
       try {
         const settings = await getSiteSettingsAction();
-        setSiteSettings(settings);
+        // Ensure the fetched settings, if partial, are merged with complete defaults
+        setSiteSettings({
+          ...defaultSiteSettings, // Start with complete defaults
+          ...(settings ?? {}),     // Override with fetched settings if they exist
+        });
       } catch (error) {
         console.error("Failed to fetch site settings for layout:", error);
-        // Use defaults if fetch fails
-        setSiteSettings({ 
-          siteName: String(staticMetadata.title || 'Portfolio'), 
-          defaultMetaDescription: String(staticMetadata.description || 'Default description'),
-          defaultMetaKeywords: '',
-          siteOgImageUrl: '',
-        });
+        // Use complete defaults if fetch fails
+        setSiteSettings(defaultSiteSettings);
       }
     }
     fetchSettings();
@@ -102,7 +109,7 @@ export default function RootLayout({
       // Determine page title - could be more sophisticated if pages have own titles
       const pageTitleSegment = pathname.split('/').pop();
       const formattedPageTitle = pageTitleSegment 
-        ? pageTitleSegment.charAt(0).toUpperCase() + pageTitleSegment.slice(1)
+        ? pageTitleSegment.charAt(0).toUpperCase() + pageTitleSegment.slice(1).replace(/-/g, ' ')
         : '';
       
       if (pathname === '/') {
@@ -119,13 +126,13 @@ export default function RootLayout({
       updateMetaTag('og:title', siteSettings.siteName, true);
       updateMetaTag('og:description', siteSettings.defaultMetaDescription, true);
       
-      if (siteSettings.defaultMetaKeywords) {
+      if (siteSettings.defaultMetaKeywords && siteSettings.defaultMetaKeywords.trim() !== '') {
         updateMetaTag('keywords', siteSettings.defaultMetaKeywords);
       } else {
         removeMetaTag('keywords');
       }
 
-      if (siteSettings.siteOgImageUrl) {
+      if (siteSettings.siteOgImageUrl && siteSettings.siteOgImageUrl.trim() !== '') {
         updateMetaTag('og:image', siteSettings.siteOgImageUrl, true);
       } else {
         removeMetaTag('og:image', true);

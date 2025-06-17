@@ -8,6 +8,7 @@ import type { AboutMeData, AppData } from '@/lib/types';
 import fs from 'fs/promises';
 import path from 'path';
 
+// Ensure this default is complete according to the AboutMeData type
 const defaultAboutMeData: AboutMeData = { 
   name: 'Default Name', 
   title: 'Default Title', 
@@ -31,9 +32,10 @@ async function getFreshAboutMeData(): Promise<AboutMeData> {
         return defaultAboutMeData;
     }
     const appData = JSON.parse(fileContent) as Partial<AppData>;
+    // Merge the loaded aboutMe data with the complete default structure
     return {
-      ...defaultAboutMeData,
-      ...(appData.aboutMe ?? {}),
+      ...defaultAboutMeData, // Start with the full default
+      ...(appData.aboutMe ?? {}), // Override with parsed data if appData.aboutMe exists
     };
   } catch (error) {
     console.error("Error reading or parsing data.json for Contact page, returning default structure:", error);

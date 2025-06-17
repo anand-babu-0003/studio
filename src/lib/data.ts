@@ -52,17 +52,17 @@ const appDataForClient: AppData = {
     ? importedData.skills
     : defaultAppData.skills,
   aboutMe: {
-    ...defaultAppData.aboutMe,
+    ...defaultAppData.aboutMe, // Start with full default structure
     ...( (typeof importedData.aboutMe === 'object' && importedData.aboutMe !== null) 
-        ? importedData.aboutMe 
-        : {} 
+        ? importedData.aboutMe // Override with parsed data if aboutMe exists and is an object
+        : {} // Otherwise, use an empty object (effectively keeping defaults)
       ),
   },
   siteSettings: {
-    ...defaultAppData.siteSettings,
+    ...defaultAppData.siteSettings, // Start with full default structure
     ...( (typeof importedData.siteSettings === 'object' && importedData.siteSettings !== null)
-        ? importedData.siteSettings
-        : {}
+        ? importedData.siteSettings // Override with parsed data if siteSettings exists and is an object
+        : {} // Otherwise, use an empty object (effectively keeping defaults)
       ),
   },
 };
