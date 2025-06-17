@@ -84,8 +84,13 @@ export async function updateAboutDataAction(
     const company = formData.get(`experience.${index}.company`) as string || '';
     const period = formData.get(`experience.${index}.period`) as string || '';
     const description = formData.get(`experience.${index}.description`) as string || '';
-    if (id) { 
+    
+    if (id && (role.trim() !== '' || company.trim() !== '' || period.trim() !== '' || description.trim() !== '')) {
         experienceEntries.push({ id, role, company, period, description });
+    } else if (id) {
+        // Log if an entry with an ID is skipped because all its data fields are empty.
+        // This helps in debugging but prevents Zod errors for truly blank new entries.
+        console.log(`Admin About Action: Skipping experience entry with ID ${id} at index ${index} because all its data fields are empty.`);
     }
   }
 
@@ -94,8 +99,11 @@ export async function updateAboutDataAction(
     const degree = formData.get(`education.${index}.degree`) as string || '';
     const institution = formData.get(`education.${index}.institution`) as string || '';
     const period = formData.get(`education.${index}.period`) as string || '';
-    if (id) { 
+    
+    if (id && (degree.trim() !== '' || institution.trim() !== '' || period.trim() !== '')) {
         educationEntries.push({ id, degree, institution, period });
+    } else if (id) {
+        console.log(`Admin About Action: Skipping education entry with ID ${id} at index ${index} because all its data fields are empty.`);
     }
   }
 
@@ -113,7 +121,7 @@ export async function updateAboutDataAction(
     twitterUrl: formData.get('twitterUrl') as string || undefined,
   };
   
-  console.log("Admin About Action: Raw data received for validation:", JSON.stringify(rawData, null, 2));
+  console.log("Admin About Action: Raw data prepared for validation (empty array items filtered):", JSON.stringify(rawData, null, 2));
 
   const validatedFields = aboutMeSchema.safeParse(rawData);
 
@@ -152,3 +160,4 @@ export async function updateAboutDataAction(
     };
   }
 }
+
