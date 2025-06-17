@@ -30,6 +30,8 @@ const defaultAppData: AppData = {
   siteSettings: {
     siteName: 'My Portfolio',
     defaultMetaDescription: 'A showcase of my projects and skills.',
+    defaultMetaKeywords: '', // Ensured this field is present
+    siteOgImageUrl: '',    // Ensured this field is present
   },
 };
 
@@ -42,6 +44,7 @@ async function getFreshAppData(): Promise<AppData> {
         return defaultAppData;
     }
     const parsedData = JSON.parse(fileContent) as Partial<AppData>;
+    // Merge ensuring all keys from defaultAppData are present, especially siteSettings sub-keys
     return {
       portfolioItems: parsedData.portfolioItems ?? defaultAppData.portfolioItems,
       skills: parsedData.skills ?? defaultAppData.skills,
@@ -49,14 +52,14 @@ async function getFreshAppData(): Promise<AppData> {
         ...defaultAppData.aboutMe,
         ...(parsedData.aboutMe ?? {}),
       },
-      siteSettings: { // Ensure siteSettings is also populated
-        ...defaultAppData.siteSettings,
-        ...(parsedData.siteSettings ?? {}),
+      siteSettings: { 
+        ...defaultAppData.siteSettings, // Start with complete default siteSettings
+        ...(parsedData.siteSettings ?? {}), // Override with parsed data if available
       }
     };
   } catch (error) {
     console.error("Error reading or parsing data.json for Home page, returning default structure:", error);
-    return defaultAppData;
+    return defaultAppData; // Fallback to the now-complete local defaultAppData
   }
 }
 

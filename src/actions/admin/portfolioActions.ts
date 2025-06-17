@@ -9,7 +9,8 @@ import { revalidatePath } from 'next/cache';
 
 const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
 
-const localDefaultAppData: AppData = {
+// Standardized default AppData structure
+const defaultAppData: AppData = {
   portfolioItems: [],
   skills: [],
   aboutMe: {
@@ -25,6 +26,12 @@ const localDefaultAppData: AppData = {
     githubUrl: '',
     twitterUrl: '',
   },
+  siteSettings: {
+    siteName: 'My Portfolio',
+    defaultMetaDescription: 'A showcase of my projects and skills.',
+    defaultMetaKeywords: '',
+    siteOgImageUrl: '',
+  },
 };
 
 async function readDataFromFile(): Promise<AppData> {
@@ -32,21 +39,21 @@ async function readDataFromFile(): Promise<AppData> {
     const fileContent = await fs.readFile(dataFilePath, 'utf-8');
      if (!fileContent.trim()) {
         console.warn("Data file is empty in portfolioActions, returning default structure.");
-        return localDefaultAppData;
+        return defaultAppData;
     }
     const parsedData = JSON.parse(fileContent);
-
+    // Use comprehensive merging strategy
     return {
-      portfolioItems: parsedData.portfolioItems ?? localDefaultAppData.portfolioItems,
-      skills: parsedData.skills ?? localDefaultAppData.skills,
-      aboutMe: {
-        ...localDefaultAppData.aboutMe,
-        ...(parsedData.aboutMe ?? {}),
-      },
+      ...defaultAppData, // Start with full default structure
+      ...parsedData,     // Override with parsed data
+      aboutMe: { ...defaultAppData.aboutMe, ...(parsedData.aboutMe ?? {}) }, // Deep merge for aboutMe
+      skills: Array.isArray(parsedData.skills) ? parsedData.skills : defaultAppData.skills,
+      portfolioItems: Array.isArray(parsedData.portfolioItems) ? parsedData.portfolioItems : defaultAppData.portfolioItems,
+      siteSettings: { ...defaultAppData.siteSettings, ...(parsedData.siteSettings ?? {}) }, // Deep merge for siteSettings
     };
   } catch (error) {
      console.error("Error reading or parsing data file in portfolioActions, returning default structure:", error);
-     return localDefaultAppData;
+     return defaultAppData;
   }
 }
 
@@ -58,7 +65,6 @@ export type PortfolioFormState = {
   message: string;
   status: 'success' | 'error' | 'idle';
   errors?: Partial<Record<keyof PortfolioAdminFormData, string[]>>;
-  // On error, `formData` will contain the attempted data. On success, `savedProject` will.
   formDataOnError?: PortfolioAdminFormData; 
   savedProject?: PortfolioItem;
 };
@@ -122,7 +128,8 @@ export async function savePortfolioItemAction(
       if (projectIndex > -1) {
         allData.portfolioItems[projectIndex] = projectToSave;
       } else {
-        allData.portfolioItems.push(projectToSave); // Should ideally not happen if ID is present but not found
+        // If ID was provided but project not found, treat as new addition
+        allData.portfolioItems.push(projectToSave); 
       }
     } else {
       allData.portfolioItems.push(projectToSave);
@@ -130,7 +137,7 @@ export async function savePortfolioItemAction(
     await writeDataToFile(allData);
 
     revalidatePath('/portfolio');
-    revalidatePath('/'); // For featured projects
+    revalidatePath('/'); 
     if (projectToSave.slug) {
       revalidatePath(`/portfolio/${projectToSave.slug}`);
     }
@@ -149,7 +156,7 @@ export async function savePortfolioItemAction(
       message: "An unexpected server error occurred while saving the project. Please try again.",
       status: 'error',
       errors: {},
-      formDataOnError: rawData, // Return rawData on file system error as well
+      formDataOnError: rawData,
     };
   }
 }
@@ -172,9 +179,8 @@ export async function deletePortfolioItemAction(itemId: string): Promise<DeleteP
         if (allData.portfolioItems.length < initialLength) {
             await writeDataToFile(allData);
             revalidatePath('/portfolio');
-            revalidatePath('/'); // For featured projects
+            revalidatePath('/'); 
             if (projectToDelete?.slug) {
-              // It's good practice to revalidate, though the page will 404
               revalidatePath(`/portfolio/${projectToDelete.slug}`);
             }
             return { success: true, message: `Project (ID: ${itemId}) deleted successfully!` };

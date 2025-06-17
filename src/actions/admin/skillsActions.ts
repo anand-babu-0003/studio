@@ -9,7 +9,8 @@ import { revalidatePath } from 'next/cache';
 
 const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
 
-const localDefaultAppData: AppData = {
+// Standardized default AppData structure
+const defaultAppData: AppData = {
   portfolioItems: [],
   skills: [],
   aboutMe: {
@@ -38,25 +39,21 @@ async function readDataFromFile(): Promise<AppData> {
     const fileContent = await fs.readFile(dataFilePath, 'utf-8');
     if (!fileContent.trim()) {
         console.warn("Data file is empty in skillsActions, returning default structure.");
-        return localDefaultAppData;
+        return defaultAppData;
     }
     const parsedData = JSON.parse(fileContent);
-
+    // Use comprehensive merging strategy
     return {
-      portfolioItems: parsedData.portfolioItems ?? localDefaultAppData.portfolioItems,
-      skills: parsedData.skills ?? localDefaultAppData.skills,
-      aboutMe: {
-        ...localDefaultAppData.aboutMe,
-        ...(parsedData.aboutMe ?? {}),
-      },
-      siteSettings: { // Ensure siteSettings is also populated
-        ...localDefaultAppData.siteSettings,
-        ...(parsedData.siteSettings ?? {}),
-      }
+      ...defaultAppData, // Start with full default structure
+      ...parsedData,     // Override with parsed data
+      aboutMe: { ...defaultAppData.aboutMe, ...(parsedData.aboutMe ?? {}) }, // Deep merge for aboutMe
+      skills: Array.isArray(parsedData.skills) ? parsedData.skills : defaultAppData.skills,
+      portfolioItems: Array.isArray(parsedData.portfolioItems) ? parsedData.portfolioItems : defaultAppData.portfolioItems,
+      siteSettings: { ...defaultAppData.siteSettings, ...(parsedData.siteSettings ?? {}) }, // Deep merge for siteSettings
     };
   } catch (error) {
     console.error("Error reading or parsing data file in skillsActions, returning default structure:", error);
-    return localDefaultAppData;
+    return defaultAppData;
   }
 }
 
@@ -68,7 +65,6 @@ export type SkillFormState = {
   message: string;
   status: 'success' | 'error' | 'idle';
   errors?: Partial<Record<keyof SkillAdminFormData, string[]>>;
-  // On error, `formDataOnError` will contain the attempted data. On success, `savedSkill` will.
   formDataOnError?: SkillAdminFormData;
   savedSkill?: Skill;
 };
@@ -88,7 +84,6 @@ export async function saveSkillAction(
     ? Number(proficiencyString) 
     : undefined;
 
-  // This is the data that will be validated and potentially returned on error
   const dataForZod: SkillAdminFormData = {
     id: typeof idFromForm === 'string' ? idFromForm : undefined,
     name: typeof nameFromForm === 'string' ? nameFromForm : '',
@@ -126,7 +121,7 @@ export async function saveSkillAction(
       if (skillIndex > -1) {
         allData.skills[skillIndex] = skillToSave;
       } else {
-        allData.skills.push(skillToSave); // Should not happen if ID is present but not found
+        allData.skills.push(skillToSave); 
       }
     } else {
       allData.skills.push(skillToSave);
@@ -148,7 +143,7 @@ export async function saveSkillAction(
       message: "An unexpected server error occurred while saving the skill. Please try again.",
       status: 'error',
       errors: {},
-      formDataOnError: dataForZod, // Return dataForZod on file system error
+      formDataOnError: dataForZod, 
     };
   }
 }

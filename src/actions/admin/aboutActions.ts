@@ -17,7 +17,8 @@ import { revalidatePath } from 'next/cache';
 
 const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
 
-const localDefaultAppData: AppData = {
+// Standardized default AppData structure
+const defaultAppData: AppData = {
   portfolioItems: [],
   skills: [],
   aboutMe: {
@@ -33,6 +34,12 @@ const localDefaultAppData: AppData = {
     githubUrl: '',
     twitterUrl: '',
   },
+  siteSettings: { // Added to ensure completeness
+    siteName: 'My Portfolio',
+    defaultMetaDescription: 'A showcase of my projects and skills.',
+    defaultMetaKeywords: '',
+    siteOgImageUrl: '',
+  },
 };
 
 async function readDataFromFile(): Promise<AppData> {
@@ -40,21 +47,21 @@ async function readDataFromFile(): Promise<AppData> {
     const fileContent = await fs.readFile(dataFilePath, 'utf-8');
     if (!fileContent.trim()) {
         console.warn("Data file is empty in aboutActions, returning default structure.");
-        return localDefaultAppData;
+        return defaultAppData;
     }
     const parsedData = JSON.parse(fileContent);
-
+    // Use comprehensive merging strategy
     return {
-      portfolioItems: parsedData.portfolioItems ?? localDefaultAppData.portfolioItems,
-      skills: parsedData.skills ?? localDefaultAppData.skills,
-      aboutMe: {
-        ...localDefaultAppData.aboutMe,
-        ...(parsedData.aboutMe ?? {}),
-      },
+      ...defaultAppData, // Start with full default structure
+      ...parsedData,     // Override with parsed data
+      aboutMe: { ...defaultAppData.aboutMe, ...(parsedData.aboutMe ?? {}) }, // Deep merge for aboutMe
+      skills: Array.isArray(parsedData.skills) ? parsedData.skills : defaultAppData.skills,
+      portfolioItems: Array.isArray(parsedData.portfolioItems) ? parsedData.portfolioItems : defaultAppData.portfolioItems,
+      siteSettings: { ...defaultAppData.siteSettings, ...(parsedData.siteSettings ?? {}) }, // Deep merge for siteSettings
     };
   } catch (error) {
     console.error("Error reading or parsing data file in aboutActions, returning default structure:", error);
-    return localDefaultAppData;
+    return defaultAppData;
   }
 }
 
@@ -127,7 +134,7 @@ export async function updateProfileBioDataAction(
 
     const allData = await readDataFromFile();
     allData.aboutMe = {
-      ...allData.aboutMe, // Preserve existing fields
+      ...allData.aboutMe, // Preserve existing fields in aboutMe
       ...dataToSave,     // Overwrite with new profile/bio data
     };
     await writeDataToFile(allData);
@@ -187,7 +194,6 @@ export async function updateExperienceDataAction(
       const period = String(formData.get(`experience.${index}.period`) || '');
       const description = String(formData.get(`experience.${index}.description`) || '');
       
-      // Only add if it's not an entirely empty new entry, or if it's an existing entry (ID not starting with new_exp_)
       if (role.trim() !== '' || company.trim() !== '' || period.trim() !== '' || description.trim() !== '' || (id && !id.startsWith('new_exp_')) ) {
           experienceEntries.push({ id, role, company, period, description });
       } else {
@@ -205,7 +211,7 @@ export async function updateExperienceDataAction(
       return {
         message: "Failed to update experience. Please check the errors below.",
         status: 'error',
-        errors: fieldErrors as z.inferFlattenedErrors<typeof experienceSectionSchema>['fieldErrors'], // Ensure correct type
+        errors: fieldErrors as z.inferFlattenedErrors<typeof experienceSectionSchema>['fieldErrors'],
         data: rawDataForZod, 
       };
     }
@@ -213,7 +219,7 @@ export async function updateExperienceDataAction(
     const dataToSave = validatedFields.data;
 
     const allData = await readDataFromFile();
-    allData.aboutMe.experience = dataToSave.experience; // Update only the experience part
+    allData.aboutMe.experience = dataToSave.experience; 
     await writeDataToFile(allData);
 
     revalidatePath('/about');
@@ -280,7 +286,7 @@ export async function updateEducationDataAction(
       return {
         message: "Failed to update education. Please check the errors below.",
         status: 'error',
-        errors: fieldErrors as z.inferFlattenedErrors<typeof educationSectionSchema>['fieldErrors'], // Ensure correct type
+        errors: fieldErrors as z.inferFlattenedErrors<typeof educationSectionSchema>['fieldErrors'],
         data: rawDataForZod,
       };
     }
@@ -288,7 +294,7 @@ export async function updateEducationDataAction(
     const dataToSave = validatedFields.data;
 
     const allData = await readDataFromFile();
-    allData.aboutMe.education = dataToSave.education; // Update only the education part
+    allData.aboutMe.education = dataToSave.education; 
     await writeDataToFile(allData);
 
     revalidatePath('/about');
@@ -315,8 +321,8 @@ export async function updateEducationDataAction(
 }
 
 
-// Server Action for Contact & Socials (refactored from original full form action)
-export async function updateAboutDataAction( // Renamed for clarity if we had other "AboutData" actions
+// Server Action for Contact & Socials
+export async function updateAboutDataAction(
   prevState: UpdateAboutDataFormState,
   formData: FormData
 ): Promise<UpdateAboutDataFormState> {
@@ -326,18 +332,9 @@ export async function updateAboutDataAction( // Renamed for clarity if we had ot
     const currentAppData = await readDataFromFile();
     const currentAboutMe = currentAppData.aboutMe;
 
-    // Construct rawDataForValidation:
-    // - Take existing non-contact fields from currentAboutMe.
-    // - Take contact fields from formData.
     rawDataForValidation = {
-      name: currentAboutMe.name, 
-      title: currentAboutMe.title,
-      bio: currentAboutMe.bio,
-      profileImage: currentAboutMe.profileImage,
-      dataAiHint: currentAboutMe.dataAiHint,
-      experience: currentAboutMe.experience, 
-      education: currentAboutMe.education, 
-      email: String(formData.get('email') || ''),
+      ...currentAboutMe, // Start with all current aboutMe data
+      email: String(formData.get('email') || ''), // Override with form data
       linkedinUrl: String(formData.get('linkedinUrl') || ''),
       githubUrl: String(formData.get('githubUrl') || ''),
       twitterUrl: String(formData.get('twitterUrl') || ''),
@@ -352,18 +349,15 @@ export async function updateAboutDataAction( // Renamed for clarity if we had ot
         message: "Failed to update contact data. Please check the errors below.",
         status: 'error',
         errors: fieldErrors,
-        data: rawDataForValidation, // Return the data that failed validation
+        data: rawDataForValidation,
       };
     }
 
     const validatedContactData = validatedFields.data;
 
-    // Construct the new AppData for saving
-    // Start with currentAppData to preserve portfolioItems and skills
     const allDataToSave = { ...currentAppData }; 
-    // Update only the contact fields in aboutMe
     allDataToSave.aboutMe = {
-      ...currentAboutMe, // Preserve existing name, bio, experience, education etc.
+      ...currentAboutMe, 
       email: validatedContactData.email,
       linkedinUrl: validatedContactData.linkedinUrl,
       githubUrl: validatedContactData.githubUrl,
@@ -373,15 +367,14 @@ export async function updateAboutDataAction( // Renamed for clarity if we had ot
     await writeDataToFile(allDataToSave);
 
     revalidatePath('/contact'); 
-    revalidatePath('/about'); // In case some about data is used on contact or vice-versa in future
-    revalidatePath('/');     // Footer might use contact info
+    revalidatePath('/about'); 
+    revalidatePath('/');    
 
     return {
       message: "Contact & Socials data updated successfully!",
       status: 'success',
-      // Return the subset that was actually changed by this form for client-side reset
       data: { 
-        ...currentAboutMe, // include all fields for AboutMeData type consistency
+        ...currentAboutMe, 
         email: validatedContactData.email,
         linkedinUrl: validatedContactData.linkedinUrl,
         githubUrl: validatedContactData.githubUrl,
@@ -397,7 +390,8 @@ export async function updateAboutDataAction( // Renamed for clarity if we had ot
       message: "An unexpected server error occurred (Contact/Socials action).",
       status: 'error',
       errors: {}, 
-      data: fallbackAboutMe, // Return what was attempted or current data
+      data: fallbackAboutMe,
     };
   }
 }
+

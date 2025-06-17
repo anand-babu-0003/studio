@@ -10,6 +10,7 @@ import { revalidatePath } from 'next/cache';
 
 const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
 
+// Standardized default AppData structure (authoritative version)
 const defaultAppData: AppData = {
   portfolioItems: [],
   skills: [],
@@ -42,11 +43,14 @@ async function readDataFromFile(): Promise<AppData> {
         return defaultAppData;
     }
     const parsedData = JSON.parse(fileContent);
+    // Comprehensive merging strategy
     return {
-      ...defaultAppData,
-      ...parsedData,
-      aboutMe: { ...defaultAppData.aboutMe, ...(parsedData.aboutMe ?? {}) },
-      siteSettings: { ...defaultAppData.siteSettings, ...(parsedData.siteSettings ?? {}) },
+      ...defaultAppData, // Start with full default structure
+      ...parsedData,     // Override with parsed data
+      aboutMe: { ...defaultAppData.aboutMe, ...(parsedData.aboutMe ?? {}) }, // Deep merge for aboutMe
+      skills: Array.isArray(parsedData.skills) ? parsedData.skills : defaultAppData.skills,
+      portfolioItems: Array.isArray(parsedData.portfolioItems) ? parsedData.portfolioItems : defaultAppData.portfolioItems,
+      siteSettings: { ...defaultAppData.siteSettings, ...(parsedData.siteSettings ?? {}) }, // Deep merge for siteSettings
     };
   } catch (error) {
     console.error("Error reading or parsing data file in settingsActions, returning default structure:", error);
@@ -70,13 +74,6 @@ export type UpdateSiteSettingsFormState = {
   status: 'success' | 'error' | 'idle';
   errors?: z.inferFlattenedErrors<typeof siteSettingsAdminSchema>['fieldErrors'];
   data?: SiteSettings;
-};
-
-const initialUpdateSiteSettingsFormState: UpdateSiteSettingsFormState = {
-    message: '',
-    status: 'idle',
-    errors: {},
-    data: undefined,
 };
 
 export async function updateSiteSettingsAction(
@@ -108,21 +105,18 @@ export async function updateSiteSettingsAction(
     const dataToSave = validatedFields.data;
 
     const allData = await readDataFromFile();
-    allData.siteSettings = dataToSave; // Update only the site settings part
+    allData.siteSettings = dataToSave; 
     await writeDataToFile(allData);
 
-    // Revalidate paths that might use this global data
-    revalidatePath('/', 'layout'); // Revalidate the layout which includes <head>
-    // Revalidate individual pages as well if they directly use this data or have specific metadata
+    revalidatePath('/', 'layout'); 
     revalidatePath('/');
     revalidatePath('/about');
     revalidatePath('/portfolio');
     revalidatePath('/skills');
     revalidatePath('/contact');
-    // Potentially revalidate all portfolio item detail pages too if they generate dynamic titles/descriptions
-    // allData.portfolioItems.forEach(item => {
-    //   if (item.slug) revalidatePath(`/portfolio/${item.slug}`);
-    // });
+    allData.portfolioItems.forEach(item => {
+      if (item.slug) revalidatePath(`/portfolio/${item.slug}`);
+    });
 
 
     return {
@@ -134,7 +128,7 @@ export async function updateSiteSettingsAction(
 
   } catch (error) {
     console.error("Admin SiteSettings Action: An unexpected error occurred:", error);
-    const currentSettings = (await readDataFromFile()).siteSettings;
+    const currentSettings = (await readDataFromFile()).siteSettings; // Fetch fresh defaults on error
     const errorResponseData: SiteSettings = rawData || {
       siteName: String(formData.get('siteName') || currentSettings.siteName),
       defaultMetaDescription: String(formData.get('defaultMetaDescription') || currentSettings.defaultMetaDescription),
