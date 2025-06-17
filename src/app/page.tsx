@@ -3,12 +3,13 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { ArrowRight, Eye, Code2 } from 'lucide-react';
+import { ArrowRight, Eye, Code2, Package } from 'lucide-react'; // Added Package for fallback icon
 import type { PortfolioItem, AboutMeData, AppData, Skill } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wrapper';
 import fs from 'fs/promises';
 import path from 'path';
+import { lucideIconsMap } from '@/lib/data'; // Import lucideIconsMap
 
 const defaultAppData: AppData = {
   portfolioItems: [],
@@ -25,6 +26,10 @@ const defaultAppData: AppData = {
     linkedinUrl: '',
     githubUrl: '',
     twitterUrl: '',
+  },
+  siteSettings: {
+    siteName: 'My Portfolio',
+    defaultMetaDescription: 'A showcase of my projects and skills.',
   },
 };
 
@@ -44,6 +49,10 @@ async function getFreshAppData(): Promise<AppData> {
         ...defaultAppData.aboutMe,
         ...(parsedData.aboutMe ?? {}),
       },
+      siteSettings: { // Ensure siteSettings is also populated
+        ...defaultAppData.siteSettings,
+        ...(parsedData.siteSettings ?? {}),
+      }
     };
   } catch (error) {
     console.error("Error reading or parsing data.json for Home page, returning default structure:", error);
@@ -56,6 +65,7 @@ export default async function Home() {
   const aboutMeData = appData.aboutMe;
   const allPortfolioItems = appData.portfolioItems;
   const featuredProjects = allPortfolioItems.slice(0, 2);
+  const highlightedSkills = appData.skills.slice(0, 6); // Get first 6 skills for highlight
 
   const firstParagraphBio = (aboutMeData.bio || '').split('\n\n')[0];
 
@@ -178,16 +188,57 @@ export default async function Home() {
                 </ScrollAnimationWrapper>
               ))}
             </div>
-            <ScrollAnimationWrapper className="mt-12 text-center" delay={featuredProjects.length * 150}>
-              <Button asChild size="lg" variant="outline" className="text-lg">
-                <Link href="/portfolio">
-                  View All Projects <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
-            </ScrollAnimationWrapper>
+            {allPortfolioItems.length > featuredProjects.length && (
+                <ScrollAnimationWrapper className="mt-12 text-center" delay={featuredProjects.length * 150}>
+                <Button asChild size="lg" variant="outline" className="text-lg">
+                    <Link href="/portfolio">
+                    View All Projects <ArrowRight className="ml-2 h-5 w-5" />
+                    </Link>
+                </Button>
+                </ScrollAnimationWrapper>
+            )}
           </div>
         </section>
       </ScrollAnimationWrapper>
+
+      {/* Core Skills Section */}
+      {highlightedSkills.length > 0 && (
+        <ScrollAnimationWrapper className="w-full py-16 md:py-24">
+          <section>
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+              <ScrollAnimationWrapper>
+                <h2 className="font-headline text-3xl md:text-4xl font-bold text-center text-primary mb-12">
+                  My Core Skills
+                </h2>
+              </ScrollAnimationWrapper>
+              
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 md:gap-8">
+                {highlightedSkills.map((skill, index) => {
+                  const IconComponent = lucideIconsMap[skill.iconName] || Package;
+                  return (
+                    <ScrollAnimationWrapper key={skill.id} delay={index * 100} threshold={0.05}>
+                      <div className="flex flex-col items-center text-center p-4 md:p-6 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-[1.03] bg-card h-full">
+                        <IconComponent className="h-10 w-10 md:h-12 md:w-12 text-primary mb-3" />
+                        <h3 className="text-sm md:text-base font-semibold text-card-foreground">{skill.name}</h3>
+                      </div>
+                    </ScrollAnimationWrapper>
+                  );
+                })}
+              </div>
+
+              {appData.skills.length > highlightedSkills.length && (
+                <ScrollAnimationWrapper className="mt-12 text-center" delay={highlightedSkills.length * 100}>
+                  <Button asChild size="lg" variant="outline" className="text-lg">
+                    <Link href="/skills">
+                      Explore All My Skills <ArrowRight className="ml-2 h-5 w-5" />
+                    </Link>
+                  </Button>
+                </ScrollAnimationWrapper>
+              )}
+            </div>
+          </section>
+        </ScrollAnimationWrapper>
+      )}
     </div>
   );
 }
