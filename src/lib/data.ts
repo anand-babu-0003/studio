@@ -55,7 +55,9 @@ export const aboutMe: AboutMeData = appDataForClient.aboutMe;
 
 
 // --- Static Configs (Client-Safe) ---
-export const skillCategories: Array<Skill['category']> = ['Languages', 'Frontend', 'Backend', 'DevOps', 'Tools', 'Other'];
+// Use 'as const' for skillCategories to provide a tuple of string literals to Zod enum
+export const skillCategories = ['Languages', 'Frontend', 'Backend', 'DevOps', 'Tools', 'Other'] as const;
+
 
 export const lucideIconsMap: { [key: string]: React.ElementType } = {
   Code,

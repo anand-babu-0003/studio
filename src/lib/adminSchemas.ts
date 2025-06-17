@@ -50,15 +50,16 @@ export const portfolioItemAdminSchema = z.object({
 export type PortfolioAdminFormData = z.infer<typeof portfolioItemAdminSchema>;
 
 // Schema for Skill Admin Form
-const validCategories = skillCategories as [string, ...string[]];
-const validIconNames = availableIconNames as [string, ...string[]];
+// skillCategories is now a readonly tuple of string literals, suitable for z.enum directly.
+// availableIconNames is string[], so it needs the non-empty array cast for z.enum.
+const castedAvailableIconNames = availableIconNames as [string, ...string[]];
 
 export const skillAdminSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, { message: "Skill name is required." }),
-  category: z.enum(validCategories, { errorMap: () => ({ message: "Please select a valid category." })}),
+  category: z.enum(skillCategories, { errorMap: () => ({ message: "Please select a valid category." })}),
   proficiency: z.coerce.number().min(0).max(100).optional().nullable(),
-  iconName: z.enum(validIconNames, { errorMap: () => ({ message: "Please select a valid icon."}) }),
+  iconName: z.enum(castedAvailableIconNames, { errorMap: () => ({ message: "Please select a valid icon."}) }),
 });
 
 export type SkillAdminFormData = z.infer<typeof skillAdminSchema>;
