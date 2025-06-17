@@ -1,8 +1,28 @@
 
 import { z } from 'zod';
 import type { Experience, Education } from '@/lib/types';
-import { skillCategories, availableIconNames } from '@/lib/data';
+// Import Lucide icons directly for deriving availableIconNames within this file
+import { Code, Database, Server, Cloud, PenTool, Terminal, Briefcase, Zap, Brain, MessageSquare, Settings, LayoutDashboard, Smartphone, Laptop } from 'lucide-react';
 
+// --- Self-contained enum definitions for Zod validation ---
+// These are used by skillAdminSchema below.
+// The client (AdminSkillsPage) will use similar arrays from src/lib/data.ts for UI.
+// Ensure string values here exactly match those in src/lib/data.ts.
+
+const ZOD_SKILL_CATEGORIES = ['Languages', 'Frontend', 'Backend', 'DevOps', 'Tools', 'Other'] as const;
+
+const ZOD_LUCIDE_ICONS_MAP: { [key: string]: React.ElementType } = {
+  Code, Database, Server, Cloud, PenTool, Terminal, Briefcase, Zap, Brain, MessageSquare, Settings, LayoutDashboard, Smartphone, Laptop
+};
+const ZOD_AVAILABLE_ICON_NAMES = Object.keys(ZOD_LUCIDE_ICONS_MAP) as [string, ...string[]]; // Cast for z.enum if map isn't empty
+
+if (ZOD_AVAILABLE_ICON_NAMES.length === 0) {
+  // This should not happen given the hardcoded map, but good for robustness.
+  throw new Error("FATAL: ZOD_AVAILABLE_ICON_NAMES is empty in adminSchemas.ts. Check ZOD_LUCIDE_ICONS_MAP.");
+}
+
+
+// --- Original Schemas ---
 const experienceSchema = z.object({
   id: z.string(),
   role: z.string().min(1, "Role is required"),
@@ -44,22 +64,17 @@ export const portfolioItemAdminSchema = z.object({
   repoUrl: z.string().url({ message: "Please enter a valid URL for Code Repo." }).or(z.literal("")).optional(),
   slug: z.string().min(1, "Slug is required.").regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, { message: "Slug can only contain lowercase letters, numbers, and hyphens." }),
   dataAiHint: z.string().max(50, "AI hint too long").optional(),
-  readmeContent: z.string().optional(), // Added for README markdown
+  readmeContent: z.string().optional(),
 });
 
 export type PortfolioAdminFormData = z.infer<typeof portfolioItemAdminSchema>;
 
-// Schema for Skill Admin Form
-// skillCategories is now a readonly tuple of string literals, suitable for z.enum directly.
-// availableIconNames is string[], so it needs the non-empty array cast for z.enum.
-const castedAvailableIconNames = availableIconNames as [string, ...string[]];
-
 export const skillAdminSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, { message: "Skill name is required." }),
-  category: z.enum(skillCategories, { errorMap: () => ({ message: "Please select a valid category." })}),
+  category: z.enum(ZOD_SKILL_CATEGORIES, { errorMap: () => ({ message: "Please select a valid category." })}),
   proficiency: z.coerce.number().min(0).max(100).optional().nullable(),
-  iconName: z.enum(castedAvailableIconNames, { errorMap: () => ({ message: "Please select a valid icon."}) }),
+  iconName: z.enum(ZOD_AVAILABLE_ICON_NAMES, { errorMap: () => ({ message: "Please select a valid icon."}) }),
 });
 
 export type SkillAdminFormData = z.infer<typeof skillAdminSchema>;
