@@ -52,6 +52,17 @@ export const aboutMeSchema = z.object({
   twitterUrl: z.string().url({ message: "Please enter a valid Twitter URL." }).or(z.literal("")).optional(),
 });
 
+// Schema for just the Profile & Bio section
+export const profileBioSchema = aboutMeSchema.pick({
+  name: true,
+  title: true,
+  bio: true,
+  profileImage: true,
+  dataAiHint: true,
+});
+export type ProfileBioData = z.infer<typeof profileBioSchema>;
+
+
 export const portfolioItemAdminSchema = z.object({
   id: z.string().optional(),
   title: z.string().min(2, { message: "Title must be at least 2 characters." }),

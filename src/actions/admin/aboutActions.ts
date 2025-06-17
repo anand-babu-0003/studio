@@ -2,7 +2,7 @@
 "use server";
 
 import type { AboutMeData, Experience, Education, AppData } from '@/lib/types';
-import { aboutMeSchema } from '@/lib/adminSchemas';
+import { aboutMeSchema, profileBioSchema, type ProfileBioData } from '@/lib/adminSchemas';
 import type { z } from 'zod';
 import fs from 'fs/promises';
 import path from 'path';
@@ -54,13 +54,87 @@ async function writeDataToFile(data: AppData): Promise<void> {
   await fs.writeFile(dataFilePath, JSON.stringify(data, null, 2), 'utf-8');
 }
 
+// State type for the original full About Me form (will be phased out or adapted)
 export type UpdateAboutDataFormState = {
   message: string;
   status: 'success' | 'error' | 'idle';
   errors?: z.inferFlattenedErrors<typeof aboutMeSchema>['fieldErrors'];
-  data?: AboutMeData;
+  data?: AboutMeData; // Contains attempted data on error, saved data on success
 };
 
+// State type for the new Profile & Bio form
+export type UpdateProfileBioDataFormState = {
+  message: string;
+  status: 'success' | 'error' | 'idle';
+  errors?: z.inferFlattenedErrors<typeof profileBioSchema>['fieldErrors'];
+  data?: ProfileBioData; // Contains attempted data on error, saved data on success
+};
+
+
+// New Server Action for Profile & Bio section
+export async function updateProfileBioDataAction(
+  prevState: UpdateProfileBioDataFormState,
+  formData: FormData
+): Promise<UpdateProfileBioDataFormState> {
+  let rawData: ProfileBioData | undefined = undefined;
+  try {
+    rawData = {
+      name: String(formData.get('name') || ''),
+      title: String(formData.get('title') || ''),
+      bio: String(formData.get('bio') || ''),
+      profileImage: String(formData.get('profileImage') || ''),
+      dataAiHint: String(formData.get('dataAiHint') || ''),
+    };
+
+    const validatedFields = profileBioSchema.safeParse(rawData);
+
+    if (!validatedFields.success) {
+      const fieldErrors = validatedFields.error.flatten().fieldErrors;
+      console.error("Admin ProfileBio Action: Zod validation failed. Errors:", JSON.stringify(fieldErrors));
+      return {
+        message: "Failed to update profile & bio. Please check errors.",
+        status: 'error',
+        errors: fieldErrors,
+        data: rawData,
+      };
+    }
+
+    const dataToSave = validatedFields.data;
+
+    const allData = await readDataFromFile();
+    allData.aboutMe = {
+      ...allData.aboutMe, // Preserve existing experience, education, contact etc.
+      ...dataToSave,     // Overwrite with new profile/bio data
+    };
+    await writeDataToFile(allData);
+
+    return {
+      message: "Profile & Bio data updated successfully!",
+      status: 'success',
+      data: dataToSave,
+      errors: {},
+    };
+
+  } catch (error) {
+    console.error("Admin ProfileBio Action: An unexpected error occurred:", error);
+    const errorResponseData: ProfileBioData = rawData || {
+      name: String(formData.get('name') || localDefaultAppData.aboutMe.name),
+      title: String(formData.get('title') || localDefaultAppData.aboutMe.title),
+      bio: String(formData.get('bio') || localDefaultAppData.aboutMe.bio),
+      profileImage: String(formData.get('profileImage') || localDefaultAppData.aboutMe.profileImage),
+      dataAiHint: String(formData.get('dataAiHint') || localDefaultAppData.aboutMe.dataAiHint),
+    };
+    return {
+      message: "An unexpected server error occurred while updating profile & bio.",
+      status: 'error',
+      errors: {},
+      data: errorResponseData,
+    };
+  }
+}
+
+
+// Original action - will be refactored or removed later
 export async function updateAboutDataAction(
   prevState: UpdateAboutDataFormState,
   formData: FormData
@@ -90,8 +164,8 @@ export async function updateAboutDataAction(
       
       if (role.trim() !== '' || company.trim() !== '' || period.trim() !== '' || description.trim() !== '') {
           experienceEntries.push({ id, role, company, period, description });
-      } else if (id) {
-          console.warn(`Admin About Action: Skipping experience entry with ID ${id} at index ${index} because all its data fields are empty or whitespace.`);
+      } else if (id && (formData.has(`experience.${index}.role`) || formData.has(`experience.${index}.company`) || formData.has(`experience.${index}.period`) || formData.has(`experience.${index}.description`))) {
+          console.warn(`Admin About Action: Skipping experience entry with ID ${id} at index ${index} because all its data fields are empty or whitespace, but it was present in form data.`);
       }
     }
 
@@ -103,8 +177,8 @@ export async function updateAboutDataAction(
       
       if (degree.trim() !== '' || institution.trim() !== '' || period.trim() !== '') {
           educationEntries.push({ id, degree, institution, period });
-      } else if (id) {
-          console.warn(`Admin About Action: Skipping education entry with ID ${id} at index ${index} because all its data fields are empty or whitespace.`);
+      } else if (id && (formData.has(`education.${index}.degree`) || formData.has(`education.${index}.institution`) || formData.has(`education.${index}.period`))) {
+         console.warn(`Admin About Action: Skipping education entry with ID ${id} at index ${index} because all its data fields are empty or whitespace, but it was present in form data.`);
       }
     }
     
@@ -162,25 +236,27 @@ export async function updateAboutDataAction(
   } catch (error) {
     console.error("Admin About Action: An unexpected error occurred in the action:", error);
     
-    const errorResponseData: AboutMeData = rawData || {
-      name: String(formData.get('name') || localDefaultAppData.aboutMe.name),
-      title: String(formData.get('title') || localDefaultAppData.aboutMe.title),
-      bio: String(formData.get('bio') || localDefaultAppData.aboutMe.bio),
-      profileImage: String(formData.get('profileImage') || localDefaultAppData.aboutMe.profileImage),
-      dataAiHint: String(formData.get('dataAiHint') || localDefaultAppData.aboutMe.dataAiHint),
-      experience: rawData?.experience || [], 
-      education: rawData?.education || [],  
-      email: String(formData.get('email') || localDefaultAppData.aboutMe.email),
-      linkedinUrl: String(formData.get('linkedinUrl') || localDefaultAppData.aboutMe.linkedinUrl),
-      githubUrl: String(formData.get('githubUrl') || localDefaultAppData.aboutMe.githubUrl),
-      twitterUrl: String(formData.get('twitterUrl') || localDefaultAppData.aboutMe.twitterUrl),
+    // Ensure rawData is defined or provide a fallback structure
+     const defaultErrorData = {
+        name: String(formData.get('name') || localDefaultAppData.aboutMe.name),
+        title: String(formData.get('title') || localDefaultAppData.aboutMe.title),
+        bio: String(formData.get('bio') || localDefaultAppData.aboutMe.bio),
+        profileImage: String(formData.get('profileImage') || localDefaultAppData.aboutMe.profileImage),
+        dataAiHint: String(formData.get('dataAiHint') || localDefaultAppData.aboutMe.dataAiHint),
+        experience: rawData?.experience || [], 
+        education: rawData?.education || [],  
+        email: String(formData.get('email') || localDefaultAppData.aboutMe.email),
+        linkedinUrl: String(formData.get('linkedinUrl') || localDefaultAppData.aboutMe.linkedinUrl),
+        githubUrl: String(formData.get('githubUrl') || localDefaultAppData.aboutMe.githubUrl),
+        twitterUrl: String(formData.get('twitterUrl') || localDefaultAppData.aboutMe.twitterUrl),
     };
 
     return {
       message: "An unexpected server error occurred. Please check logs and try again.",
       status: 'error',
       errors: {}, 
-      data: errorResponseData, 
+      data: rawData || defaultErrorData, 
     };
   }
 }
+
