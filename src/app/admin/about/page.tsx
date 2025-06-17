@@ -85,7 +85,7 @@ export default function AdminAboutPage() {
 
   const form = useForm<AboutMeData>({
     resolver: zodResolver(aboutMeSchema),
-    defaultValues: prepareDataForForm(initialAboutMeDataFromLib), // Use prepareDataForForm for defaultValues
+    defaultValues: prepareDataForForm(initialAboutMeDataFromLib), 
   });
 
   useEffect(() => {
@@ -100,6 +100,10 @@ export default function AdminAboutPage() {
     } else if (state.status === 'error') {
       console.error("AdminAboutPage: Error from server action (raw object):", state);
       console.error("AdminAboutPage: Error from server action (JSON.stringify):", JSON.stringify(state));
+      console.error("AdminAboutPage: typeof state.message:", typeof state.message, "Value:", state.message);
+      console.error("AdminAboutPage: typeof state.errors:", typeof state.errors, "Value:", JSON.stringify(state.errors));
+      console.error("AdminAboutPage: typeof state.data:", typeof state.data, "Value:", JSON.stringify(state.data));
+
 
       const errorMessage = (typeof state.message === 'string' && state.message.trim() !== '')
         ? state.message
@@ -112,9 +116,12 @@ export default function AdminAboutPage() {
 
       if (state.data) {
         form.reset(prepareDataForForm(state.data));
+      } else {
+        // If state.data is not available on error, reset to a default blank state
+        form.reset(prepareDataForForm(undefined));
       }
 
-      if (state.errors) {
+      if (state.errors && typeof state.errors === 'object' && Object.keys(state.errors).length > 0) {
         Object.entries(state.errors).forEach(([fieldName, fieldErrorMessages]) => {
           if (Array.isArray(fieldErrorMessages) && fieldErrorMessages.length > 0) {
             form.setError(fieldName as Path<AboutMeData>, {
@@ -123,6 +130,8 @@ export default function AdminAboutPage() {
             });
           }
         });
+      } else {
+          console.warn("AdminAboutPage: state.errors was not usable for setting form errors.", state.errors)
       }
     }
   }, [state, toast, form]);
@@ -336,3 +345,4 @@ export default function AdminAboutPage() {
     </div>
   );
 }
+
