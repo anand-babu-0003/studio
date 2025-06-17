@@ -1,7 +1,7 @@
 
 "use server";
 
-import type { Skill, AppData, PortfolioItem, AboutMeData } from '@/lib/types';
+import type { Skill, AppData } from '@/lib/types';
 import { skillAdminSchema, type SkillAdminFormData } from '@/lib/adminSchemas';
 import fs from 'fs/promises';
 import path from 'path';
@@ -67,22 +67,34 @@ export async function saveSkillAction(
   const proficiencyString = formData.get('proficiency') as string;
   const proficiencyValue = proficiencyString && proficiencyString.trim() !== '' ? Number(proficiencyString) : undefined;
 
+  // Log received FormData values for category and iconName
+  console.log("Server Action (skillsActions.ts): formData.get('category') =", formData.get('category'));
+  console.log("Server Action (skillsActions.ts): formData.get('iconName') =", formData.get('iconName'));
+  console.log("Server Action (skillsActions.ts): formData.get('name') =", formData.get('name'));
+  console.log("Server Action (skillsActions.ts): formData.get('id') =", formData.get('id'));
+  console.log("Server Action (skillsActions.ts): formData.get('proficiency') =", formData.get('proficiency'));
+
+
   const rawData: SkillAdminFormData = {
     id: formData.get('id') as string || undefined,
     name: formData.get('name') as string,
-    category: formData.get('category') as Skill['category'],
+    category: formData.get('category') as Skill['category'], // Cast for TS, actual value logged above
     proficiency: proficiencyValue,
-    iconName: formData.get('iconName') as string,
+    iconName: formData.get('iconName') as string, // Cast for TS, actual value logged above
   };
+
+  console.log("Server Action (skillsActions.ts): rawData for Zod validation:", rawData);
+
 
   const validatedFields = skillAdminSchema.safeParse(rawData);
 
   if (!validatedFields.success) {
+    console.error("Server Action (skillsActions.ts): Zod validation failed. Errors:", JSON.stringify(validatedFields.error.flatten().fieldErrors));
     return {
       message: "Failed to save skill. Please check errors.",
       status: 'error',
       errors: validatedFields.error.flatten().fieldErrors,
-      skill: undefined, // Explicitly add optional fields
+      skill: undefined,
     };
   }
 
@@ -103,7 +115,6 @@ export async function saveSkillAction(
       if (skillIndex > -1) {
         allData.skills[skillIndex] = skillToSave;
       } else {
-        // If ID provided but not found, treat as new add (or could error, but adding is safer)
         allData.skills.push(skillToSave);
       }
     } else {
@@ -119,12 +130,12 @@ export async function saveSkillAction(
     };
 
   } catch (error) {
-    console.error("Error saving skill:", error); // Server-side log of the actual error
+    console.error("Error saving skill in skillsActions.ts:", error); 
     return {
       message: "An unexpected server error occurred while saving the skill. Please try again.",
       status: 'error',
       errors: {},
-      skill: undefined, // Explicitly add optional fields
+      skill: undefined,
     };
   }
 }
@@ -154,3 +165,4 @@ export async function deleteSkillAction(itemId: string): Promise<DeleteSkillResu
         return { success: false, message: "Failed to delete skill due to a server error." };
     }
 }
+

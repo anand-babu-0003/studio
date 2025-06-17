@@ -28,7 +28,7 @@ const defaultFormValues: SkillAdminFormData = {
   name: '',
   category: skillCategories[0], 
   proficiency: undefined,
-  iconName: availableIconNames.length > 0 ? availableIconNames[0] : (() => { throw new Error("FATAL: availableIconNames is empty. Check src/lib/data.ts and lucide-react imports.")})(),
+  iconName: availableIconNames.length > 0 ? availableIconNames[0] : (() => { throw new Error("FATAL: availableIconNames is empty. Check src/lib/data.ts and lucide-react imports for AdminSkillsPage.")})(),
 };
 
 function SubmitButton() {
@@ -145,7 +145,7 @@ export default function AdminSkillsPage() {
     form.reset(defaultFormValues);
   }
 
-  // Watch values for hidden inputs
+  // Watch values for hidden inputs to ensure they are submitted with FormData
   const watchedCategory = form.watch('category');
   const watchedIconName = form.watch('iconName');
 
