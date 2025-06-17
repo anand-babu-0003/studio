@@ -32,9 +32,10 @@
     },
     {
       "id": "skill_1750146248867_ow47c",
-      "name": "HTML+CSS+JS",
-      "category": "Frontend",
-      "iconName": "Laptop"
+      "name": "HTML",
+      "category": "Languages",
+      "proficiency": 45,
+      "iconName": "Code"
     },
     {
       "id": "skill_1750155628109_yskgm",

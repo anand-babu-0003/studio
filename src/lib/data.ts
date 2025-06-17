@@ -4,6 +4,7 @@ import type { PortfolioItem, Skill, AboutMeData, AppData, SiteSettings } from '@
 // This imports the content of data.json for initial/client-side use by admin panel.
 import jsonDataFromFile from './data.json'; 
 import { Code, Database, Server, Cloud, PenTool, Terminal, Briefcase, Zap, Brain, MessageSquare, Settings, LayoutDashboard, Smartphone, Laptop } from 'lucide-react';
+import { SKILL_CATEGORIES } from './constants'; // Import the centralized categories
 
 // Define a default, well-structured AppData object for fallbacks, aligned with server action defaults
 const defaultAppData: AppData = {
@@ -69,8 +70,8 @@ export const siteSettings: SiteSettings = appDataForClient.siteSettings;
 
 
 // --- Static Configs (Client-Safe) ---
-// Use 'as const' for skillCategories to provide a tuple of string literals to Zod enum
-export const skillCategories = ['Languages', 'Frontend', 'Backend', 'DevOps', 'Tools', 'Other'] as const;
+// Use the imported SKILL_CATEGORIES constant
+export const skillCategories = SKILL_CATEGORIES;
 
 
 export const lucideIconsMap: { [key: string]: React.ElementType } = {

@@ -3,13 +3,14 @@ import { z } from 'zod';
 import type { Experience as LibExperienceType, Education as LibEducationType } from '@/lib/types'; // Renamed to avoid conflict with Zod types below
 // Import Lucide icons directly for deriving availableIconNames within this file
 import { Code, Database, Server, Cloud, PenTool, Terminal, Briefcase, Zap, Brain, MessageSquare, Settings, LayoutDashboard, Smartphone, Laptop } from 'lucide-react';
+import { SKILL_CATEGORIES } from './constants'; // Import the centralized categories
 
 // --- Self-contained enum definitions for Zod validation ---
 // These are used by skillAdminSchema below.
 // The client (AdminSkillsPage) will use similar arrays from src/lib/data.ts for UI.
 // Ensure string values here exactly match those in src/lib/data.ts.
 
-const ZOD_SKILL_CATEGORIES = ['Languages', 'Frontend', 'Backend', 'DevOps', 'Tools', 'Other'] as const;
+const ZOD_SKILL_CATEGORIES = SKILL_CATEGORIES; // Use the imported constant
 
 const ZOD_LUCIDE_ICONS_MAP: { [key: string]: React.ElementType } = {
   Code, Database, Server, Cloud, PenTool, Terminal, Briefcase, Zap, Brain, MessageSquare, Settings, LayoutDashboard, Smartphone, Laptop
