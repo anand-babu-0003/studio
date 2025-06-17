@@ -5,6 +5,7 @@ import type { Skill, AppData } from '@/lib/types';
 import { skillAdminSchema, type SkillAdminFormData } from '@/lib/adminSchemas';
 import fs from 'fs/promises';
 import path from 'path';
+import { skillCategories, availableIconNames } from '@/lib/data'; // Ensure this import is correct and used
 
 const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
 
@@ -67,7 +68,6 @@ export async function saveSkillAction(
   const proficiencyString = formData.get('proficiency') as string;
   const proficiencyValue = proficiencyString && proficiencyString.trim() !== '' ? Number(proficiencyString) : undefined;
 
-  // Log received FormData values for category and iconName
   console.log("Server Action (skillsActions.ts): formData.get('category') =", formData.get('category'));
   console.log("Server Action (skillsActions.ts): formData.get('iconName') =", formData.get('iconName'));
   console.log("Server Action (skillsActions.ts): formData.get('name') =", formData.get('name'));
@@ -78,13 +78,16 @@ export async function saveSkillAction(
   const rawData: SkillAdminFormData = {
     id: formData.get('id') as string || undefined,
     name: formData.get('name') as string,
-    category: formData.get('category') as Skill['category'], // Cast for TS, actual value logged above
+    category: formData.get('category') as Skill['category'],
     proficiency: proficiencyValue,
-    iconName: formData.get('iconName') as string, // Cast for TS, actual value logged above
+    iconName: formData.get('iconName') as string,
   };
 
   console.log("Server Action (skillsActions.ts): rawData for Zod validation:", rawData);
 
+  // Log the enum arrays as seen by this server action instance
+  console.log("Server Action (skillsActions.ts): skillCategories from @/lib/data:", skillCategories);
+  console.log("Server Action (skillsActions.ts): availableIconNames from @/lib/data:", availableIconNames);
 
   const validatedFields = skillAdminSchema.safeParse(rawData);
 
@@ -130,7 +133,7 @@ export async function saveSkillAction(
     };
 
   } catch (error) {
-    console.error("Error saving skill in skillsActions.ts:", error); 
+    console.error("Error saving skill in skillsActions.ts:", error);
     return {
       message: "An unexpected server error occurred while saving the skill. Please try again.",
       status: 'error',
