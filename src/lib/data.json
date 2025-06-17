@@ -43,7 +43,15 @@
     "bio": "I’m a curious mind navigating the galaxies of creativity, technology, and storytelling. AnandVerse.Space is my digital playground — a place where ideas orbit, collide, and sometimes spark into something beautiful.\r\n\r\nI come from a background rooted in design, development, and digital expression. Whether I’m building intuitive user interfaces, writing thoughtful articles, or sketching concepts late at night, my goal is always the same: to create with intention.",
     "profileImage": "https://github.com/anand-babu-0003/TrueValidator2/blob/main/Screenshot_2024-11-19-16-59-04-27_99c04817c0de5652397fc8b56c3b3817~2.jpg?raw=true",
     "dataAiHint": "developer portrait",
-    "experience": [],
+    "experience": [
+      {
+        "id": "new_exp_1750152963077",
+        "role": "Full Stack Developer ",
+        "company": "ClientFoster ",
+        "period": "2024  - Present",
+        "description": "gv"
+      }
+    ],
     "education": [
       {
         "id": "new_edu_1750152414437",
