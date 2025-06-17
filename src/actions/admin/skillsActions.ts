@@ -5,6 +5,7 @@ import type { Skill, AppData } from '@/lib/types';
 import { skillAdminSchema, type SkillAdminFormData } from '@/lib/adminSchemas';
 import fs from 'fs/promises';
 import path from 'path';
+import { revalidatePath } from 'next/cache';
 
 const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
 
@@ -115,12 +116,14 @@ export async function saveSkillAction(
       if (skillIndex > -1) {
         allData.skills[skillIndex] = skillToSave;
       } else {
-        allData.skills.push(skillToSave);
+        allData.skills.push(skillToSave); // Should not happen if ID is present but not found
       }
     } else {
       allData.skills.push(skillToSave);
     }
     await writeDataToFile(allData);
+
+    revalidatePath('/skills');
 
     return {
       message: `Skill "${skillToSave.name}" ${data.id ? 'updated' : 'added'} successfully!`,
@@ -156,6 +159,7 @@ export async function deleteSkillAction(itemId: string): Promise<DeleteSkillResu
 
         if (allData.skills.length < initialLength) {
           await writeDataToFile(allData);
+          revalidatePath('/skills');
           return { success: true, message: `Skill (ID: ${itemId}) deleted successfully!` };
         } else {
            return { success: false, message: `Skill (ID: ${itemId}) not found for deletion.` };
@@ -165,3 +169,4 @@ export async function deleteSkillAction(itemId: string): Promise<DeleteSkillResu
         return { success: false, message: "Failed to delete skill due to a server error." };
     }
 }
+

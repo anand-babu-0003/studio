@@ -6,6 +6,7 @@ import { aboutMeSchema, profileBioSchema, type ProfileBioData } from '@/lib/admi
 import type { z } from 'zod';
 import fs from 'fs/promises';
 import path from 'path';
+import { revalidatePath } from 'next/cache';
 
 const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
 
@@ -107,6 +108,10 @@ export async function updateProfileBioDataAction(
       ...dataToSave,     // Overwrite with new profile/bio data
     };
     await writeDataToFile(allData);
+
+    revalidatePath('/about');
+    revalidatePath('/'); // Home page uses bio snippet and name
+    revalidatePath('/contact'); // Contact page and footer use name/email
 
     return {
       message: "Profile & Bio data updated successfully!",
@@ -216,6 +221,10 @@ export async function updateAboutDataAction(
       allData.aboutMe = dataToSave;
       await writeDataToFile(allData);
 
+      revalidatePath('/about');
+      revalidatePath('/contact');
+      revalidatePath('/');
+
       return {
         message: "About page data updated successfully!",
         status: 'success',
@@ -236,7 +245,6 @@ export async function updateAboutDataAction(
   } catch (error) {
     console.error("Admin About Action: An unexpected error occurred in the action:", error);
     
-    // Ensure rawData is defined or provide a fallback structure
      const defaultErrorData = {
         name: String(formData.get('name') || localDefaultAppData.aboutMe.name),
         title: String(formData.get('title') || localDefaultAppData.aboutMe.title),

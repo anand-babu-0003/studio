@@ -44,7 +44,14 @@
     "profileImage": "https://github.com/anand-babu-0003/TrueValidator2/blob/main/Screenshot_2024-11-19-16-59-04-27_99c04817c0de5652397fc8b56c3b3817~2.jpg?raw=true",
     "dataAiHint": "developer portrait",
     "experience": [],
-    "education": [],
+    "education": [
+      {
+        "id": "new_edu_1750151634396",
+        "degree": "Master of Science in Computer Science",
+        "institution": "University of Advanced Technology",
+        "period": "2017 - 2019"
+      }
+    ],
     "email": "",
     "linkedinUrl": "",
     "githubUrl": "",

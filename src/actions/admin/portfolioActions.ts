@@ -5,6 +5,7 @@ import type { PortfolioItem, AppData } from '@/lib/types';
 import { portfolioItemAdminSchema, type PortfolioAdminFormData } from '@/lib/adminSchemas';
 import fs from 'fs/promises';
 import path from 'path';
+import { revalidatePath } from 'next/cache';
 
 const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
 
@@ -121,12 +122,19 @@ export async function savePortfolioItemAction(
       if (projectIndex > -1) {
         allData.portfolioItems[projectIndex] = projectToSave;
       } else {
-        allData.portfolioItems.push(projectToSave);
+        allData.portfolioItems.push(projectToSave); // Should ideally not happen if ID is present but not found
       }
     } else {
       allData.portfolioItems.push(projectToSave);
     }
     await writeDataToFile(allData);
+
+    revalidatePath('/portfolio');
+    revalidatePath('/'); // For featured projects
+    if (projectToSave.slug) {
+      revalidatePath(`/portfolio/${projectToSave.slug}`);
+    }
+
 
     return {
       message: `Project "${projectToSave.title}" ${data.id ? 'updated' : 'added'} successfully!`,
@@ -158,10 +166,17 @@ export async function deletePortfolioItemAction(itemId: string): Promise<DeleteP
     try {
         const allData = await readDataFromFile();
         const initialLength = allData.portfolioItems.length;
+        const projectToDelete = allData.portfolioItems.find(p => p.id === itemId);
         allData.portfolioItems = allData.portfolioItems.filter(p => p.id !== itemId);
 
         if (allData.portfolioItems.length < initialLength) {
             await writeDataToFile(allData);
+            revalidatePath('/portfolio');
+            revalidatePath('/'); // For featured projects
+            if (projectToDelete?.slug) {
+              // It's good practice to revalidate, though the page will 404
+              revalidatePath(`/portfolio/${projectToDelete.slug}`);
+            }
             return { success: true, message: `Project (ID: ${itemId}) deleted successfully!` };
         } else {
             return { success: false, message: `Project (ID: ${itemId}) not found for deletion.` };
