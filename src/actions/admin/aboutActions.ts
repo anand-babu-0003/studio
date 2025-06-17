@@ -90,7 +90,7 @@ export async function updateAboutDataAction(
       if (id && (role.trim() !== '' || company.trim() !== '' || period.trim() !== '' || description.trim() !== '')) {
           experienceEntries.push({ id, role, company, period, description });
       } else if (id) {
-          console.log(`Admin About Action: Skipping experience entry with ID ${id} at index ${index} because all its data fields are empty.`);
+          console.warn(`Admin About Action: Skipping experience entry with ID ${id} at index ${index} because all its data fields are empty.`);
       }
     }
 
@@ -103,7 +103,7 @@ export async function updateAboutDataAction(
       if (id && (degree.trim() !== '' || institution.trim() !== '' || period.trim() !== '')) {
           educationEntries.push({ id, degree, institution, period });
       } else if (id) {
-          console.log(`Admin About Action: Skipping education entry with ID ${id} at index ${index} because all its data fields are empty.`);
+          console.warn(`Admin About Action: Skipping education entry with ID ${id} at index ${index} because all its data fields are empty.`);
       }
     }
 
@@ -121,7 +121,7 @@ export async function updateAboutDataAction(
       twitterUrl: formData.get('twitterUrl') as string || undefined,
     };
     
-    console.log("Admin About Action: Raw data prepared for validation (empty array items filtered):", JSON.stringify(rawData, null, 2));
+    // console.log("Admin About Action: Raw data prepared for validation (empty array items filtered):", JSON.stringify(rawData, null, 2));
 
     const validatedFields = aboutMeSchema.safeParse(rawData);
 

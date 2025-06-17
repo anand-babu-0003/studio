@@ -67,11 +67,6 @@ export async function saveSkillAction(
   formData: FormData
 ): Promise<SkillFormState> {
   
-  console.log("Server Action (skillsActions.ts): Received FormData. Entries:");
-  for (const [key, value] of formData.entries()) {
-    console.log(`FormData Entry: ${key}: ${value} (typeof: ${typeof value})`);
-  }
-  
   const idFromForm = formData.get('id');
   const nameFromForm = formData.get('name');
   const categoryFromForm = formData.get('category');
@@ -90,7 +85,7 @@ export async function saveSkillAction(
     iconName: iconNameFromForm !== null ? String(iconNameFromForm) : undefined, // Let Zod check
   };
 
-  console.log("Server Action (skillsActions.ts): dataForZod for Zod validation:", dataForZod);
+  // console.log("Server Action (skillsActions.ts): dataForZod for Zod validation:", dataForZod);
 
   const validatedFields = skillAdminSchema.safeParse(dataForZod);
 

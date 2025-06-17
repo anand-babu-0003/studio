@@ -82,24 +82,19 @@ export default function AdminPortfolioPage() {
   
 
   useEffect(() => {
-    console.log("AdminPortfolioPage: formActionState changed:", formActionState);
     if (formActionState.status === 'success' && formActionState.project) {
       const savedProject = formActionState.project;
-      console.log("AdminPortfolioPage: Success, savedProject:", savedProject);
       toast({ title: "Success!", description: formActionState.message });
 
       setProjects(prevProjects => {
-        console.log("AdminPortfolioPage: setProjects - prevProjects:", prevProjects);
         const existingIndex = prevProjects.findIndex(p => p.id === savedProject.id);
         let newProjectsArray;
         if (existingIndex > -1) {
           const updatedProjects = [...prevProjects];
           updatedProjects[existingIndex] = savedProject;
           newProjectsArray = updatedProjects;
-          console.log("AdminPortfolioPage: setProjects - updating existing project, newProjectsArray:", newProjectsArray);
         } else {
           newProjectsArray = [...prevProjects, savedProject];
-          console.log("AdminPortfolioPage: setProjects - adding new project, newProjectsArray:", newProjectsArray);
         }
         return newProjectsArray;
       });
@@ -107,11 +102,10 @@ export default function AdminPortfolioPage() {
       setShowForm(false);
       setCurrentProject(null);
       form.reset(defaultFormValues); 
-      console.log("AdminPortfolioPage: Form reset to defaultFormValues after successful save.");
 
     } else if (formActionState.status === 'error') {
       console.error("AdminPortfolioPage: Error from server action (raw object):", formActionState);
-      console.error("AdminPortfolioPage: Error from server action (JSON.stringify):", JSON.stringify(formActionState));
+      // console.error("AdminPortfolioPage: Error from server action (JSON.stringify):", JSON.stringify(formActionState));
       
       const errorMessage = typeof formActionState.message === 'string' && formActionState.message.trim() !== ''
         ? formActionState.message
@@ -136,7 +130,6 @@ export default function AdminPortfolioPage() {
     setCurrentProject(null);
     form.reset(defaultFormValues);
     setShowForm(true);
-    console.log("AdminPortfolioPage: handleAddNew - form reset, showForm true");
   };
 
   const handleEdit = (project: PortfolioItem) => {
@@ -149,17 +142,14 @@ export default function AdminPortfolioPage() {
       readmeContent: project.readmeContent || '', // Added
     });
     setShowForm(true);
-    console.log("AdminPortfolioPage: handleEdit - editing project:", project);
   };
 
   const handleDelete = async (projectId: string) => {
-    console.log("AdminPortfolioPage: handleDelete - projectId:", projectId);
     const result = await deletePortfolioItemAction(projectId);
     if (result.success) {
       toast({ title: "Success!", description: result.message });
       setProjects(prevProjects => {
         const updated = prevProjects.filter(p => p.id !== projectId);
-        console.log("AdminPortfolioPage: handleDelete - projects updated:", updated);
         return updated;
       });
     } else {
@@ -172,7 +162,6 @@ export default function AdminPortfolioPage() {
     setShowForm(false);
     setCurrentProject(null);
     form.reset(defaultFormValues);
-    console.log("AdminPortfolioPage: handleCancelForm - form reset, showForm false");
   }
 
   return (

@@ -8,11 +8,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { AlertCircle, LogIn, Home } from 'lucide-react'; // Added Home icon
+import { AlertCircle, LogIn, Home, ShieldAlert } from 'lucide-react'; // Added Home icon and ShieldAlert
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 // VERY IMPORTANT: These credentials are hardcoded and visible in the client-side code.
 // This is highly insecure and NOT suitable for production.
+// For a real production application, use a secure authentication system (e.g., Firebase Auth, NextAuth.js).
 const ADMIN_EMAIL = "basumgarianand109@gmail.com";
 const ADMIN_PASSWORD = "00@Anand9705";
 
@@ -56,8 +57,17 @@ export default function AdminLoginPage() {
           <CardTitle className="font-headline text-3xl text-primary">Admin Panel</CardTitle>
           <CardDescription>Please log in to continue.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <CardContent className="space-y-6">
+          <Alert variant="destructive" className="bg-yellow-50 border-yellow-400 text-yellow-700 [&>svg]:text-yellow-700">
+            <ShieldAlert className="h-4 w-4" />
+            <AlertTitle className="font-semibold">Security Warning</AlertTitle>
+            <AlertDescription className="text-xs">
+              This login uses hardcoded credentials and is highly insecure.
+              For demonstration purposes only. DO NOT use in a real production environment.
+            </AlertDescription>
+          </Alert>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -113,7 +123,6 @@ export default function AdminLoginPage() {
               </Link>
             </Button>
           <p className="w-full">
-            <AlertCircle className="inline h-3 w-3 mr-1" />
             This is a prototype login. Credentials are not secure.
           </p>
         </CardFooter>

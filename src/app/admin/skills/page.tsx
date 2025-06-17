@@ -94,7 +94,7 @@ export default function AdminSkillsPage() {
 
     } else if (formActionState.status === 'error') {
       console.error("AdminSkillsPage: Error from server action (raw object):", formActionState);
-      console.error("AdminSkillsPage: Error from server action (JSON.stringify):", JSON.stringify(formActionState));
+      // console.error("AdminSkillsPage: Error from server action (JSON.stringify):", JSON.stringify(formActionState));
       
       const errorMessage = typeof formActionState.message === 'string' && formActionState.message.trim() !== ''
         ? formActionState.message
@@ -146,7 +146,7 @@ export default function AdminSkillsPage() {
   }
 
   const handleFormSubmit: SubmitHandler<SkillAdminFormData> = async (data) => {
-    console.log("Client-side handleFormSubmit, data from react-hook-form:", data);
+    // console.log("Client-side handleFormSubmit, data from react-hook-form:", data);
     const formData = new FormData();
 
     if (data.id) formData.append('id', data.id);
@@ -162,11 +162,6 @@ export default function AdminSkillsPage() {
     }
     // If proficiency is undefined or null, it won't be appended.
     // The server action's Zod schema handles optional/nullable proficiency.
-
-    console.log("Client-side FormData before dispatch Server Action:");
-    for (const [key, value] of formData.entries()) {
-      console.log(`FormData Entry: ${key}: ${value} (typeof: ${typeof value})`);
-    }
     
     dispatchServerAction(formData);
   };
