@@ -4,7 +4,7 @@
 import { useEffect } from 'react';
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { useForm, useFieldArray, type Path, type SubmitHandler } from 'react-hook-form';
+import { useForm, useFieldArray, type Path } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { z } from 'zod';
 
@@ -19,20 +19,23 @@ import { useToast } from '@/hooks/use-toast';
 import { Save, Loader2, PlusCircle, Trash2 } from 'lucide-react';
 
 import { aboutMe as initialAboutMeDataFromLib } from '@/lib/data';
-import type { AboutMeData, Experience as LibExperienceType, Education as LibEducationType } from '@/lib/types'; // Renamed to avoid conflict
+import type { AboutMeData, Experience as LibExperienceType, Education as LibEducationType } from '@/lib/types';
 import { 
   updateAboutDataAction, type UpdateAboutDataFormState,
   updateProfileBioDataAction, type UpdateProfileBioDataFormState,
-  updateExperienceDataAction, type UpdateExperienceDataFormState
+  updateExperienceDataAction, type UpdateExperienceDataFormState,
+  updateEducationDataAction, type UpdateEducationDataFormState
 } from '@/actions/admin/aboutActions';
 import { 
   aboutMeSchema, 
   profileBioSchema, type ProfileBioData,
   experienceSectionSchema, type ExperienceSectionData,
-  type Experience as ZodExperienceType // Renamed to avoid conflict
+  educationSectionSchema, type EducationSectionData,
+  type Experience as ZodExperienceType, 
+  type Education as ZodEducationType
 } from '@/lib/adminSchemas';
 
-// Initial state for the (soon to be deprecated) full form action
+// Initial state for the (soon to be deprecated/refactored) full form action
 const initialFullFormState: UpdateAboutDataFormState = {
   message: '',
   status: 'idle',
@@ -40,21 +43,13 @@ const initialFullFormState: UpdateAboutDataFormState = {
   data: undefined,
 };
 
-// Initial state for the new Profile & Bio form action
-const initialProfileBioFormState: UpdateProfileBioDataFormState = {
-  message: '',
-  status: 'idle',
-  errors: {},
-  data: undefined,
-};
+// Initial state for the Profile & Bio form action
+const initialProfileBioFormState: UpdateProfileBioDataFormState = { message: '', status: 'idle', errors: {}, data: undefined };
+// Initial state for the Experience section form action
+const initialExperienceFormState: UpdateExperienceDataFormState = { message: '', status: 'idle', errors: {}, data: undefined };
+// Initial state for the Education section form action
+const initialEducationFormState: UpdateEducationDataFormState = { message: '', status: 'idle', errors: {}, data: undefined };
 
-// Initial state for the new Experience section form action
-const initialExperienceFormState: UpdateExperienceDataFormState = {
-  message: '',
-  status: 'idle',
-  errors: {},
-  data: undefined,
-};
 
 interface SubmitButtonProps {
   form?: string; 
@@ -81,7 +76,7 @@ function SubmitButton({ form: formId, text = "Save Changes" }: SubmitButtonProps
 }
 
 // Prepare data for the full AboutMeData structure
-const prepareFullAboutMeDataForForm = (data?: AboutMeData): AboutMeData => {
+const prepareFullAboutMeDataForForm = (data?: Partial<AboutMeData>): AboutMeData => {
   const defaultData = {
       name: '', title: '', bio: '', profileImage: '', dataAiHint: '',
       experience: [], education: [], email: '', linkedinUrl: '', githubUrl: '', twitterUrl: '',
@@ -105,9 +100,8 @@ const prepareFullAboutMeDataForForm = (data?: AboutMeData): AboutMeData => {
 
 // Prepare data for just the ProfileBioData structure
 const prepareProfileBioDataForForm = (data?: Partial<ProfileBioData>): ProfileBioData => {
-  if (!data) {
-    return { name: '', title: '', bio: '', profileImage: '', dataAiHint: '' };
-  }
+  const defaultData = { name: '', title: '', bio: '', profileImage: '', dataAiHint: '' };
+  if (!data) return defaultData;
   return {
     name: data.name || '',
     title: data.title || '',
@@ -124,11 +118,26 @@ const prepareExperienceSectionDataForForm = (data?: Partial<ExperienceSectionDat
     }
     return {
         experience: data.experience.map(exp => ({
-            id: exp.id || `exp_fallback_${Date.now()}_${Math.random()}`, // Ensure ID
+            id: exp.id || `exp_fallback_${Date.now()}_${Math.random()}`, 
             role: exp.role || '',
             company: exp.company || '',
             period: exp.period || '',
             description: exp.description || '',
+        })),
+    };
+};
+
+// Prepare data for just the EducationSectionData structure
+const prepareEducationSectionDataForForm = (data?: Partial<EducationSectionData>): EducationSectionData => {
+    if (!data || !Array.isArray(data.education)) {
+        return { education: [] };
+    }
+    return {
+        education: data.education.map(edu => ({
+            id: edu.id || `edu_fallback_${Date.now()}_${Math.random()}`,
+            degree: edu.degree || '',
+            institution: edu.institution || '',
+            period: edu.period || '',
         })),
     };
 };
@@ -152,14 +161,12 @@ export default function AdminAboutPage() {
       }
     } else if (profileBioState.status === 'error') {
       const errorMessage = (typeof profileBioState.message === 'string' && profileBioState.message.trim() !== '')
-        ? profileBioState.message : "An error occurred.";
+        ? profileBioState.message : "An error occurred saving Profile & Bio.";
       toast({ title: "Error Profile & Bio", description: errorMessage, variant: "destructive" });
       
-      if (profileBioState.data) {
-        profileBioForm.reset(prepareProfileBioDataForForm(profileBioState.data));
-      } else {
-         profileBioForm.reset(prepareProfileBioDataForForm(profileBioForm.getValues()));
-      }
+      const dataToResetWith = profileBioState.data ? profileBioState.data : profileBioForm.getValues();
+      profileBioForm.reset(prepareProfileBioDataForForm(dataToResetWith));
+      
       if (profileBioState.errors && typeof profileBioState.errors === 'object') {
         Object.entries(profileBioState.errors).forEach(([fieldName, fieldErrorMessages]) => {
           if (Array.isArray(fieldErrorMessages) && fieldErrorMessages.length > 0) {
@@ -179,7 +186,7 @@ export default function AdminAboutPage() {
   const { fields: experienceFields, append: appendExperience, remove: removeExperience } = useFieldArray({
     control: experienceForm.control,
     name: "experience",
-    keyName: "fieldId", // Use a different key name than the default 'id' to avoid conflict with your data's 'id'
+    keyName: "fieldId", 
   });
   
   useEffect(() => {
@@ -193,23 +200,19 @@ export default function AdminAboutPage() {
         ? experienceState.message : "An error saving experience.";
       toast({ title: "Error Experience", description: errorMessage, variant: "destructive" });
       
-      if (experienceState.data) {
-        experienceForm.reset(prepareExperienceSectionDataForForm(experienceState.data));
-      } else {
-         experienceForm.reset(prepareExperienceSectionDataForForm(experienceForm.getValues()));
-      }
+      const dataToResetWith = experienceState.data ? experienceState.data : experienceForm.getValues();
+      experienceForm.reset(prepareExperienceSectionDataForForm(dataToResetWith));
 
       if (experienceState.errors && typeof experienceState.errors === 'object') {
         Object.entries(experienceState.errors).forEach(([fieldName, fieldErrorMessages]) => {
-            // For array fields, fieldName might be like "experience.0.role" or "experience" (for array-level errors)
             if (fieldName.startsWith("experience.") && fieldErrorMessages) {
                 const parts = fieldName.split('.');
-                if (parts.length === 3) { // e.g., experience.index.field
+                if (parts.length === 3) { 
                     const index = parseInt(parts[1]);
                     const subFieldName = parts[2] as keyof ZodExperienceType;
                     experienceForm.setError(`experience.${index}.${subFieldName}`, { type: 'server', message: (fieldErrorMessages as string[]).join(', ') });
                 }
-            } else if (fieldName === "experience" && fieldErrorMessages) { // Array-level error
+            } else if (fieldName === "experience" && fieldErrorMessages) { 
                  experienceForm.setError("experience", { type: 'server', message: (fieldErrorMessages as string[]).join(', ') });
             }
         });
@@ -217,58 +220,100 @@ export default function AdminAboutPage() {
     }
   }, [experienceState, toast, experienceForm]);
 
-
-  // --- Full form logic (to be refactored/removed for Contact and Education) ---
-  const [fullFormState, fullFormAction] = useActionState(updateAboutDataAction, initialFullFormState);
-  const fullForm = useForm<AboutMeData>({
-    resolver: zodResolver(aboutMeSchema),
-    defaultValues: prepareFullAboutMeDataForForm(initialAboutMeDataFromLib), 
+  // --- Form and state for Education Section ---
+  const [educationState, educationFormAction] = useActionState(updateEducationDataAction, initialEducationFormState);
+  const educationForm = useForm<EducationSectionData>({
+    resolver: zodResolver(educationSectionSchema),
+    defaultValues: prepareEducationSectionDataForForm({ education: initialAboutMeDataFromLib.education }),
   });
   const { fields: educationFields, append: appendEducation, remove: removeEducation } = useFieldArray({
-    control: fullForm.control, // Still uses fullForm for education
+    control: educationForm.control,
     name: "education",
     keyName: "fieldId",
   });
 
+  useEffect(() => {
+    if (educationState.status === 'success' && educationState.message) {
+      toast({ title: "Success!", description: educationState.message });
+      if (educationState.data) {
+        educationForm.reset(prepareEducationSectionDataForForm(educationState.data));
+      }
+    } else if (educationState.status === 'error') {
+      const errorMessage = (typeof educationState.message === 'string' && educationState.message.trim() !== '')
+        ? educationState.message : "An error saving education.";
+      toast({ title: "Error Education", description: errorMessage, variant: "destructive" });
+      
+      const dataToResetWith = educationState.data ? educationState.data : educationForm.getValues();
+      educationForm.reset(prepareEducationSectionDataForForm(dataToResetWith));
+
+      if (educationState.errors && typeof educationState.errors === 'object') {
+        Object.entries(educationState.errors).forEach(([fieldName, fieldErrorMessages]) => {
+            if (fieldName.startsWith("education.") && fieldErrorMessages) {
+                const parts = fieldName.split('.');
+                if (parts.length === 3) { 
+                    const index = parseInt(parts[1]);
+                    const subFieldName = parts[2] as keyof ZodEducationType;
+                    educationForm.setError(`education.${index}.${subFieldName}`, { type: 'server', message: (fieldErrorMessages as string[]).join(', ') });
+                }
+            } else if (fieldName === "education" && fieldErrorMessages) { 
+                 educationForm.setError("education", { type: 'server', message: (fieldErrorMessages as string[]).join(', ') });
+            }
+        });
+      }
+    }
+  }, [educationState, toast, educationForm]);
+
+
+  // --- Full form logic (now only for Contact & Socials) ---
+  const [fullFormState, fullFormAction] = useActionState(updateAboutDataAction, initialFullFormState);
+  const fullForm = useForm<AboutMeData>({ // Still uses full AboutMeData for now
+    resolver: zodResolver(aboutMeSchema), // And full schema
+    // Default values should only reflect contact info now, others are managed by their forms
+    defaultValues: prepareFullAboutMeDataForForm({
+        name: initialAboutMeDataFromLib.name, // these will be ignored by the action
+        title: initialAboutMeDataFromLib.title,
+        bio: initialAboutMeDataFromLib.bio,
+        profileImage: initialAboutMeDataFromLib.profileImage,
+        dataAiHint: initialAboutMeDataFromLib.dataAiHint,
+        experience: initialAboutMeDataFromLib.experience,
+        education: initialAboutMeDataFromLib.education,
+        // Only these are relevant for this form now
+        email: initialAboutMeDataFromLib.email,
+        linkedinUrl: initialAboutMeDataFromLib.linkedinUrl,
+        githubUrl: initialAboutMeDataFromLib.githubUrl,
+        twitterUrl: initialAboutMeDataFromLib.twitterUrl,
+    }), 
+  });
+
    useEffect(() => {
     if (fullFormState.status === 'success' && fullFormState.message) {
-      toast({ title: "Success (Full Form)!", description: fullFormState.message });
+      toast({ title: "Success (Contact/Socials)!", description: fullFormState.message });
       if (fullFormState.data) {
+        // Only reset the relevant parts of the fullForm (contact info)
         fullForm.reset(prepareFullAboutMeDataForForm(fullFormState.data));
-        // If full form saved profile/bio, update that form too.
-        profileBioForm.reset(prepareProfileBioDataForForm(fullFormState.data)); 
-        // If full form saved experience, update that form too. (Though ideally it shouldn't have)
-        experienceForm.reset(prepareExperienceSectionDataForForm({experience: fullFormState.data.experience}))
+        // No longer need to reset other forms from here as they are independent
       }
     } else if (fullFormState.status === 'error') {
       const errorMessage = (typeof fullFormState.message === 'string' && fullFormState.message.trim() !== '')
-        ? fullFormState.message : "An unspecified error occurred (Full Form).";
-      toast({ title: "Error Saving (Full Form)", description: errorMessage, variant: "destructive" });
+        ? fullFormState.message : "An error saving Contact/Socials.";
+      toast({ title: "Error Saving (Contact/Socials)", description: errorMessage, variant: "destructive" });
 
       const dataToResetWith = fullFormState.data ? prepareFullAboutMeDataForForm(fullFormState.data) : prepareFullAboutMeDataForForm(fullForm.getValues());
       fullForm.reset(dataToResetWith);
-      profileBioForm.reset(prepareProfileBioDataForForm(dataToResetWith));
-      experienceForm.reset(prepareExperienceSectionDataForForm({experience: dataToResetWith.experience}));
 
       if (fullFormState.errors && typeof fullFormState.errors === 'object' && Object.keys(fullFormState.errors).length > 0) {
         Object.entries(fullFormState.errors).forEach(([fieldName, fieldErrorMessages]) => {
           if (Array.isArray(fieldErrorMessages) && fieldErrorMessages.length > 0) {
             const message = fieldErrorMessages.join(', ');
-            fullForm.setError(fieldName as Path<AboutMeData>, { type: 'server', message });
-            if (fieldName in profileBioForm.getValues()) {
-                 profileBioForm.setError(fieldName as Path<ProfileBioData>, { type: 'server', message });
-            }
-            if (fieldName.startsWith('experience')) { // Basic check, can be more refined
-                // This part is tricky as error paths from fullForm's Zod might not map directly
-                // to experienceForm's structure if there are discrepancies.
-                // For now, we'll rely on the primary Zod error log for experience from fullForm
-                console.warn("Full form error for experience field:", fieldName, message);
+            // Only set errors for fields still managed by this form (contact fields)
+            if (['email', 'linkedinUrl', 'githubUrl', 'twitterUrl'].includes(fieldName)) {
+              fullForm.setError(fieldName as Path<AboutMeData>, { type: 'server', message });
             }
           }
         });
       }
     }
-  }, [fullFormState, toast, fullForm, profileBioForm, experienceForm]);
+  }, [fullFormState, toast, fullForm]);
 
 
   return (
@@ -361,27 +406,53 @@ export default function AdminAboutPage() {
           </Form>
         </TabsContent>
 
+        <TabsContent value="education">
+          <Form {...educationForm}>
+            <form id="education-form" action={educationFormAction} className="space-y-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Academic Background</CardTitle>
+                  <CardDescription>Manage your education history.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {educationFields.map((item, index) => (
+                    <Card key={item.fieldId} className="p-4 space-y-3 bg-muted/30">
+                      <FormField control={educationForm.control} name={`education.${index}.id`} render={({ field }) => <input type="hidden" {...field} />} />
+                      <FormField control={educationForm.control} name={`education.${index}.degree`} render={({ field }) => (
+                        <FormItem><FormLabel>Degree / Certificate</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                      )} />
+                      <FormField control={educationForm.control} name={`education.${index}.institution`} render={({ field }) => (
+                        <FormItem><FormLabel>Institution</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                      )} />
+                      <FormField control={educationForm.control} name={`education.${index}.period`} render={({ field }) => (
+                        <FormItem><FormLabel>Period (e.g., 2018 - 2022)</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                      )} />
+                      <Button type="button" variant="destructive" size="sm" onClick={() => removeEducation(index)}>
+                         <Trash2 className="mr-2 h-4 w-4" />Remove Education
+                      </Button>
+                    </Card>
+                  ))}
+                  <Button type="button" variant="outline" onClick={() => appendEducation({ id: `new_edu_${Date.now()}`, degree: '', institution: '', period: '' })}>
+                    <PlusCircle className="mr-2 h-4 w-4" />Add New Education
+                  </Button>
+                </CardContent>
+                 <CardFooter className="flex justify-end">
+                   <SubmitButton form="education-form" text="Save Education" />
+                </CardFooter>
+              </Card>
+            </form>
+          </Form>
+        </TabsContent>
 
-        {/* Contact and Education tabs still use the fullForm for now */}
-        <Form {...fullForm}> 
-          <form id="about-full-form" action={fullFormAction} className="space-y-8">
-            {/* Hidden fields for profile/bio data - these are problematic and should be removed once all sections are refactored */}
-            <input type="hidden" {...fullForm.register('name')} />
-            <input type="hidden" {...fullForm.register('title')} />
-            <input type="hidden" {...fullForm.register('bio')} />
-            <input type="hidden" {...fullForm.register('profileImage')} />
-            <input type="hidden" {...fullForm.register('dataAiHint')} />
-            {/* Hidden fields for experience - also problematic */}
-            {(fullForm.watch('experience') || []).map((exp, index) => (
-                <input type="hidden" key={`hidden-exp-${index}`} {...fullForm.register(`experience.${index}.id`)} defaultValue={exp.id} />
-            ))}
-
-
-            <TabsContent value="contact">
+        {/* Contact tab still uses the fullForm for now - this needs to be the final part of the refactor */}
+        <TabsContent value="contact">
+          <Form {...fullForm}> 
+            <form id="about-full-form" action={fullFormAction} className="space-y-8">
+              {/* No longer need hidden fields for profile/bio, experience as they are managed separately */}
               <Card>
                 <CardHeader>
                   <CardTitle>Contact & Social Links</CardTitle>
-                  <CardDescription>Update your email and social media URLs. (Still uses old save logic)</CardDescription>
+                  <CardDescription>Update your email and social media URLs.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <FormField control={fullForm.control} name="email" render={({ field }) => (
@@ -401,43 +472,9 @@ export default function AdminAboutPage() {
                    <SubmitButton form="about-full-form" text="Save Contact & Socials" />
                 </CardFooter>
               </Card>
-            </TabsContent>
-
-            <TabsContent value="education">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Academic Background</CardTitle>
-                  <CardDescription>Manage your education history. (Still uses old save logic)</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {educationFields.map((item, index) => (
-                    <Card key={item.fieldId} className="p-4 space-y-3 bg-muted/30">
-                      <FormField control={fullForm.control} name={`education.${index}.id`} render={({ field }) => <input type="hidden" {...field} />} />
-                      <FormField control={fullForm.control} name={`education.${index}.degree`} render={({ field }) => (
-                        <FormItem><FormLabel>Degree / Certificate</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                      )} />
-                      <FormField control={fullForm.control} name={`education.${index}.institution`} render={({ field }) => (
-                        <FormItem><FormLabel>Institution</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                      )} />
-                      <FormField control={fullForm.control} name={`education.${index}.period`} render={({ field }) => (
-                        <FormItem><FormLabel>Period (e.g., 2018 - 2022)</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                      )} />
-                      <Button type="button" variant="destructive" size="sm" onClick={() => removeEducation(index)}>
-                         <Trash2 className="mr-2 h-4 w-4" />Remove Education
-                      </Button>
-                    </Card>
-                  ))}
-                  <Button type="button" variant="outline" onClick={() => appendEducation({ id: `new_edu_${Date.now()}`, degree: '', institution: '', period: '' })}>
-                    <PlusCircle className="mr-2 h-4 w-4" />Add New Education
-                  </Button>
-                </CardContent>
-                 <CardFooter className="flex justify-end">
-                   <SubmitButton form="about-full-form" text="Save Education" />
-                </CardFooter>
-              </Card>
-            </TabsContent>
-          </form>
-        </Form>
+            </form>
+          </Form>
+        </TabsContent>
       </Tabs>
     </div>
   );

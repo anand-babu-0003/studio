@@ -1,6 +1,6 @@
 
 import { z } from 'zod';
-import type { Experience, Education } from '@/lib/types';
+import type { Experience as LibExperienceType, Education as LibEducationType } from '@/lib/types'; // Renamed to avoid conflict with Zod types below
 // Import Lucide icons directly for deriving availableIconNames within this file
 import { Code, Database, Server, Cloud, PenTool, Terminal, Briefcase, Zap, Brain, MessageSquare, Settings, LayoutDashboard, Smartphone, Laptop } from 'lucide-react';
 
@@ -23,22 +23,22 @@ if (ZOD_AVAILABLE_ICON_NAMES.length === 0) {
 
 
 // --- Schemas ---
-const experienceSchema = z.object({
-  id: z.string(),
+export const experienceSchema = z.object({
+  id: z.string(), // Should be present, even for new items (can be a temporary client-generated ID)
   role: z.string().min(1, "Role is required"),
   company: z.string().min(1, "Company is required"),
   period: z.string().min(1, "Period is required"),
   description: z.string().min(1, "Description is required"),
 });
-export type Experience = z.infer<typeof experienceSchema>;
+export type Experience = z.infer<typeof experienceSchema>; // This is Zod's Experience type
 
-const educationSchema = z.object({
-  id: z.string(),
+export const educationSchema = z.object({
+  id: z.string(), // Should be present, even for new items
   degree: z.string().min(1, "Degree is required"),
   institution: z.string().min(1, "Institution is required"),
   period: z.string().min(1, "Period is required"),
 });
-export type Education = z.infer<typeof educationSchema>;
+export type Education = z.infer<typeof educationSchema>; // This is Zod's Education type
 
 
 export const aboutMeSchema = z.object({
@@ -70,6 +70,12 @@ export const experienceSectionSchema = z.object({
   experience: z.array(experienceSchema),
 });
 export type ExperienceSectionData = z.infer<typeof experienceSectionSchema>;
+
+// Schema for just the Education section
+export const educationSectionSchema = z.object({
+  education: z.array(educationSchema),
+});
+export type EducationSectionData = z.infer<typeof educationSectionSchema>;
 
 
 export const portfolioItemAdminSchema = z.object({

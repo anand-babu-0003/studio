@@ -6,7 +6,9 @@ import {
   aboutMeSchema, 
   profileBioSchema, type ProfileBioData,
   experienceSectionSchema, type ExperienceSectionData,
-  type Experience as ZodExperienceType // Renaming to avoid conflict with lib/types
+  educationSectionSchema, type EducationSectionData,
+  type Experience as ZodExperienceType, // Renaming to avoid conflict with lib/types Experience
+  type Education as ZodEducationType // Renaming to avoid conflict with lib/types Education
 } from '@/lib/adminSchemas';
 import type { z } from 'zod';
 import fs from 'fs/promises';
@@ -60,7 +62,7 @@ async function writeDataToFile(data: AppData): Promise<void> {
   await fs.writeFile(dataFilePath, JSON.stringify(data, null, 2), 'utf-8');
 }
 
-// State type for the original full About Me form (will be phased out or adapted)
+// State type for the original full About Me form
 export type UpdateAboutDataFormState = {
   message: string;
   status: 'success' | 'error' | 'idle';
@@ -73,7 +75,7 @@ export type UpdateProfileBioDataFormState = {
   message: string;
   status: 'success' | 'error' | 'idle';
   errors?: z.inferFlattenedErrors<typeof profileBioSchema>['fieldErrors'];
-  data?: ProfileBioData; // Contains attempted data on error, saved data on success
+  data?: ProfileBioData; 
 };
 
 // State type for the new Experience section form
@@ -81,11 +83,19 @@ export type UpdateExperienceDataFormState = {
   message: string;
   status: 'success' | 'error' | 'idle';
   errors?: z.inferFlattenedErrors<typeof experienceSectionSchema>['fieldErrors'];
-  data?: ExperienceSectionData; // Contains attempted data on error, saved data on success
+  data?: ExperienceSectionData; 
+};
+
+// State type for the new Education section form
+export type UpdateEducationDataFormState = {
+  message: string;
+  status: 'success' | 'error' | 'idle';
+  errors?: z.inferFlattenedErrors<typeof educationSectionSchema>['fieldErrors'];
+  data?: EducationSectionData;
 };
 
 
-// New Server Action for Profile & Bio section
+// Server Action for Profile & Bio section
 export async function updateProfileBioDataAction(
   prevState: UpdateProfileBioDataFormState,
   formData: FormData
@@ -104,7 +114,7 @@ export async function updateProfileBioDataAction(
 
     if (!validatedFields.success) {
       const fieldErrors = validatedFields.error.flatten().fieldErrors;
-      console.error("Admin ProfileBio Action: Zod validation failed. Errors:", JSON.stringify(fieldErrors));
+      console.warn("Admin ProfileBio Action: Zod validation failed. Errors:", JSON.stringify(fieldErrors));
       return {
         message: "Failed to update profile & bio. Please check errors.",
         status: 'error',
@@ -117,8 +127,8 @@ export async function updateProfileBioDataAction(
 
     const allData = await readDataFromFile();
     allData.aboutMe = {
-      ...allData.aboutMe, // Preserve existing experience, education, contact etc.
-      ...dataToSave,     // Overwrite with new profile/bio data
+      ...allData.aboutMe, 
+      ...dataToSave,    
     };
     await writeDataToFile(allData);
 
@@ -145,13 +155,13 @@ export async function updateProfileBioDataAction(
     return {
       message: "An unexpected server error occurred while updating profile & bio.",
       status: 'error',
-      errors: {}, // Keep errors empty for generic server errors
+      errors: {}, 
       data: errorResponseData,
     };
   }
 }
 
-// New Server Action for Experience section
+// Server Action for Experience section
 export async function updateExperienceDataAction(
   prevState: UpdateExperienceDataFormState,
   formData: FormData
@@ -174,9 +184,6 @@ export async function updateExperienceDataAction(
       const period = String(formData.get(`experience.${index}.period`) || '');
       const description = String(formData.get(`experience.${index}.description`) || '');
       
-      // Only add if at least one field is non-empty, or if it's an existing item (has an ID not starting with new_exp_)
-      // Zod will handle individual field validation.
-      // This logic is to decide whether to include an "empty" new item in the validation attempt.
       if (role.trim() !== '' || company.trim() !== '' || period.trim() !== '' || description.trim() !== '' || (id && !id.startsWith('new_exp_')) ) {
           experienceEntries.push({ id, role, company, period, description });
       } else {
@@ -190,11 +197,11 @@ export async function updateExperienceDataAction(
 
     if (!validatedFields.success) {
       const fieldErrors = validatedFields.error.flatten().fieldErrors;
-      console.error("Admin Experience Action: Zod validation failed. Errors:", JSON.stringify(fieldErrors));
+      console.warn("Admin Experience Action: Zod validation failed. Errors:", JSON.stringify(fieldErrors));
       return {
         message: "Failed to update experience. Please check the errors below.",
         status: 'error',
-        errors: fieldErrors as z.inferFlattenedErrors<typeof experienceSectionSchema>['fieldErrors'], // Ensure correct type
+        errors: fieldErrors as z.inferFlattenedErrors<typeof experienceSectionSchema>['fieldErrors'],
         data: rawDataForZod, 
       };
     }
@@ -202,7 +209,7 @@ export async function updateExperienceDataAction(
     const dataToSave = validatedFields.data;
 
     const allData = await readDataFromFile();
-    allData.aboutMe.experience = dataToSave.experience; // Update only the experience part
+    allData.aboutMe.experience = dataToSave.experience; 
     await writeDataToFile(allData);
 
     revalidatePath('/about');
@@ -210,7 +217,7 @@ export async function updateExperienceDataAction(
     return {
       message: "Experience data updated successfully!",
       status: 'success',
-      data: dataToSave, // Send back the successfully saved (and validated) data
+      data: dataToSave, 
       errors: {},
     };
 
@@ -228,8 +235,81 @@ export async function updateExperienceDataAction(
   }
 }
 
+// Server Action for Education section
+export async function updateEducationDataAction(
+  prevState: UpdateEducationDataFormState,
+  formData: FormData
+): Promise<UpdateEducationDataFormState> {
+  let rawDataForZod: EducationSectionData | undefined = undefined;
+  try {
+    const educationEntries: ZodEducationType[] = [];
+    const educationIndices = new Set<string>();
 
-// Original action - will be refactored or removed later for Contact and Education
+    for (const [key] of formData.entries()) {
+      if (key.startsWith('education.')) {
+        educationIndices.add(key.split('.')[1]);
+      }
+    }
+
+    for (const index of Array.from(educationIndices).sort((a, b) => parseInt(a) - parseInt(b))) {
+      const id = String(formData.get(`education.${index}.id`) || `edu_fallback_${Date.now()}_${index}`);
+      const degree = String(formData.get(`education.${index}.degree`) || '');
+      const institution = String(formData.get(`education.${index}.institution`) || '');
+      const period = String(formData.get(`education.${index}.period`) || '');
+
+      if (degree.trim() !== '' || institution.trim() !== '' || period.trim() !== '' || (id && !id.startsWith('new_edu_'))) {
+        educationEntries.push({ id, degree, institution, period });
+      } else {
+        console.warn(`Admin Education Action: Skipping entirely empty new education entry at form index ${index}.`);
+      }
+    }
+
+    rawDataForZod = { education: educationEntries };
+
+    const validatedFields = educationSectionSchema.safeParse(rawDataForZod);
+
+    if (!validatedFields.success) {
+      const fieldErrors = validatedFields.error.flatten().fieldErrors;
+      console.warn("Admin Education Action: Zod validation failed. Errors:", JSON.stringify(fieldErrors));
+      return {
+        message: "Failed to update education. Please check the errors below.",
+        status: 'error',
+        errors: fieldErrors as z.inferFlattenedErrors<typeof educationSectionSchema>['fieldErrors'],
+        data: rawDataForZod,
+      };
+    }
+
+    const dataToSave = validatedFields.data;
+
+    const allData = await readDataFromFile();
+    allData.aboutMe.education = dataToSave.education; // Update only the education part
+    await writeDataToFile(allData);
+
+    revalidatePath('/about');
+
+    return {
+      message: "Education data updated successfully!",
+      status: 'success',
+      data: dataToSave,
+      errors: {},
+    };
+
+  } catch (error) {
+    console.error("Admin Education Action: An unexpected error occurred:", error);
+    const errorResponseData: EducationSectionData = rawDataForZod || {
+      education: [],
+    };
+    return {
+      message: "An unexpected server error occurred while updating education.",
+      status: 'error',
+      errors: {},
+      data: errorResponseData,
+    };
+  }
+}
+
+
+// Original action - will be refactored or removed later (now only for Contact)
 export async function updateAboutDataAction(
   prevState: UpdateAboutDataFormState,
   formData: FormData
@@ -237,73 +317,39 @@ export async function updateAboutDataAction(
   let rawData: AboutMeData | undefined = undefined;
 
   try {
-    // This part is now problematic as it tries to build experience from formData
-    // which will be empty if we are saving from, say, the education tab.
-    // For now, it will likely wipe out experience if saved from other tabs using this action.
-    // This needs to be refactored per section.
-    const experienceEntries: Experience[] = [];
-    const educationEntries: Education[] = [];
-    const experienceIndices = new Set<string>();
-    const educationIndices = new Set<string>();
-
-    for (const [key] of formData.entries()) {
-      if (key.startsWith('experience.')) {
-        experienceIndices.add(key.split('.')[1]);
-      } else if (key.startsWith('education.')) {
-        educationIndices.add(key.split('.')[1]);
-      }
-    }
-
-    for (const index of Array.from(experienceIndices).sort((a,b) => parseInt(a) - parseInt(b))) {
-      const id = String(formData.get(`experience.${index}.id`) || `exp_fallback_${Date.now()}_${index}`);
-      const role = String(formData.get(`experience.${index}.role`) || '');
-      const company = String(formData.get(`experience.${index}.company`) || '');
-      const period = String(formData.get(`experience.${index}.period`) || '');
-      const description = String(formData.get(`experience.${index}.description`) || '');
-      
-      if (role.trim() !== '' || company.trim() !== '' || period.trim() !== '' || description.trim() !== '') {
-          experienceEntries.push({ id, role, company, period, description });
-      } else if (id && (formData.has(`experience.${index}.role`) || formData.has(`experience.${index}.company`) || formData.has(`experience.${index}.period`) || formData.has(`experience.${index}.description`))) {
-          console.warn(`Admin About Action (Full Form): Skipping experience entry with ID ${id} at index ${index} because all its data fields are empty or whitespace, but it was present in form data.`);
-      }
-    }
-
-    for (const index of Array.from(educationIndices).sort((a,b) => parseInt(a) - parseInt(b))) {
-      const id = String(formData.get(`education.${index}.id`) || `edu_fallback_${Date.now()}_${index}`);
-      const degree = String(formData.get(`education.${index}.degree`) || '');
-      const institution = String(formData.get(`education.${index}.institution`) || '');
-      const period = String(formData.get(`education.${index}.period`) || '');
-      
-      if (degree.trim() !== '' || institution.trim() !== '' || period.trim() !== '') {
-          educationEntries.push({ id, degree, institution, period });
-      } else if (id && (formData.has(`education.${index}.degree`) || formData.has(`education.${index}.institution`) || formData.has(`education.${index}.period`))) {
-         console.warn(`Admin About Action (Full Form): Skipping education entry with ID ${id} at index ${index} because all its data fields are empty or whitespace, but it was present in form data.`);
-      }
-    }
+    // This action should now primarily focus on contact fields.
+    // Experience and Education are managed by their own actions.
+    // We read existing data and only update contact fields from formData.
     
+    const currentData = await readDataFromFile();
+
     rawData = {
-      name: String(formData.get('name') || ''), // These should ideally come from profileBioForm's latest state
-      title: String(formData.get('title') || ''),
-      bio: String(formData.get('bio') || ''),
-      profileImage: String(formData.get('profileImage') || ''),
-      dataAiHint: String(formData.get('dataAiHint') || ''),
-      experience: experienceEntries, // This will be empty if no experience data submitted
-      education: educationEntries,   // This will be empty if no education data submitted
+      // Keep existing values for fields not managed by this action
+      name: currentData.aboutMe.name, 
+      title: currentData.aboutMe.title,
+      bio: currentData.aboutMe.bio,
+      profileImage: currentData.aboutMe.profileImage,
+      dataAiHint: currentData.aboutMe.dataAiHint,
+      experience: currentData.aboutMe.experience, 
+      education: currentData.aboutMe.education, 
+      // Update contact fields from formData
       email: String(formData.get('email') || ''),
       linkedinUrl: String(formData.get('linkedinUrl') || ''),
       githubUrl: String(formData.get('githubUrl') || ''),
       twitterUrl: String(formData.get('twitterUrl') || ''),
     };
         
-    const validatedFields = aboutMeSchema.safeParse(rawData);
+    const validatedFields = aboutMeSchema.safeParse(rawData); // Still validate the whole object
 
     if (!validatedFields.success) {
       const fieldErrors = validatedFields.error.flatten().fieldErrors;
-      console.error("Admin About Action (Full Form): Zod validation failed. Errors:", JSON.stringify(fieldErrors));
+      // Filter errors to only show those relevant to contact fields if possible,
+      // though validating the whole object might still show other errors if rawData was malformed.
+      console.warn("Admin Contact Action (via full form): Zod validation failed. Errors:", JSON.stringify(fieldErrors));
       return {
-        message: "Failed to update data. Please check the errors below.",
+        message: "Failed to update contact data. Please check the errors below.",
         status: 'error',
-        errors: fieldErrors,
+        errors: fieldErrors, // Send all errors for now
         data: rawData, 
       };
     }
@@ -311,27 +357,31 @@ export async function updateAboutDataAction(
     const dataToSave = validatedFields.data;
 
     try {
-      const allData = await readDataFromFile();
-      // Critical: This overwrites the entire aboutMe object.
-      // If saving 'Education' tab, dataToSave.experience will be empty, wiping out existing experience.
-      allData.aboutMe = dataToSave; 
+      // Construct the new AppData, ensuring only contact fields are effectively changed by this action
+      const allData = await readDataFromFile(); // Re-read to be safe
+      allData.aboutMe.email = dataToSave.email;
+      allData.aboutMe.linkedinUrl = dataToSave.linkedinUrl;
+      allData.aboutMe.githubUrl = dataToSave.githubUrl;
+      allData.aboutMe.twitterUrl = dataToSave.twitterUrl;
+      // Other fields (name, title, bio, profileImage, experience, education) remain as they were from readDataFromFile
+      
       await writeDataToFile(allData);
 
-      revalidatePath('/about');
-      revalidatePath('/contact');
-      revalidatePath('/');
+      revalidatePath('/about'); // For bio changes that might be reflected on about
+      revalidatePath('/contact'); // For contact info changes
+      revalidatePath('/'); // For potential footer/header changes
 
       return {
-        message: "About page data updated successfully (using full form action)!",
+        message: "Contact & Socials data updated successfully!",
         status: 'success',
-        data: dataToSave,
+        data: dataToSave, // Return the full AboutMeData structure for consistency on client
         errors: {},
       };
 
     } catch (fileOpError) {
-      console.error("Admin About Action (Full Form): Error during file operation (read/write):", fileOpError); 
+      console.error("Admin Contact Action (via full form): Error during file operation (read/write):", fileOpError); 
       return {
-        message: "An error occurred while saving data to the file. Please try again.",
+        message: "An error occurred while saving contact data to the file. Please try again.",
         status: 'error',
         errors: {}, 
         data: rawData, 
@@ -339,23 +389,24 @@ export async function updateAboutDataAction(
     }
 
   } catch (error) {
-    console.error("Admin About Action (Full Form): An unexpected error occurred in the action:", error);
+    console.error("Admin Contact Action (via full form): An unexpected error occurred in the action:", error);
+    const currentAboutMe = (await readDataFromFile()).aboutMe; // Fallback to current data
     const defaultErrorData: AboutMeData = {
-        name: String(formData.get('name') || localDefaultAppData.aboutMe.name),
-        title: String(formData.get('title') || localDefaultAppData.aboutMe.title),
-        bio: String(formData.get('bio') || localDefaultAppData.aboutMe.bio),
-        profileImage: String(formData.get('profileImage') || localDefaultAppData.aboutMe.profileImage),
-        dataAiHint: String(formData.get('dataAiHint') || localDefaultAppData.aboutMe.dataAiHint),
-        experience: rawData?.experience || [], 
-        education: rawData?.education || [],  
-        email: String(formData.get('email') || localDefaultAppData.aboutMe.email),
-        linkedinUrl: String(formData.get('linkedinUrl') || localDefaultAppData.aboutMe.linkedinUrl),
-        githubUrl: String(formData.get('githubUrl') || localDefaultAppData.aboutMe.githubUrl),
-        twitterUrl: String(formData.get('twitterUrl') || localDefaultAppData.aboutMe.twitterUrl),
+        name: String(formData.get('name') || currentAboutMe.name),
+        title: String(formData.get('title') || currentAboutMe.title),
+        bio: String(formData.get('bio') || currentAboutMe.bio),
+        profileImage: String(formData.get('profileImage') || currentAboutMe.profileImage),
+        dataAiHint: String(formData.get('dataAiHint') || currentAboutMe.dataAiHint),
+        experience: rawData?.experience || currentAboutMe.experience, 
+        education: rawData?.education || currentAboutMe.education,  
+        email: String(formData.get('email') || currentAboutMe.email),
+        linkedinUrl: String(formData.get('linkedinUrl') || currentAboutMe.linkedinUrl),
+        githubUrl: String(formData.get('githubUrl') || currentAboutMe.githubUrl),
+        twitterUrl: String(formData.get('twitterUrl') || currentAboutMe.twitterUrl),
     };
 
     return {
-      message: "An unexpected server error occurred (full form action). Please check logs and try again.",
+      message: "An unexpected server error occurred (Contact/Socials action). Please check logs and try again.",
       status: 'error',
       errors: {}, 
       data: rawData || defaultErrorData, 
