@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
-import { skills as initialSkillsData, skillCategories, availableIconNames, lucideIconsMap } from '@/lib/data';
+import { skills as initialSkillsData, skillCategories, availableIconNames, lucideIconsMap, commonSkillNames } from '@/lib/data';
 import type { Skill } from '@/lib/types';
 import { saveSkillAction, deleteSkillAction, type SkillFormState } from '@/actions/admin/skillsActions';
 import { skillAdminSchema, type SkillAdminFormData } from '@/lib/adminSchemas';
@@ -189,10 +189,17 @@ export default function AdminSkillsPage() {
                 <FormField control={form.control} name="name" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Skill Name</FormLabel>
-                    <FormControl><Input {...field} /></FormControl>
+                    <FormControl>
+                      <Input {...field} list="common-skills-list" />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
+                <datalist id="common-skills-list">
+                  {commonSkillNames.map(skillName => (
+                    <option key={skillName} value={skillName} />
+                  ))}
+                </datalist>
 
                 <FormField control={form.control} name="category" render={({ field }) => (
                   <FormItem>
