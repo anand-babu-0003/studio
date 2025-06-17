@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Briefcase, Sparkles, UserCircle } from 'lucide-react';
+import { LayoutDashboard, Briefcase, Sparkles, UserCircle, Settings } from 'lucide-react'; // Added Settings
 import { cn } from '@/lib/utils';
 
 const adminNavItems = [
@@ -11,6 +11,7 @@ const adminNavItems = [
   { href: '/admin/portfolio', label: 'Portfolio', icon: Briefcase },
   { href: '/admin/skills', label: 'Skills', icon: Sparkles },
   { href: '/admin/about', label: 'About Page', icon: UserCircle },
+  { href: '/admin/settings', label: 'Settings', icon: Settings }, // New Settings item
 ];
 
 export function AdminSidebarContent() {
