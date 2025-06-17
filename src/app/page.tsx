@@ -10,6 +10,7 @@ import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wra
 import fs from 'fs/promises';
 import path from 'path';
 import { lucideIconsMap } from '@/lib/data'; // Import lucideIconsMap
+import StarryBackground from '@/components/layout/starry-background'; // Import the new component
 
 const defaultAppData: AppData = {
   portfolioItems: [],
@@ -30,8 +31,8 @@ const defaultAppData: AppData = {
   siteSettings: {
     siteName: 'My Portfolio',
     defaultMetaDescription: 'A showcase of my projects and skills.',
-    defaultMetaKeywords: '', // Ensured this field is present
-    siteOgImageUrl: '',    // Ensured this field is present
+    defaultMetaKeywords: '', 
+    siteOgImageUrl: '',    
   },
 };
 
@@ -44,7 +45,6 @@ async function getFreshAppData(): Promise<AppData> {
         return defaultAppData;
     }
     const parsedData = JSON.parse(fileContent) as Partial<AppData>;
-    // Merge ensuring all keys from defaultAppData are present, especially siteSettings sub-keys
     return {
       portfolioItems: parsedData.portfolioItems ?? defaultAppData.portfolioItems,
       skills: parsedData.skills ?? defaultAppData.skills,
@@ -53,13 +53,13 @@ async function getFreshAppData(): Promise<AppData> {
         ...(parsedData.aboutMe ?? {}),
       },
       siteSettings: { 
-        ...defaultAppData.siteSettings, // Start with complete default siteSettings
-        ...(parsedData.siteSettings ?? {}), // Override with parsed data if available
+        ...defaultAppData.siteSettings, 
+        ...(parsedData.siteSettings ?? {}), 
       }
     };
   } catch (error) {
     console.error("Error reading or parsing data.json for Home page, returning default structure:", error);
-    return defaultAppData; // Fallback to the now-complete local defaultAppData
+    return defaultAppData; 
   }
 }
 
@@ -68,15 +68,16 @@ export default async function Home() {
   const aboutMeData = appData.aboutMe;
   const allPortfolioItems = appData.portfolioItems;
   const featuredProjects = allPortfolioItems.slice(0, 2);
-  const highlightedSkills = appData.skills.slice(0, 6); // Get first 6 skills for highlight
+  const highlightedSkills = appData.skills.slice(0, 6); 
 
   const firstParagraphBio = (aboutMeData.bio || '').split('\n\n')[0];
 
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <section className="w-full min-h-screen flex flex-col justify-center items-center py-20 md:py-32 bg-gradient-to-br from-primary/15 via-background to-accent/15 bg-animated-gradient">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col justify-center items-center flex-grow">
+      <section className="relative w-full min-h-screen flex flex-col justify-center items-center py-20 md:py-32 bg-gradient-to-br from-primary/15 via-background to-accent/15 bg-animated-gradient overflow-hidden">
+        <StarryBackground /> {/* Add the starry background component HERE */}
+        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col justify-center items-center flex-grow">
           <div> 
             <h1 className="font-headline text-5xl md:text-7xl font-bold tracking-tight">
               <span className="block animate-fadeInUp-1">Hi, I&apos;m <span className="text-primary">{aboutMeData.name.split(' ')[0]}</span></span>

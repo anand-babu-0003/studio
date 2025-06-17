@@ -178,31 +178,86 @@ body {
     z-index: -1; /* Behind all content */
     mix-blend-mode: overlay; 
     transition: transform 0.15s ease-out; /* Smooth transition for mouse following */
-    /* Remove fixed animation properties for dynamic JS control */
-    /* animation: subtleLightPulse 20s ease-in-out infinite; */ 
-    /* top, left, bottom, right will be controlled by transform translate */
   }
 
   .light-orb-1 {
     width: 60vw;
     height: 60vh;
     background: radial-gradient(circle, hsl(var(--primary) / 0.3) 0%, transparent 70%);
-    /* Removed: top, left, animation-duration, animation-delay */
   }
 
   .light-orb-2 {
     width: 50vw;
     height: 50vh;
     background: radial-gradient(circle, hsl(var(--accent) / 0.2) 0%, transparent 70%);
-    /* Removed: bottom, right, animation-duration, animation-delay */
+  }
+
+  /* Starry background styles */
+  .star {
+    position: absolute;
+    background-color: white;
+    border-radius: 50%;
+    animation: fallAndFade linear infinite;
+    box-shadow: 0 0 4px #fff, 0 0 8px #fff, 0 0 12px hsl(var(--accent) / 0.7); /* Subtle glow */
+  }
+
+  @keyframes fallAndFade {
+    0% {
+      transform: translateY(-30px) scale(0.5); /* Start slightly higher and smaller */
+      opacity: 0;
+    }
+    10%, 20% { /* Appear relatively quickly */
+      opacity: 1;
+      transform: scale(1);
+    }
+    100% {
+      transform: translateY(100vh) scale(0.7); /* Fall off screen, slightly larger at end */
+      opacity: 0;
+    }
+  }
+
+  .comet {
+    position: absolute;
+    width: 2px; 
+    height: 2px;
+    background-color: white;
+    border-radius: 50%;
+    box-shadow: 0 0 8px 2px #fff, 0 0 12px 4px hsl(var(--accent) / 0.8);
+    animation: shootComet linear infinite;
+  }
+
+  .comet::after { /* Comet tail */
+    content: '';
+    position: absolute;
+    top: 50%; 
+    left: 1px; 
+    width: 80px; /* Tail length */
+    height: 1px; /* Tail thickness */
+    background: linear-gradient(to right, rgba(255, 255, 255, 0.7), transparent);
+    transform-origin: left center;
+    transform: translateY(-50%); /* Vertically center tail relative to head */
+  }
+
+  @keyframes shootComet {
+    0% {
+      opacity: 0;
+      transform: translate(0,0) rotate(var(--comet-angle, 45deg)) scale(0.5);
+    }
+    5% { 
+      opacity: 1;
+      transform: translate(0,0) rotate(var(--comet-angle, 45deg)) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(var(--comet-travel-x, 70vw), var(--comet-travel-y, 70vh)) rotate(var(--comet-angle, 45deg)) scale(0.5);
+    }
   }
 }
+
 
 /* Ensure markdown-body styles do not get purged by Tailwind and provide some reset */
 .markdown-body {
   box-sizing: border-box; /* from github-markdown.css */
-  /* min-width: 200px; /* from github-markdown.css - can be removed if prose handles it */
-  /* margin: 0 auto; /* from github-markdown.css - remove to prevent centering if max-width is truly none */
   padding: 0; /* Override 45px from github-markdown.css; CardContent handles padding */
 }
 
