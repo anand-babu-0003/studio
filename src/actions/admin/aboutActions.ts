@@ -64,7 +64,7 @@ export async function updateAboutDataAction(
   prevState: UpdateAboutDataFormState,
   formData: FormData
 ): Promise<UpdateAboutDataFormState> {
-  let rawData: AboutMeData | undefined = undefined; 
+  let rawData: AboutMeData | undefined = undefined;
 
   try {
     const experienceEntries: Experience[] = [];
@@ -107,25 +107,24 @@ export async function updateAboutDataAction(
       }
     }
 
-    rawData = { 
-      name: (formData.get('name') as string | null) || '',
-      title: (formData.get('title') as string | null) || '',
-      bio: (formData.get('bio') as string | null) || '',
-      profileImage: (formData.get('profileImage') as string | null) || '',
-      dataAiHint: (formData.get('dataAiHint') as string | null) || '',
+    rawData = {
+      name: String(formData.get('name') || ''),
+      title: String(formData.get('title') || ''),
+      bio: String(formData.get('bio') || ''),
+      profileImage: String(formData.get('profileImage') || ''),
+      dataAiHint: String(formData.get('dataAiHint') || ''),
       experience: experienceEntries,
       education: educationEntries,
-      email: (formData.get('email') as string | null) || undefined,
-      linkedinUrl: (formData.get('linkedinUrl') as string | null) || undefined,
-      githubUrl: (formData.get('githubUrl') as string | null) || undefined,
-      twitterUrl: (formData.get('twitterUrl') as string | null) || undefined,
+      email: String(formData.get('email') || ''),
+      linkedinUrl: String(formData.get('linkedinUrl') || ''),
+      githubUrl: String(formData.get('githubUrl') || ''),
+      twitterUrl: String(formData.get('twitterUrl') || ''),
     };
     
     const validatedFields = aboutMeSchema.safeParse(rawData);
 
     if (!validatedFields.success) {
       const fieldErrors = validatedFields.error.flatten().fieldErrors;
-      // console.error("Admin About Action: Zod validation failed. Errors:", JSON.stringify(fieldErrors, null, 2));
       return {
         message: "Failed to update data. Please check the errors below.",
         status: 'error',
@@ -162,17 +161,17 @@ export async function updateAboutDataAction(
     console.error("Admin About Action: An unexpected error occurred in the action:", error);
     
     const errorResponseData: AboutMeData = {
-      name: (formData.get('name') as string | null) || localDefaultAppData.aboutMe.name,
-      title: (formData.get('title') as string | null) || localDefaultAppData.aboutMe.title,
-      bio: (formData.get('bio') as string | null) || localDefaultAppData.aboutMe.bio,
-      profileImage: (formData.get('profileImage') as string | null) || localDefaultAppData.aboutMe.profileImage,
-      dataAiHint: (formData.get('dataAiHint') as string | null) || localDefaultAppData.aboutMe.dataAiHint,
+      name: String(formData.get('name') || localDefaultAppData.aboutMe.name),
+      title: String(formData.get('title') || localDefaultAppData.aboutMe.title),
+      bio: String(formData.get('bio') || localDefaultAppData.aboutMe.bio),
+      profileImage: String(formData.get('profileImage') || localDefaultAppData.aboutMe.profileImage),
+      dataAiHint: String(formData.get('dataAiHint') || localDefaultAppData.aboutMe.dataAiHint),
       experience: rawData?.experience || [], 
       education: rawData?.education || [],  
-      email: (formData.get('email') as string | null) || localDefaultAppData.aboutMe.email,
-      linkedinUrl: (formData.get('linkedinUrl') as string | null) || localDefaultAppData.aboutMe.linkedinUrl,
-      githubUrl: (formData.get('githubUrl') as string | null) || localDefaultAppData.aboutMe.githubUrl,
-      twitterUrl: (formData.get('twitterUrl') as string | null) || localDefaultAppData.aboutMe.twitterUrl,
+      email: String(formData.get('email') || localDefaultAppData.aboutMe.email),
+      linkedinUrl: String(formData.get('linkedinUrl') || localDefaultAppData.aboutMe.linkedinUrl),
+      githubUrl: String(formData.get('githubUrl') || localDefaultAppData.aboutMe.githubUrl),
+      twitterUrl: String(formData.get('twitterUrl') || localDefaultAppData.aboutMe.twitterUrl),
     };
 
     return {
@@ -183,4 +182,3 @@ export async function updateAboutDataAction(
     };
   }
 }
-
