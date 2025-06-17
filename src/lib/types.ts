@@ -75,3 +75,10 @@ export interface AppData {
   siteSettings: SiteSettings; // Added site settings
 }
 
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  submittedAt: string; // ISO date string
+}

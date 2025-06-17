@@ -3,15 +3,16 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Briefcase, Sparkles, UserCircle, Settings } from 'lucide-react'; // Added Settings
+import { LayoutDashboard, Briefcase, Sparkles, UserCircle, Settings, Inbox } from 'lucide-react'; // Added Settings, Inbox
 import { cn } from '@/lib/utils';
 
 const adminNavItems = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/admin/messages', label: 'Messages', icon: Inbox },
   { href: '/admin/portfolio', label: 'Portfolio', icon: Briefcase },
   { href: '/admin/skills', label: 'Skills', icon: Sparkles },
   { href: '/admin/about', label: 'About Page', icon: UserCircle },
-  { href: '/admin/settings', label: 'Settings', icon: Settings }, // New Settings item
+  { href: '/admin/settings', label: 'Settings', icon: Settings }, 
 ];
 
 export function AdminSidebarContent() {

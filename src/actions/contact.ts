@@ -1,6 +1,10 @@
+
 "use server";
 
 import { z } from 'zod';
+import fs from 'fs/promises';
+import path from 'path';
+import type { ContactMessage } from '@/lib/types';
 
 const contactFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -17,6 +21,26 @@ export type ContactFormState = {
     message?: string[];
   };
 };
+
+const messagesFilePath = path.join(process.cwd(), 'src', 'lib', 'contact-messages.json');
+
+async function readMessages(): Promise<ContactMessage[]> {
+  try {
+    const fileContent = await fs.readFile(messagesFilePath, 'utf-8');
+    return JSON.parse(fileContent) as ContactMessage[];
+  } catch (error) {
+    // If file doesn't exist or is invalid JSON, return empty array
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      return [];
+    }
+    console.error("Error reading messages file:", error);
+    return [];
+  }
+}
+
+async function writeMessages(messages: ContactMessage[]): Promise<void> {
+  await fs.writeFile(messagesFilePath, JSON.stringify(messages, null, 2), 'utf-8');
+}
 
 export async function submitContactForm(
   prevState: ContactFormState,
@@ -39,18 +63,19 @@ export async function submitContactForm(
   const { name, email, message } = validatedFields.data;
 
   try {
-    // Simulate sending an email or saving to a database
-    console.log("New contact form submission:");
-    console.log("Name:", name);
-    console.log("Email:", email);
-    console.log("Message:", message);
-    
-    // In a real application, you would integrate with an email service (e.g., SendGrid, Resend)
-    // or save the data to a database here.
-    // For example:
-    // await sendEmail({ to: 'your-email@example.com', from: email, subject: `New message from ${name}`, text: message });
+    const newMessage: ContactMessage = {
+      id: `msg_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+      name,
+      email,
+      message,
+      submittedAt: new Date().toISOString(),
+    };
 
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+    const existingMessages = await readMessages();
+    existingMessages.unshift(newMessage); // Add to the beginning for reverse chrono order
+    await writeMessages(existingMessages);
+    
+    console.log("New contact form submission saved:", newMessage.id);
 
     return {
       message: "Your message has been sent successfully! I'll get back to you soon.",
@@ -58,7 +83,7 @@ export async function submitContactForm(
     };
 
   } catch (error) {
-    console.error("Error submitting contact form:", error);
+    console.error("Error submitting contact form or saving message:", error);
     return {
       message: "An unexpected error occurred. Please try again later.",
       status: 'error',
