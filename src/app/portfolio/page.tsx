@@ -39,7 +39,7 @@ export default async function PortfolioPage() {
       {(portfolioItems || []).length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {portfolioItems.map((project, index) => (
-            <ScrollAnimationWrapper key={project.id} delay={index * 100} threshold={0.05}>
+            <ScrollAnimationWrapper key={project.id} delay={index * 100} threshold={0.05} className="h-full">
               <PortfolioCard project={project} />
             </ScrollAnimationWrapper>
           ))}

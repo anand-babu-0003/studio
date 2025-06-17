@@ -12,7 +12,7 @@ interface PortfolioCardProps {
 
 export function PortfolioCard({ project }: PortfolioCardProps) {
   return (
-    <Card className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-[1.02] rounded-lg">
+    <Card className="flex flex-col h-full overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-[1.02] rounded-lg">
       <CardHeader className="p-0 relative aspect-video">
         {project.images[0] && (
           <Image
