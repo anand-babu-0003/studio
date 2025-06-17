@@ -6,6 +6,7 @@ import { Github, Linkedin, Twitter, Mail } from 'lucide-react';
 import type { SocialLink, AboutMeData } from '@/lib/types';
 import { useEffect, useState } from 'react';
 import { getAboutMeDataAction } from '@/actions/getAboutMeDataAction';
+import { Button } from '@/components/ui/button'; // Import Button component
 
 const mainNavItems = [
   { href: '/', label: 'Home' },
@@ -93,18 +94,24 @@ export default function Footer() {
               <h3 className="text-sm font-semibold text-foreground/80 uppercase tracking-wider mb-4">
                 Connect
               </h3>
-              <div className="flex space-x-3">
+              <div className="flex items-center space-x-2">
                 {socialLinksToDisplay.map((link) => (
-                  <Link
+                  <Button 
                     key={link.id}
-                    href={link.url!}
-                    target={link.id === 'email' ? '_self' : '_blank'}
-                    rel="noopener noreferrer"
+                    asChild 
+                    variant="ghost" 
+                    size="icon" 
+                    className="text-muted-foreground hover:text-primary hover:bg-muted rounded-full focus:ring-offset-background" // Ensure offset for focus ring
                     aria-label={link.name}
-                    className="text-muted-foreground transition-colors hover:text-primary focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded-full p-2 hover:bg-muted"
                   >
-                    <link.icon className="h-5 w-5" />
-                  </Link>
+                    <Link
+                      href={link.url!}
+                      target={link.id === 'email' ? '_self' : '_blank'}
+                      rel="noopener noreferrer"
+                    >
+                      <link.icon className="h-5 w-5" />
+                    </Link>
+                  </Button>
                 ))}
               </div>
             </div>
