@@ -3,7 +3,7 @@
 
 import type { AboutMeData, Experience, Education, AppData } from '@/lib/types';
 import { aboutMeSchema } from '@/lib/adminSchemas';
-import type { z } from 'zod'; // Import z for inferFlattenedErrors
+import type { z } from 'zod';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -58,7 +58,7 @@ export type UpdateAboutDataFormState = {
   message: string;
   status: 'success' | 'error' | 'idle';
   errors?: z.inferFlattenedErrors<typeof aboutMeSchema>['fieldErrors'];
-  data?: AboutMeData;
+  data?: AboutMeData; // This will hold rawData on error, or savedData on success
 };
 
 export async function updateAboutDataAction(
@@ -88,7 +88,7 @@ export async function updateAboutDataAction(
       const period = String(formData.get(`experience.${index}.period`) || '');
       const description = String(formData.get(`experience.${index}.description`) || '');
       
-      if (id && (role.trim() !== '' || company.trim() !== '' || period.trim() !== '' || description.trim() !== '')) {
+      if (role.trim() !== '' || company.trim() !== '' || period.trim() !== '' || description.trim() !== '') {
           experienceEntries.push({ id, role, company, period, description });
       } else if (id) {
           console.warn(`Admin About Action: Skipping experience entry with ID ${id} at index ${index} because all its data fields are empty or whitespace.`);
@@ -101,13 +101,13 @@ export async function updateAboutDataAction(
       const institution = String(formData.get(`education.${index}.institution`) || '');
       const period = String(formData.get(`education.${index}.period`) || '');
       
-      if (id && (degree.trim() !== '' || institution.trim() !== '' || period.trim() !== '')) {
+      if (degree.trim() !== '' || institution.trim() !== '' || period.trim() !== '') {
           educationEntries.push({ id, degree, institution, period });
       } else if (id) {
           console.warn(`Admin About Action: Skipping education entry with ID ${id} at index ${index} because all its data fields are empty or whitespace.`);
       }
     }
-
+    
     rawData = {
       name: String(formData.get('name') || ''),
       title: String(formData.get('title') || ''),
@@ -126,6 +126,7 @@ export async function updateAboutDataAction(
 
     if (!validatedFields.success) {
       const fieldErrors = validatedFields.error.flatten().fieldErrors;
+      console.error("Admin About Action: Zod validation failed. Errors:", JSON.stringify(fieldErrors));
       return {
         message: "Failed to update data. Please check the errors below.",
         status: 'error',
@@ -144,7 +145,7 @@ export async function updateAboutDataAction(
       return {
         message: "About page data updated successfully!",
         status: 'success',
-        data: dataToSave,
+        data: dataToSave, // Return the saved data
         errors: {},
       };
 

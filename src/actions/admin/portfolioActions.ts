@@ -1,7 +1,7 @@
 
 "use server";
 
-import type { PortfolioItem, AppData, Skill, AboutMeData } from '@/lib/types';
+import type { PortfolioItem, AppData } from '@/lib/types';
 import { portfolioItemAdminSchema, type PortfolioAdminFormData } from '@/lib/adminSchemas';
 import fs from 'fs/promises';
 import path from 'path';
@@ -57,7 +57,9 @@ export type PortfolioFormState = {
   message: string;
   status: 'success' | 'error' | 'idle';
   errors?: Partial<Record<keyof PortfolioAdminFormData, string[]>>;
-  project?: PortfolioItem;
+  // On error, `formData` will contain the attempted data. On success, `savedProject` will.
+  formDataOnError?: PortfolioAdminFormData; 
+  savedProject?: PortfolioItem;
 };
 
 export async function savePortfolioItemAction(
@@ -66,27 +68,28 @@ export async function savePortfolioItemAction(
 ): Promise<PortfolioFormState> {
   const rawData: PortfolioAdminFormData = {
     id: formData.get('id') as string || undefined,
-    title: formData.get('title') as string,
-    description: formData.get('description') as string,
-    longDescription: formData.get('longDescription') as string || undefined,
-    image1: formData.get('image1') as string || undefined,
-    image2: formData.get('image2') as string || undefined,
-    tagsString: formData.get('tagsString') as string || undefined,
-    liveUrl: formData.get('liveUrl') as string || undefined,
-    repoUrl: formData.get('repoUrl') as string || undefined,
-    slug: formData.get('slug') as string,
-    dataAiHint: formData.get('dataAiHint') as string || undefined,
-    readmeContent: formData.get('readmeContent') as string || undefined,
+    title: String(formData.get('title') || ''),
+    description: String(formData.get('description') || ''),
+    longDescription: String(formData.get('longDescription') || ''),
+    image1: String(formData.get('image1') || ''),
+    image2: String(formData.get('image2') || ''),
+    tagsString: String(formData.get('tagsString') || ''),
+    liveUrl: String(formData.get('liveUrl') || ''),
+    repoUrl: String(formData.get('repoUrl') || ''),
+    slug: String(formData.get('slug') || ''),
+    dataAiHint: String(formData.get('dataAiHint') || ''),
+    readmeContent: String(formData.get('readmeContent') || ''),
   };
 
   const validatedFields = portfolioItemAdminSchema.safeParse(rawData);
 
   if (!validatedFields.success) {
+    console.error("Admin Portfolio Action: Zod validation failed. Errors:", JSON.stringify(validatedFields.error.flatten().fieldErrors));
     return {
       message: "Failed to save project. Please check errors.",
       status: 'error',
       errors: validatedFields.error.flatten().fieldErrors,
-      project: undefined, // Explicitly add optional fields
+      formDataOnError: rawData,
     };
   }
 
@@ -118,7 +121,6 @@ export async function savePortfolioItemAction(
       if (projectIndex > -1) {
         allData.portfolioItems[projectIndex] = projectToSave;
       } else {
-        // If ID provided but not found, treat as new add
         allData.portfolioItems.push(projectToSave);
       }
     } else {
@@ -129,17 +131,17 @@ export async function savePortfolioItemAction(
     return {
       message: `Project "${projectToSave.title}" ${data.id ? 'updated' : 'added'} successfully!`,
       status: 'success',
-      project: projectToSave,
+      savedProject: projectToSave,
       errors: {},
     };
 
   } catch (error) {
-    console.error("Error saving portfolio project:", error); // Server-side log
+    console.error("Error saving portfolio project:", error);
     return {
       message: "An unexpected server error occurred while saving the project. Please try again.",
       status: 'error',
       errors: {},
-      project: undefined, // Explicitly add optional fields
+      formDataOnError: rawData, // Return rawData on file system error as well
     };
   }
 }
@@ -169,3 +171,4 @@ export async function deletePortfolioItemAction(itemId: string): Promise<DeleteP
         return { success: false, message: "Failed to delete project due to a server error." };
     }
 }
+

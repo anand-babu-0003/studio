@@ -22,7 +22,7 @@ import type { Skill } from '@/lib/types';
 import { saveSkillAction, deleteSkillAction, type SkillFormState } from '@/actions/admin/skillsActions';
 import { skillAdminSchema, type SkillAdminFormData } from '@/lib/adminSchemas';
 
-const initialFormState: SkillFormState = { message: '', status: 'idle', errors: {}, skill: undefined };
+const initialFormState: SkillFormState = { message: '', status: 'idle', errors: {}, formDataOnError: undefined, savedSkill: undefined };
 
 const defaultFormValues: SkillAdminFormData = {
   name: '',
@@ -59,7 +59,7 @@ export default function AdminSkillsPage() {
   const [formActionState, dispatchServerAction] = useActionState(saveSkillAction, initialFormState);
 
   const form = useForm<SkillAdminFormData>({
-    resolver: zodResolver(skillAdminSchema), // Client-side validation against the same schema
+    resolver: zodResolver(skillAdminSchema),
     defaultValues: defaultFormValues,
   });
 
@@ -71,8 +71,8 @@ export default function AdminSkillsPage() {
 
 
   useEffect(() => {
-    if (formActionState.status === 'success' && formActionState.skill) {
-      const savedSkill = formActionState.skill;
+    if (formActionState.status === 'success' && formActionState.savedSkill) {
+      const savedSkill = formActionState.savedSkill;
       toast({ title: "Success!", description: formActionState.message });
 
       setSkills(prevSkills => {
@@ -93,13 +93,18 @@ export default function AdminSkillsPage() {
       form.reset(defaultFormValues);
 
     } else if (formActionState.status === 'error') {
-      console.error("AdminSkillsPage: Error from server action (raw object):", formActionState);
       // console.error("AdminSkillsPage: Error from server action (JSON.stringify):", JSON.stringify(formActionState));
       
       const errorMessage = typeof formActionState.message === 'string' && formActionState.message.trim() !== ''
         ? formActionState.message
         : "An unspecified error occurred. Please check server logs for more details.";
       toast({ title: "Error Saving", description: errorMessage, variant: "destructive" });
+      
+      if (formActionState.formDataOnError) {
+        form.reset(formActionState.formDataOnError); // Repopulate with attempted data
+      } else {
+        form.reset(form.getValues()); // Keep current form values
+      }
       
       if (formActionState.errors) {
         Object.entries(formActionState.errors).forEach(([key, fieldErrorMessages]) => {
@@ -146,22 +151,16 @@ export default function AdminSkillsPage() {
   }
 
   const handleFormSubmit: SubmitHandler<SkillAdminFormData> = async (data) => {
-    // console.log("Client-side handleFormSubmit, data from react-hook-form:", data);
     const formData = new FormData();
 
     if (data.id) formData.append('id', data.id);
     formData.append('name', data.name || ''); 
-    
-    // data.category and data.iconName are non-optional in SkillAdminFormData
-    // and should be valid strings from the enums due to react-hook-form state.
     formData.append('category', data.category); 
     formData.append('iconName', data.iconName); 
 
     if (data.proficiency !== undefined && data.proficiency !== null) {
       formData.append('proficiency', String(data.proficiency));
     }
-    // If proficiency is undefined or null, it won't be appended.
-    // The server action's Zod schema handles optional/nullable proficiency.
     
     dispatchServerAction(formData);
   };
@@ -241,6 +240,8 @@ export default function AdminSkillsPage() {
                           onChange={e => onChange(e.target.value === '' ? undefined : Number(e.target.value))}
                           onBlur={onBlur}
                           ref={ref}
+                          min="0"
+                          max="100"
                         />
                       </FormControl>
                       <FormMessage />

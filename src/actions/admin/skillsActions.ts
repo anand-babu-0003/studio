@@ -5,8 +5,6 @@ import type { Skill, AppData } from '@/lib/types';
 import { skillAdminSchema, type SkillAdminFormData } from '@/lib/adminSchemas';
 import fs from 'fs/promises';
 import path from 'path';
-// Note: skillCategories and availableIconNames from '@/lib/data' are no longer directly used for Zod validation here.
-// The schema in adminSchemas.ts now defines its own enum sources.
 
 const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
 
@@ -59,7 +57,9 @@ export type SkillFormState = {
   message: string;
   status: 'success' | 'error' | 'idle';
   errors?: Partial<Record<keyof SkillAdminFormData, string[]>>;
-  skill?: Skill;
+  // On error, `formDataOnError` will contain the attempted data. On success, `savedSkill` will.
+  formDataOnError?: SkillAdminFormData;
+  savedSkill?: Skill;
 };
 
 export async function saveSkillAction(
@@ -77,25 +77,24 @@ export async function saveSkillAction(
     ? Number(proficiencyString) 
     : undefined;
 
-  const dataForZod = {
+  // This is the data that will be validated and potentially returned on error
+  const dataForZod: SkillAdminFormData = {
     id: idFromForm !== null ? String(idFromForm) : undefined,
-    name: nameFromForm !== null ? String(nameFromForm) : '', // Zod min(1) will catch if empty
-    category: categoryFromForm !== null ? String(categoryFromForm) : undefined, // Let Zod check if undefined or not in enum
+    name: String(nameFromForm || ''), 
+    category: String(categoryFromForm || '') as SkillAdminFormData['category'], // Cast, Zod will validate enum
     proficiency: proficiencyValue,
-    iconName: iconNameFromForm !== null ? String(iconNameFromForm) : undefined, // Let Zod check
+    iconName: String(iconNameFromForm || '') as SkillAdminFormData['iconName'], // Cast, Zod will validate enum
   };
-
-  // console.log("Server Action (skillsActions.ts): dataForZod for Zod validation:", dataForZod);
 
   const validatedFields = skillAdminSchema.safeParse(dataForZod);
 
   if (!validatedFields.success) {
-    console.error("Server Action (skillsActions.ts): Zod validation failed. Errors:", JSON.stringify(validatedFields.error.flatten().fieldErrors));
+    console.error("Admin Skill Action: Zod validation failed. Errors:", JSON.stringify(validatedFields.error.flatten().fieldErrors));
     return {
       message: "Failed to save skill. Please check errors.",
       status: 'error',
       errors: validatedFields.error.flatten().fieldErrors as SkillFormState['errors'],
-      skill: undefined,
+      formDataOnError: dataForZod,
     };
   }
 
@@ -104,9 +103,9 @@ export async function saveSkillAction(
   const skillToSave: Skill = {
     id: data.id || `skill_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
     name: data.name,
-    category: data.category, // This is now correctly typed by Zod
+    category: data.category,
     proficiency: data.proficiency ?? undefined, 
-    iconName: data.iconName, // This is now correctly typed by Zod
+    iconName: data.iconName,
   };
 
   try {
@@ -126,7 +125,7 @@ export async function saveSkillAction(
     return {
       message: `Skill "${skillToSave.name}" ${data.id ? 'updated' : 'added'} successfully!`,
       status: 'success',
-      skill: skillToSave,
+      savedSkill: skillToSave,
       errors: {},
     };
 
@@ -136,7 +135,7 @@ export async function saveSkillAction(
       message: "An unexpected server error occurred while saving the skill. Please try again.",
       status: 'error',
       errors: {},
-      skill: undefined,
+      formDataOnError: dataForZod, // Return dataForZod on file system error
     };
   }
 }

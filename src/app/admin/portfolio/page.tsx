@@ -39,7 +39,7 @@ const defaultFormValues: PortfolioAdminFormData = {
   repoUrl: '',
   slug: '',
   dataAiHint: '',
-  readmeContent: '', // Added
+  readmeContent: '',
 };
 
 function SubmitButton() {
@@ -82,8 +82,8 @@ export default function AdminPortfolioPage() {
   
 
   useEffect(() => {
-    if (formActionState.status === 'success' && formActionState.project) {
-      const savedProject = formActionState.project;
+    if (formActionState.status === 'success' && formActionState.savedProject) {
+      const savedProject = formActionState.savedProject;
       toast({ title: "Success!", description: formActionState.message });
 
       setProjects(prevProjects => {
@@ -104,7 +104,6 @@ export default function AdminPortfolioPage() {
       form.reset(defaultFormValues); 
 
     } else if (formActionState.status === 'error') {
-      console.error("AdminPortfolioPage: Error from server action (raw object):", formActionState);
       // console.error("AdminPortfolioPage: Error from server action (JSON.stringify):", JSON.stringify(formActionState));
       
       const errorMessage = typeof formActionState.message === 'string' && formActionState.message.trim() !== ''
@@ -113,6 +112,12 @@ export default function AdminPortfolioPage() {
 
       toast({ title: "Error Saving", description: errorMessage, variant: "destructive" });
       
+      if (formActionState.formDataOnError) {
+        form.reset(formActionState.formDataOnError); // Repopulate form with attempted data
+      } else {
+        form.reset(form.getValues()); // Keep current values if no specific error data from server
+      }
+
       if (formActionState.errors) {
         Object.entries(formActionState.errors).forEach(([key, fieldErrorMessages]) => {
           if (Array.isArray(fieldErrorMessages) && fieldErrorMessages.length > 0) {
@@ -139,7 +144,7 @@ export default function AdminPortfolioPage() {
       image1: project.images[0] || '',
       image2: project.images[1] || '',
       tagsString: project.tags.join(', '),
-      readmeContent: project.readmeContent || '', // Added
+      readmeContent: project.readmeContent || '',
     });
     setShowForm(true);
   };
@@ -154,7 +159,7 @@ export default function AdminPortfolioPage() {
       });
     } else {
       toast({ title: "Error Deleting", description: result.message, variant: "destructive" });
-      console.error("AdminPortfolioPage: handleDelete - error:", result.message);
+      // console.error("AdminPortfolioPage: handleDelete - error:", result.message);
     }
   };
 
@@ -313,4 +318,3 @@ export default function AdminPortfolioPage() {
   );
 }
 
-    

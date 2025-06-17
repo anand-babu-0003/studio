@@ -18,7 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Save, Loader2 } from 'lucide-react';
 
 import { aboutMe as initialAboutMeDataFromLib } from '@/lib/data';
-import type { AboutMeData, Experience, Education } from '@/lib/types';
+import type { AboutMeData } from '@/lib/types';
 import { updateAboutDataAction, type UpdateAboutDataFormState } from '@/actions/admin/aboutActions';
 import { aboutMeSchema } from '@/lib/adminSchemas';
 
@@ -50,10 +50,8 @@ function SubmitButton({ form: formId }: SubmitButtonProps) {
   );
 }
 
-// Helper to transform data for form.reset, now robust to undefined input
 const prepareDataForForm = (data?: AboutMeData): AboutMeData => {
   if (!data) {
-    // Return a default structure if input data is undefined or null
     return {
       name: '',
       title: '',
@@ -70,6 +68,11 @@ const prepareDataForForm = (data?: AboutMeData): AboutMeData => {
   }
   return {
     ...data,
+    name: data.name || '',
+    title: data.title || '',
+    bio: data.bio || '',
+    profileImage: data.profileImage || '',
+    dataAiHint: data.dataAiHint || '',
     experience: data.experience || [],
     education: data.education || [],
     email: data.email || '',
@@ -95,15 +98,10 @@ export default function AdminAboutPage() {
         description: state.message,
       });
       if (state.data) {
-        form.reset(prepareDataForForm(state.data));
+        form.reset(prepareDataForForm(state.data)); // Reset with saved data
       }
     } else if (state.status === 'error') {
-      console.error("AdminAboutPage: Error from server action (raw object):", state);
-      console.error("AdminAboutPage: Error from server action (JSON.stringify):", JSON.stringify(state));
-      console.error("AdminAboutPage: typeof state.message:", typeof state.message, "Value:", state.message);
-      console.error("AdminAboutPage: typeof state.errors:", typeof state.errors, "Value:", JSON.stringify(state.errors));
-      console.error("AdminAboutPage: typeof state.data:", typeof state.data, "Value:", JSON.stringify(state.data));
-
+      // console.error("AdminAboutPage: Error from server action (JSON.stringify):", JSON.stringify(state));
 
       const errorMessage = (typeof state.message === 'string' && state.message.trim() !== '')
         ? state.message
@@ -115,10 +113,9 @@ export default function AdminAboutPage() {
       });
 
       if (state.data) {
-        form.reset(prepareDataForForm(state.data));
+        form.reset(prepareDataForForm(state.data)); // Repopulate with attempted data
       } else {
-        // If state.data is not available on error, reset to a default blank state
-        form.reset(prepareDataForForm(undefined));
+        form.reset(prepareDataForForm(form.getValues())); // Keep current form values if no data from server
       }
 
       if (state.errors && typeof state.errors === 'object' && Object.keys(state.errors).length > 0) {
@@ -131,7 +128,7 @@ export default function AdminAboutPage() {
           }
         });
       } else {
-          console.warn("AdminAboutPage: state.errors was not usable for setting form errors.", state.errors)
+          // console.warn("AdminAboutPage: state.errors was not usable for setting form errors.", state.errors)
       }
     }
   }, [state, toast, form]);
@@ -291,7 +288,7 @@ export default function AdminAboutPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {(form.watch('experience') || []).map((exp, index) => (
-                    <Card key={exp.id} className="p-4 space-y-3 bg-muted/30">
+                    <Card key={exp.id || `exp-${index}`} className="p-4 space-y-3 bg-muted/30">
                       <input type="hidden" {...form.register(`experience.${index}.id`)} defaultValue={exp.id} />
                       <FormField control={form.control} name={`experience.${index}.role`} render={({ field }) => (
                         <FormItem><FormLabel>Role</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
@@ -321,7 +318,7 @@ export default function AdminAboutPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {(form.watch('education') || []).map((edu, index) => (
-                    <Card key={edu.id} className="p-4 space-y-3 bg-muted/30">
+                    <Card key={edu.id || `edu-${index}`} className="p-4 space-y-3 bg-muted/30">
                       <input type="hidden" {...form.register(`education.${index}.id`)} defaultValue={edu.id} />
                       <FormField control={form.control} name={`education.${index}.degree`} render={({ field }) => (
                         <FormItem><FormLabel>Degree / Certificate</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
