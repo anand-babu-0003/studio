@@ -58,7 +58,7 @@ export type UpdateAboutDataFormState = {
   message: string;
   status: 'success' | 'error' | 'idle';
   errors?: z.inferFlattenedErrors<typeof aboutMeSchema>['fieldErrors'];
-  data?: AboutMeData; // This will hold rawData on error, or savedData on success
+  data?: AboutMeData;
 };
 
 export async function updateAboutDataAction(
@@ -145,7 +145,7 @@ export async function updateAboutDataAction(
       return {
         message: "About page data updated successfully!",
         status: 'success',
-        data: dataToSave, // Return the saved data
+        data: dataToSave,
         errors: {},
       };
 
@@ -184,4 +184,3 @@ export async function updateAboutDataAction(
     };
   }
 }
-

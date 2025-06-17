@@ -66,15 +66,26 @@ const prepareDataForForm = (data?: AboutMeData): AboutMeData => {
       twitterUrl: '',
     };
   }
+  // Ensure all top-level fields are at least empty strings, and arrays are at least empty arrays
   return {
-    ...data,
     name: data.name || '',
     title: data.title || '',
     bio: data.bio || '',
     profileImage: data.profileImage || '',
     dataAiHint: data.dataAiHint || '',
-    experience: data.experience || [],
-    education: data.education || [],
+    experience: (data.experience || []).map(exp => ({
+        ...exp,
+        role: exp.role || '',
+        company: exp.company || '',
+        period: exp.period || '',
+        description: exp.description || '',
+    })),
+    education: (data.education || []).map(edu => ({
+        ...edu,
+        degree: edu.degree || '',
+        institution: edu.institution || '',
+        period: edu.period || '',
+    })),
     email: data.email || '',
     linkedinUrl: data.linkedinUrl || '',
     githubUrl: data.githubUrl || '',
@@ -98,11 +109,9 @@ export default function AdminAboutPage() {
         description: state.message,
       });
       if (state.data) {
-        form.reset(prepareDataForForm(state.data)); // Reset with saved data
+        form.reset(prepareDataForForm(state.data));
       }
     } else if (state.status === 'error') {
-      // console.error("AdminAboutPage: Error from server action (JSON.stringify):", JSON.stringify(state));
-
       const errorMessage = (typeof state.message === 'string' && state.message.trim() !== '')
         ? state.message
         : "An unspecified error occurred. Please check server logs for more details.";
@@ -113,9 +122,9 @@ export default function AdminAboutPage() {
       });
 
       if (state.data) {
-        form.reset(prepareDataForForm(state.data)); // Repopulate with attempted data
+        form.reset(prepareDataForForm(state.data)); 
       } else {
-        form.reset(prepareDataForForm(form.getValues())); // Keep current form values if no data from server
+        form.reset(prepareDataForForm(form.getValues())); 
       }
 
       if (state.errors && typeof state.errors === 'object' && Object.keys(state.errors).length > 0) {
@@ -127,8 +136,6 @@ export default function AdminAboutPage() {
             });
           }
         });
-      } else {
-          // console.warn("AdminAboutPage: state.errors was not usable for setting form errors.", state.errors)
       }
     }
   }, [state, toast, form]);
@@ -342,4 +349,3 @@ export default function AdminAboutPage() {
     </div>
   );
 }
-
