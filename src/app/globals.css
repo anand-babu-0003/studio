@@ -117,6 +117,16 @@ body {
   main {
     @apply relative z-10; /* Ensures main content is above z-index -1 orbs */
   }
+
+  /* Custom text selection styles */
+  ::selection {
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+  ::-moz-selection { /* Firefox */
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
 }
 
 /* Added Animations */
