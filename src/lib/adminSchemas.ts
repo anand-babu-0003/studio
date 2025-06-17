@@ -22,7 +22,7 @@ if (ZOD_AVAILABLE_ICON_NAMES.length === 0) {
 }
 
 
-// --- Original Schemas ---
+// --- Schemas ---
 const experienceSchema = z.object({
   id: z.string(),
   role: z.string().min(1, "Role is required"),
@@ -30,6 +30,7 @@ const experienceSchema = z.object({
   period: z.string().min(1, "Period is required"),
   description: z.string().min(1, "Description is required"),
 });
+export type Experience = z.infer<typeof experienceSchema>;
 
 const educationSchema = z.object({
   id: z.string(),
@@ -37,6 +38,8 @@ const educationSchema = z.object({
   institution: z.string().min(1, "Institution is required"),
   period: z.string().min(1, "Period is required"),
 });
+export type Education = z.infer<typeof educationSchema>;
+
 
 export const aboutMeSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -61,6 +64,12 @@ export const profileBioSchema = aboutMeSchema.pick({
   dataAiHint: true,
 });
 export type ProfileBioData = z.infer<typeof profileBioSchema>;
+
+// Schema for just the Experience section
+export const experienceSectionSchema = z.object({
+  experience: z.array(experienceSchema),
+});
+export type ExperienceSectionData = z.infer<typeof experienceSectionSchema>;
 
 
 export const portfolioItemAdminSchema = z.object({
@@ -89,3 +98,4 @@ export const skillAdminSchema = z.object({
 });
 
 export type SkillAdminFormData = z.infer<typeof skillAdminSchema>;
+
