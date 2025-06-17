@@ -3,6 +3,7 @@
 
 import type { AboutMeData, Experience, Education, AppData } from '@/lib/types';
 import { aboutMeSchema } from '@/lib/adminSchemas';
+import type { z } from 'zod'; // Import z for inferFlattenedErrors
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -56,7 +57,7 @@ async function writeDataToFile(data: AppData): Promise<void> {
 export type UpdateAboutDataFormState = {
   message: string;
   status: 'success' | 'error' | 'idle';
-  errors?: Partial<Record<keyof AboutMeData | `experience.${number}.${keyof Experience}` | `education.${number}.${keyof Education}`, string[]>>;
+  errors?: z.inferFlattenedErrors<typeof aboutMeSchema>['fieldErrors'];
   data?: AboutMeData;
 };
 
@@ -81,29 +82,29 @@ export async function updateAboutDataAction(
     }
 
     for (const index of Array.from(experienceIndices).sort((a,b) => parseInt(a) - parseInt(b))) {
-      const id = formData.get(`experience.${index}.id`) as string;
-      const role = formData.get(`experience.${index}.role`) as string || '';
-      const company = formData.get(`experience.${index}.company`) as string || '';
-      const period = formData.get(`experience.${index}.period`) as string || '';
-      const description = formData.get(`experience.${index}.description`) as string || '';
+      const id = String(formData.get(`experience.${index}.id`) || `exp_fallback_${Date.now()}_${index}`);
+      const role = String(formData.get(`experience.${index}.role`) || '');
+      const company = String(formData.get(`experience.${index}.company`) || '');
+      const period = String(formData.get(`experience.${index}.period`) || '');
+      const description = String(formData.get(`experience.${index}.description`) || '');
       
       if (id && (role.trim() !== '' || company.trim() !== '' || period.trim() !== '' || description.trim() !== '')) {
           experienceEntries.push({ id, role, company, period, description });
       } else if (id) {
-          console.warn(`Admin About Action: Skipping experience entry with ID ${id} at index ${index} because all its data fields are empty.`);
+          console.warn(`Admin About Action: Skipping experience entry with ID ${id} at index ${index} because all its data fields are empty or whitespace.`);
       }
     }
 
     for (const index of Array.from(educationIndices).sort((a,b) => parseInt(a) - parseInt(b))) {
-      const id = formData.get(`education.${index}.id`) as string;
-      const degree = formData.get(`education.${index}.degree`) as string || '';
-      const institution = formData.get(`education.${index}.institution`) as string || '';
-      const period = formData.get(`education.${index}.period`) as string || '';
+      const id = String(formData.get(`education.${index}.id`) || `edu_fallback_${Date.now()}_${index}`);
+      const degree = String(formData.get(`education.${index}.degree`) || '');
+      const institution = String(formData.get(`education.${index}.institution`) || '');
+      const period = String(formData.get(`education.${index}.period`) || '');
       
       if (id && (degree.trim() !== '' || institution.trim() !== '' || period.trim() !== '')) {
           educationEntries.push({ id, degree, institution, period });
       } else if (id) {
-          console.warn(`Admin About Action: Skipping education entry with ID ${id} at index ${index} because all its data fields are empty.`);
+          console.warn(`Admin About Action: Skipping education entry with ID ${id} at index ${index} because all its data fields are empty or whitespace.`);
       }
     }
 
@@ -120,7 +121,7 @@ export async function updateAboutDataAction(
       githubUrl: String(formData.get('githubUrl') || ''),
       twitterUrl: String(formData.get('twitterUrl') || ''),
     };
-    
+        
     const validatedFields = aboutMeSchema.safeParse(rawData);
 
     if (!validatedFields.success) {
@@ -128,7 +129,7 @@ export async function updateAboutDataAction(
       return {
         message: "Failed to update data. Please check the errors below.",
         status: 'error',
-        errors: fieldErrors as UpdateAboutDataFormState['errors'],
+        errors: fieldErrors,
         data: rawData, 
       };
     }
@@ -160,7 +161,7 @@ export async function updateAboutDataAction(
   } catch (error) {
     console.error("Admin About Action: An unexpected error occurred in the action:", error);
     
-    const errorResponseData: AboutMeData = {
+    const errorResponseData: AboutMeData = rawData || {
       name: String(formData.get('name') || localDefaultAppData.aboutMe.name),
       title: String(formData.get('title') || localDefaultAppData.aboutMe.title),
       bio: String(formData.get('bio') || localDefaultAppData.aboutMe.bio),
@@ -178,7 +179,8 @@ export async function updateAboutDataAction(
       message: "An unexpected server error occurred. Please check logs and try again.",
       status: 'error',
       errors: {}, 
-      data: rawData || errorResponseData, 
+      data: errorResponseData, 
     };
   }
 }
+
