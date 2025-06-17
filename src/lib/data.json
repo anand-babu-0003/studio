@@ -1,4 +1,3 @@
-
 {
   "portfolioItems": [
     {
@@ -33,8 +32,15 @@
     },
     {
       "id": "skill_1750146248867_ow47c",
-      "name": "HTML",
+      "name": "HTML+CSS+JS",
+      "category": "Frontend",
+      "iconName": "Laptop"
+    },
+    {
+      "id": "skill_1750155628109_yskgm",
+      "name": "JavaScript",
       "category": "Languages",
+      "proficiency": 60,
       "iconName": "Code"
     }
   ],
@@ -50,7 +56,7 @@
         "role": "Full Stack Developer ",
         "company": "ClientFoster ",
         "period": "2024  - Present",
-        "description": "gv"
+        "description": "Main Developer and manages all the web assets of the company\r\n"
       }
     ],
     "education": [
@@ -61,15 +67,9 @@
         "period": "2024-2027"
       }
     ],
-    "email": "",
-    "linkedinUrl": "",
-    "githubUrl": "",
+    "email": "anand@anandverse.space",
+    "linkedinUrl": "https://www.linkedin.com/in/anand0003",
+    "githubUrl": "https://github.com/anand-babu-0003",
     "twitterUrl": ""
-  },
-  "siteSettings": {
-    "siteName": "AnandVerse space",
-    "defaultMetaDescription": "Personal portfolio of Anand, a passionate developer showcasing projects and skills.",
-    "defaultMetaKeywords": "web developer, portfolio, react, nextjs, anand",
-    "siteOgImageUrl": "https://placehold.co/1200x630.png?text=AnandVerse+Portfolio"
   }
 }

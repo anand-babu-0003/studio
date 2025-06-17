@@ -93,17 +93,15 @@ export default function AdminSkillsPage() {
       form.reset(defaultFormValues);
 
     } else if (formActionState.status === 'error') {
-      // console.error("AdminSkillsPage: Error from server action (JSON.stringify):", JSON.stringify(formActionState));
-      
       const errorMessage = typeof formActionState.message === 'string' && formActionState.message.trim() !== ''
         ? formActionState.message
         : "An unspecified error occurred. Please check server logs for more details.";
       toast({ title: "Error Saving", description: errorMessage, variant: "destructive" });
       
       if (formActionState.formDataOnError) {
-        form.reset(formActionState.formDataOnError); // Repopulate with attempted data
+        form.reset(formActionState.formDataOnError); 
       } else {
-        form.reset(form.getValues()); // Keep current form values
+        form.reset(form.getValues()); 
       }
       
       if (formActionState.errors) {
@@ -260,44 +258,65 @@ export default function AdminSkillsPage() {
         </Card>
       )}
       {!showForm && (
-        <div className="space-y-4">
-          {skills.length === 0 && <p className="text-muted-foreground">No skills yet. Click "Add New Skill" to start.</p>}
-          {skills.map(skill => {
-            const IconComponent = lucideIconsMap[skill.iconName];
+        <div className="space-y-8">
+          {skills.length === 0 && (
+            <p className="text-muted-foreground text-center py-4">
+              No skills yet. Click "Add New Skill" to start.
+            </p>
+          )}
+          {skillCategories.map(category => {
+            const categorySkills = skills.filter(skill => skill.category === category);
+            if (categorySkills.length === 0) {
+              return null; 
+            }
             return (
-              <Card key={skill.id} className="flex items-center justify-between p-4">
-                <div className="flex items-center gap-3">
-                  {IconComponent && <IconComponent className="h-5 w-5 text-primary" />}
-                  <span className="font-medium">{skill.name}</span>
-                  <span className="text-sm text-muted-foreground">({skill.category})</span>
+              <div key={category}>
+                <h2 className="text-2xl font-semibold mb-4 text-primary border-b pb-2">
+                  {category}
+                </h2>
+                <div className="space-y-4">
+                  {categorySkills.map(skill => {
+                    const IconComponent = lucideIconsMap[skill.iconName];
+                    return (
+                      <Card key={skill.id} className="flex items-center justify-between p-4 hover:shadow-md transition-shadow">
+                        <div className="flex items-center gap-3">
+                          {IconComponent && <IconComponent className="h-5 w-5 text-primary" />}
+                          <span className="font-medium">{skill.name}</span>
+                          {skill.proficiency !== undefined && (
+                            <span className="text-sm text-muted-foreground">({skill.proficiency}%)</span>
+                          )}
+                        </div>
+                        <div className="space-x-2">
+                          <Button variant="outline" size="sm" onClick={() => handleEdit(skill)}>
+                            <Edit3 className="mr-1 h-4 w-4" /> Edit
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="destructive" size="sm">
+                                <Trash2 className="mr-1 h-4 w-4" /> Delete
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action cannot be undone. This will permanently delete the skill "{skill.name}".
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDelete(skill.id)}>
+                                  Yes, delete skill
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </Card>
+                    );
+                  })}
                 </div>
-                <div className="space-x-2">
-                  <Button variant="outline" size="sm" onClick={() => handleEdit(skill)}>
-                    <Edit3 className="mr-1 h-4 w-4" /> Edit
-                  </Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="destructive" size="sm">
-                        <Trash2 className="mr-1 h-4 w-4" /> Delete
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This action cannot be undone. This will permanently delete the skill "{skill.name}".
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDelete(skill.id)}>
-                          Yes, delete skill
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              </Card>
+              </div>
             );
           })}
         </div>
@@ -305,3 +324,4 @@ export default function AdminSkillsPage() {
     </div>
   );
 }
+
