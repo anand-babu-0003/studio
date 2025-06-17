@@ -43,39 +43,7 @@
     "bio": "Hello! I'm a passionate and results-driven Full Stack Developer with a keen eye for UI/UX design. I thrive on transforming complex problems into intuitive, user-friendly applications. My journey in tech has been fueled by a constant curiosity and a desire to build things that make a difference.\r\n\r\nI have experience across the entire development lifecycle, from conceptualization and design to development, testing, and deployment. I enjoy working with modern technologies and continuously learning new skills to stay at the forefront of innovation.\r\n\r\nWhen I'm not coding, you can find me exploring new design trends, contributing to open-source projects, or enjoying a good cup of coffee while brainstorming my next big idea. I believe in the power of collaboration and am always excited to work with like-minded individuals to create impactful digital experiences.",
     "profileImage": "https://github.com/anand-babu-0003/TrueValidator2/blob/main/Screenshot_2024-11-19-16-59-04-27_99c04817c0de5652397fc8b56c3b3817~2.jpg?raw=true",
     "dataAiHint": "developer portrait",
-    "experience": [
-      {
-        "id": "exp1",
-        "role": "Senior Software Engineer",
-        "company": "Tech Solutions Inc.",
-        "period": "2021 - Present",
-        "description": "Led development of key features for enterprise-level applications. Mentored junior developers and contributed to architectural decisions."
-      },
-      {
-        "id": "exp2",
-        "role": "Software Developer",
-        "company": "Innovatech Ltd.",
-        "period": "2019 - 2021",
-        "description": "Developed and maintained web applications using React and Node.js. Collaborated with cross-functional teams to deliver high-quality software."
-      }
-    ],
-    "education": [
-      {
-        "id": "edu1",
-        "degree": "Master of Science in Computer Science",
-        "institution": "University of Advanced Technology",
-        "period": "2017 - 2019"
-      },
-      {
-        "id": "edu2",
-        "degree": "Bachelor of Science in Information Technology",
-        "institution": "State Engineering College",
-        "period": "2013 - 2017"
-      }
-    ],
-    "email": "basumgarianand109@gmail.com",
-    "linkedinUrl": "https://www.linkedin.com/in/anand0003",
-    "githubUrl": "https://github.com/anand-babu-0003",
-    "twitterUrl": ""
+    "experience": [],
+    "education": []
   }
 }
