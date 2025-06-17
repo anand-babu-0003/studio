@@ -14,7 +14,7 @@ interface Star {
   opacity: number;
 }
 
-const NUM_STARS = 100;
+const NUM_STARS = 200; // Increased from 100
 
 const StarryBackground: React.FC = () => {
   const [stars, setStars] = useState<Star[]>([]);
