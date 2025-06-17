@@ -28,7 +28,7 @@ const defaultFormValues: SkillAdminFormData = {
   name: '',
   category: skillCategories[0], 
   proficiency: undefined,
-  iconName: availableIconNames.length > 0 ? availableIconNames[0] : (()=>{ throw new Error("FATAL: availableIconNames is empty. Check src/lib/data.ts and lucide-react imports.")})(),
+  iconName: availableIconNames.length > 0 ? availableIconNames[0] : (() => { throw new Error("FATAL: availableIconNames is empty. Check src/lib/data.ts and lucide-react imports.")})(),
 };
 
 function SubmitButton() {
@@ -170,8 +170,8 @@ export default function AdminSkillsPage() {
             <form action={formAction}>
               {currentSkill?.id && <input type="hidden" {...form.register('id')} value={currentSkill.id} />}
               {/* Hidden inputs to ensure Select values are submitted with FormData */}
-              <input type="hidden" name="category" value={watchedCategory} />
-              <input type="hidden" name="iconName" value={watchedIconName} />
+              <input type="hidden" name="category" value={watchedCategory ?? defaultFormValues.category} />
+              <input type="hidden" name="iconName" value={watchedIconName ?? defaultFormValues.iconName} />
               
               <CardContent className="space-y-6">
                 <FormField control={form.control} name="name" render={({ field }) => (
