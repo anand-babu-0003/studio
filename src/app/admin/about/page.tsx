@@ -93,9 +93,12 @@ export default function AdminAboutPage() {
         description: errorMessage,
         variant: "destructive",
       });
+
       if (state.errors) {
+        console.log("AdminAboutPage: Server returned errors, attempting to set on form:", JSON.stringify(state.errors, null, 2));
         Object.entries(state.errors).forEach(([fieldName, fieldErrorMessages]) => {
           if (Array.isArray(fieldErrorMessages) && fieldErrorMessages.length > 0) {
+            console.log(`AdminAboutPage: Calling form.setError for field: '${fieldName}', message: '${fieldErrorMessages.join(', ')}'`);
             form.setError(fieldName as Path<AboutMeData>, {
               type: 'server',
               message: fieldErrorMessages.join(', '),
