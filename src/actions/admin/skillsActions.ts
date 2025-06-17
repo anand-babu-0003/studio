@@ -25,6 +25,12 @@ const localDefaultAppData: AppData = {
     githubUrl: '',
     twitterUrl: '',
   },
+  siteSettings: {
+    siteName: 'My Portfolio',
+    defaultMetaDescription: 'A showcase of my projects and skills.',
+    defaultMetaKeywords: '',
+    siteOgImageUrl: '',
+  },
 };
 
 async function readDataFromFile(): Promise<AppData> {
@@ -43,6 +49,10 @@ async function readDataFromFile(): Promise<AppData> {
         ...localDefaultAppData.aboutMe,
         ...(parsedData.aboutMe ?? {}),
       },
+      siteSettings: { // Ensure siteSettings is also populated
+        ...localDefaultAppData.siteSettings,
+        ...(parsedData.siteSettings ?? {}),
+      }
     };
   } catch (error) {
     console.error("Error reading or parsing data file in skillsActions, returning default structure:", error);
@@ -80,11 +90,11 @@ export async function saveSkillAction(
 
   // This is the data that will be validated and potentially returned on error
   const dataForZod: SkillAdminFormData = {
-    id: idFromForm !== null ? String(idFromForm) : undefined,
-    name: String(nameFromForm || ''), 
-    category: String(categoryFromForm || '') as SkillAdminFormData['category'], // Cast, Zod will validate enum
+    id: typeof idFromForm === 'string' ? idFromForm : undefined,
+    name: typeof nameFromForm === 'string' ? nameFromForm : '',
+    category: (typeof categoryFromForm === 'string' ? categoryFromForm : '') as SkillAdminFormData['category'],
     proficiency: proficiencyValue,
-    iconName: String(iconNameFromForm || '') as SkillAdminFormData['iconName'], // Cast, Zod will validate enum
+    iconName: (typeof iconNameFromForm === 'string' ? iconNameFromForm : '') as SkillAdminFormData['iconName'],
   };
 
   const validatedFields = skillAdminSchema.safeParse(dataForZod);
