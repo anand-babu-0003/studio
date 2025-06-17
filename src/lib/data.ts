@@ -2,7 +2,7 @@
 import type React from 'react';
 import type { PortfolioItem, Skill, AboutMeData, AppData } from '@/lib/types';
 // This imports the content of data.json for initial/client-side use by admin panel.
-import jsonDataFromFile from './data.json' assert { type: 'json' };
+import jsonDataFromFile from './data.json'; // Removed assert { type: 'json' }
 import { Code, Database, Server, Cloud, PenTool, Terminal, Briefcase, Zap, Brain, MessageSquare, Settings, LayoutDashboard, Smartphone, Laptop } from 'lucide-react';
 
 // Define a default, well-structured AppData object for fallbacks, aligned with server action defaults
