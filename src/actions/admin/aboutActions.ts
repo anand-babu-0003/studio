@@ -7,8 +7,8 @@ import {
   profileBioSchema, type ProfileBioData,
   experienceSectionSchema, type ExperienceSectionData,
   educationSectionSchema, type EducationSectionData,
-  type Experience as ZodExperienceType, // Renaming to avoid conflict with lib/types Experience
-  type Education as ZodEducationType // Renaming to avoid conflict with lib/types Education
+  type Experience as ZodExperienceType, 
+  type Education as ZodEducationType 
 } from '@/lib/adminSchemas';
 import type { z } from 'zod';
 import fs from 'fs/promises';
@@ -62,15 +62,15 @@ async function writeDataToFile(data: AppData): Promise<void> {
   await fs.writeFile(dataFilePath, JSON.stringify(data, null, 2), 'utf-8');
 }
 
-// State type for the original full About Me form
+// State type for the original full About Me form (now only for Contact)
 export type UpdateAboutDataFormState = {
   message: string;
   status: 'success' | 'error' | 'idle';
   errors?: z.inferFlattenedErrors<typeof aboutMeSchema>['fieldErrors'];
-  data?: AboutMeData; // Contains attempted data on error, saved data on success
+  data?: AboutMeData; 
 };
 
-// State type for the new Profile & Bio form
+// State type for the Profile & Bio form
 export type UpdateProfileBioDataFormState = {
   message: string;
   status: 'success' | 'error' | 'idle';
@@ -78,7 +78,7 @@ export type UpdateProfileBioDataFormState = {
   data?: ProfileBioData; 
 };
 
-// State type for the new Experience section form
+// State type for the Experience section form
 export type UpdateExperienceDataFormState = {
   message: string;
   status: 'success' | 'error' | 'idle';
@@ -86,7 +86,7 @@ export type UpdateExperienceDataFormState = {
   data?: ExperienceSectionData; 
 };
 
-// State type for the new Education section form
+// State type for the Education section form
 export type UpdateEducationDataFormState = {
   message: string;
   status: 'success' | 'error' | 'idle';
@@ -127,8 +127,8 @@ export async function updateProfileBioDataAction(
 
     const allData = await readDataFromFile();
     allData.aboutMe = {
-      ...allData.aboutMe, 
-      ...dataToSave,    
+      ...allData.aboutMe, // Preserve existing fields
+      ...dataToSave,     // Overwrite with new profile/bio data
     };
     await writeDataToFile(allData);
 
@@ -145,12 +145,13 @@ export async function updateProfileBioDataAction(
 
   } catch (error) {
     console.error("Admin ProfileBio Action: An unexpected error occurred:", error);
+    const currentAboutMe = (await readDataFromFile()).aboutMe;
     const errorResponseData: ProfileBioData = rawData || {
-      name: String(formData.get('name') || localDefaultAppData.aboutMe.name),
-      title: String(formData.get('title') || localDefaultAppData.aboutMe.title),
-      bio: String(formData.get('bio') || localDefaultAppData.aboutMe.bio),
-      profileImage: String(formData.get('profileImage') || localDefaultAppData.aboutMe.profileImage),
-      dataAiHint: String(formData.get('dataAiHint') || localDefaultAppData.aboutMe.dataAiHint),
+      name: String(formData.get('name') || currentAboutMe.name),
+      title: String(formData.get('title') || currentAboutMe.title),
+      bio: String(formData.get('bio') || currentAboutMe.bio),
+      profileImage: String(formData.get('profileImage') || currentAboutMe.profileImage),
+      dataAiHint: String(formData.get('dataAiHint') || currentAboutMe.dataAiHint),
     };
     return {
       message: "An unexpected server error occurred while updating profile & bio.",
@@ -176,14 +177,17 @@ export async function updateExperienceDataAction(
         experienceIndices.add(key.split('.')[1]);
       }
     }
+    
+    const sortedIndices = Array.from(experienceIndices).sort((a,b) => parseInt(a) - parseInt(b));
 
-    for (const index of Array.from(experienceIndices).sort((a,b) => parseInt(a) - parseInt(b))) {
+    for (const index of sortedIndices) {
       const id = String(formData.get(`experience.${index}.id`) || `exp_fallback_${Date.now()}_${index}`);
       const role = String(formData.get(`experience.${index}.role`) || '');
       const company = String(formData.get(`experience.${index}.company`) || '');
       const period = String(formData.get(`experience.${index}.period`) || '');
       const description = String(formData.get(`experience.${index}.description`) || '');
       
+      // Only add if it's not an entirely empty new entry, or if it's an existing entry (ID not starting with new_exp_)
       if (role.trim() !== '' || company.trim() !== '' || period.trim() !== '' || description.trim() !== '' || (id && !id.startsWith('new_exp_')) ) {
           experienceEntries.push({ id, role, company, period, description });
       } else {
@@ -201,7 +205,7 @@ export async function updateExperienceDataAction(
       return {
         message: "Failed to update experience. Please check the errors below.",
         status: 'error',
-        errors: fieldErrors as z.inferFlattenedErrors<typeof experienceSectionSchema>['fieldErrors'],
+        errors: fieldErrors as z.inferFlattenedErrors<typeof experienceSectionSchema>['fieldErrors'], // Ensure correct type
         data: rawDataForZod, 
       };
     }
@@ -209,7 +213,7 @@ export async function updateExperienceDataAction(
     const dataToSave = validatedFields.data;
 
     const allData = await readDataFromFile();
-    allData.aboutMe.experience = dataToSave.experience; 
+    allData.aboutMe.experience = dataToSave.experience; // Update only the experience part
     await writeDataToFile(allData);
 
     revalidatePath('/about');
@@ -250,8 +254,10 @@ export async function updateEducationDataAction(
         educationIndices.add(key.split('.')[1]);
       }
     }
+    
+    const sortedIndices = Array.from(educationIndices).sort((a,b) => parseInt(a) - parseInt(b));
 
-    for (const index of Array.from(educationIndices).sort((a, b) => parseInt(a) - parseInt(b))) {
+    for (const index of sortedIndices) {
       const id = String(formData.get(`education.${index}.id`) || `edu_fallback_${Date.now()}_${index}`);
       const degree = String(formData.get(`education.${index}.degree`) || '');
       const institution = String(formData.get(`education.${index}.institution`) || '');
@@ -274,7 +280,7 @@ export async function updateEducationDataAction(
       return {
         message: "Failed to update education. Please check the errors below.",
         status: 'error',
-        errors: fieldErrors as z.inferFlattenedErrors<typeof educationSectionSchema>['fieldErrors'],
+        errors: fieldErrors as z.inferFlattenedErrors<typeof educationSectionSchema>['fieldErrors'], // Ensure correct type
         data: rawDataForZod,
       };
     }
@@ -309,108 +315,89 @@ export async function updateEducationDataAction(
 }
 
 
-// Original action - will be refactored or removed later (now only for Contact)
-export async function updateAboutDataAction(
+// Server Action for Contact & Socials (refactored from original full form action)
+export async function updateAboutDataAction( // Renamed for clarity if we had other "AboutData" actions
   prevState: UpdateAboutDataFormState,
   formData: FormData
 ): Promise<UpdateAboutDataFormState> {
-  let rawData: AboutMeData | undefined = undefined;
+  let rawDataForValidation: AboutMeData | undefined = undefined;
 
   try {
-    // This action should now primarily focus on contact fields.
-    // Experience and Education are managed by their own actions.
-    // We read existing data and only update contact fields from formData.
-    
-    const currentData = await readDataFromFile();
+    const currentAppData = await readDataFromFile();
+    const currentAboutMe = currentAppData.aboutMe;
 
-    rawData = {
-      // Keep existing values for fields not managed by this action
-      name: currentData.aboutMe.name, 
-      title: currentData.aboutMe.title,
-      bio: currentData.aboutMe.bio,
-      profileImage: currentData.aboutMe.profileImage,
-      dataAiHint: currentData.aboutMe.dataAiHint,
-      experience: currentData.aboutMe.experience, 
-      education: currentData.aboutMe.education, 
-      // Update contact fields from formData
+    // Construct rawDataForValidation:
+    // - Take existing non-contact fields from currentAboutMe.
+    // - Take contact fields from formData.
+    rawDataForValidation = {
+      name: currentAboutMe.name, 
+      title: currentAboutMe.title,
+      bio: currentAboutMe.bio,
+      profileImage: currentAboutMe.profileImage,
+      dataAiHint: currentAboutMe.dataAiHint,
+      experience: currentAboutMe.experience, 
+      education: currentAboutMe.education, 
       email: String(formData.get('email') || ''),
       linkedinUrl: String(formData.get('linkedinUrl') || ''),
       githubUrl: String(formData.get('githubUrl') || ''),
       twitterUrl: String(formData.get('twitterUrl') || ''),
     };
         
-    const validatedFields = aboutMeSchema.safeParse(rawData); // Still validate the whole object
+    const validatedFields = aboutMeSchema.safeParse(rawDataForValidation);
 
     if (!validatedFields.success) {
       const fieldErrors = validatedFields.error.flatten().fieldErrors;
-      // Filter errors to only show those relevant to contact fields if possible,
-      // though validating the whole object might still show other errors if rawData was malformed.
-      console.warn("Admin Contact Action (via full form): Zod validation failed. Errors:", JSON.stringify(fieldErrors));
+      console.warn("Admin Contact Action: Zod validation failed. Errors:", JSON.stringify(fieldErrors));
       return {
         message: "Failed to update contact data. Please check the errors below.",
         status: 'error',
-        errors: fieldErrors, // Send all errors for now
-        data: rawData, 
+        errors: fieldErrors,
+        data: rawDataForValidation, // Return the data that failed validation
       };
     }
 
-    const dataToSave = validatedFields.data;
+    const validatedContactData = validatedFields.data;
 
-    try {
-      // Construct the new AppData, ensuring only contact fields are effectively changed by this action
-      const allData = await readDataFromFile(); // Re-read to be safe
-      allData.aboutMe.email = dataToSave.email;
-      allData.aboutMe.linkedinUrl = dataToSave.linkedinUrl;
-      allData.aboutMe.githubUrl = dataToSave.githubUrl;
-      allData.aboutMe.twitterUrl = dataToSave.twitterUrl;
-      // Other fields (name, title, bio, profileImage, experience, education) remain as they were from readDataFromFile
-      
-      await writeDataToFile(allData);
-
-      revalidatePath('/about'); // For bio changes that might be reflected on about
-      revalidatePath('/contact'); // For contact info changes
-      revalidatePath('/'); // For potential footer/header changes
-
-      return {
-        message: "Contact & Socials data updated successfully!",
-        status: 'success',
-        data: dataToSave, // Return the full AboutMeData structure for consistency on client
-        errors: {},
-      };
-
-    } catch (fileOpError) {
-      console.error("Admin Contact Action (via full form): Error during file operation (read/write):", fileOpError); 
-      return {
-        message: "An error occurred while saving contact data to the file. Please try again.",
-        status: 'error',
-        errors: {}, 
-        data: rawData, 
-      };
-    }
-
-  } catch (error) {
-    console.error("Admin Contact Action (via full form): An unexpected error occurred in the action:", error);
-    const currentAboutMe = (await readDataFromFile()).aboutMe; // Fallback to current data
-    const defaultErrorData: AboutMeData = {
-        name: String(formData.get('name') || currentAboutMe.name),
-        title: String(formData.get('title') || currentAboutMe.title),
-        bio: String(formData.get('bio') || currentAboutMe.bio),
-        profileImage: String(formData.get('profileImage') || currentAboutMe.profileImage),
-        dataAiHint: String(formData.get('dataAiHint') || currentAboutMe.dataAiHint),
-        experience: rawData?.experience || currentAboutMe.experience, 
-        education: rawData?.education || currentAboutMe.education,  
-        email: String(formData.get('email') || currentAboutMe.email),
-        linkedinUrl: String(formData.get('linkedinUrl') || currentAboutMe.linkedinUrl),
-        githubUrl: String(formData.get('githubUrl') || currentAboutMe.githubUrl),
-        twitterUrl: String(formData.get('twitterUrl') || currentAboutMe.twitterUrl),
+    // Construct the new AppData for saving
+    // Start with currentAppData to preserve portfolioItems and skills
+    const allDataToSave = { ...currentAppData }; 
+    // Update only the contact fields in aboutMe
+    allDataToSave.aboutMe = {
+      ...currentAboutMe, // Preserve existing name, bio, experience, education etc.
+      email: validatedContactData.email,
+      linkedinUrl: validatedContactData.linkedinUrl,
+      githubUrl: validatedContactData.githubUrl,
+      twitterUrl: validatedContactData.twitterUrl,
     };
+      
+    await writeDataToFile(allDataToSave);
+
+    revalidatePath('/contact'); 
+    revalidatePath('/about'); // In case some about data is used on contact or vice-versa in future
+    revalidatePath('/');     // Footer might use contact info
 
     return {
-      message: "An unexpected server error occurred (Contact/Socials action). Please check logs and try again.",
+      message: "Contact & Socials data updated successfully!",
+      status: 'success',
+      // Return the subset that was actually changed by this form for client-side reset
+      data: { 
+        ...currentAboutMe, // include all fields for AboutMeData type consistency
+        email: validatedContactData.email,
+        linkedinUrl: validatedContactData.linkedinUrl,
+        githubUrl: validatedContactData.githubUrl,
+        twitterUrl: validatedContactData.twitterUrl,
+      },
+      errors: {},
+    };
+
+  } catch (error) {
+    console.error("Admin Contact Action: An unexpected error occurred:", error);
+    const fallbackAboutMe = rawDataForValidation || (await readDataFromFile()).aboutMe;
+    return {
+      message: "An unexpected server error occurred (Contact/Socials action).",
       status: 'error',
       errors: {}, 
-      data: rawData || defaultErrorData, 
+      data: fallbackAboutMe, // Return what was attempted or current data
     };
   }
 }
-

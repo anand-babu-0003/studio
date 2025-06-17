@@ -35,19 +35,10 @@ import {
   type Education as ZodEducationType
 } from '@/lib/adminSchemas';
 
-// Initial state for the (soon to be deprecated/refactored) full form action
-const initialFullFormState: UpdateAboutDataFormState = {
-  message: '',
-  status: 'idle',
-  errors: {},
-  data: undefined,
-};
 
-// Initial state for the Profile & Bio form action
+const initialFullFormState: UpdateAboutDataFormState = { message: '', status: 'idle', errors: {}, data: undefined };
 const initialProfileBioFormState: UpdateProfileBioDataFormState = { message: '', status: 'idle', errors: {}, data: undefined };
-// Initial state for the Experience section form action
 const initialExperienceFormState: UpdateExperienceDataFormState = { message: '', status: 'idle', errors: {}, data: undefined };
-// Initial state for the Education section form action
 const initialEducationFormState: UpdateEducationDataFormState = { message: '', status: 'idle', errors: {}, data: undefined };
 
 
@@ -75,7 +66,7 @@ function SubmitButton({ form: formId, text = "Save Changes" }: SubmitButtonProps
   );
 }
 
-// Prepare data for the full AboutMeData structure
+// Prepare data for the full AboutMeData structure (used for Contact & Socials form defaults and error reset)
 const prepareFullAboutMeDataForForm = (data?: Partial<AboutMeData>): AboutMeData => {
   const defaultData = {
       name: '', title: '', bio: '', profileImage: '', dataAiHint: '',
@@ -84,34 +75,32 @@ const prepareFullAboutMeDataForForm = (data?: Partial<AboutMeData>): AboutMeData
   if (!data) return defaultData;
   
   return {
-    name: data.name || '',
-    title: data.title || '',
-    bio: data.bio || '',
-    profileImage: data.profileImage || '',
-    dataAiHint: data.dataAiHint || '',
-    experience: (data.experience || []).map(exp => ({ ...exp, id: exp.id || `exp_fallback_${Date.now()}_${Math.random()}` })),
-    education: (data.education || []).map(edu => ({ ...edu, id: edu.id || `edu_fallback_${Date.now()}_${Math.random()}` })),
-    email: data.email || '',
-    linkedinUrl: data.linkedinUrl || '',
-    githubUrl: data.githubUrl || '',
-    twitterUrl: data.twitterUrl || '',
+    name: data.name || defaultData.name,
+    title: data.title || defaultData.title,
+    bio: data.bio || defaultData.bio,
+    profileImage: data.profileImage || defaultData.profileImage,
+    dataAiHint: data.dataAiHint || defaultData.dataAiHint,
+    experience: (Array.isArray(data.experience) ? data.experience : defaultData.experience).map(exp => ({ ...exp, id: exp.id || `exp_fallback_${Date.now()}_${Math.random()}` })),
+    education: (Array.isArray(data.education) ? data.education : defaultData.education).map(edu => ({ ...edu, id: edu.id || `edu_fallback_${Date.now()}_${Math.random()}` })),
+    email: data.email || defaultData.email,
+    linkedinUrl: data.linkedinUrl || defaultData.linkedinUrl,
+    githubUrl: data.githubUrl || defaultData.githubUrl,
+    twitterUrl: data.twitterUrl || defaultData.twitterUrl,
   };
 };
 
-// Prepare data for just the ProfileBioData structure
 const prepareProfileBioDataForForm = (data?: Partial<ProfileBioData>): ProfileBioData => {
   const defaultData = { name: '', title: '', bio: '', profileImage: '', dataAiHint: '' };
   if (!data) return defaultData;
   return {
-    name: data.name || '',
-    title: data.title || '',
-    bio: data.bio || '',
-    profileImage: data.profileImage || '',
-    dataAiHint: data.dataAiHint || '',
+    name: data.name || defaultData.name,
+    title: data.title || defaultData.title,
+    bio: data.bio || defaultData.bio,
+    profileImage: data.profileImage || defaultData.profileImage,
+    dataAiHint: data.dataAiHint || defaultData.dataAiHint,
   };
 };
 
-// Prepare data for just the ExperienceSectionData structure
 const prepareExperienceSectionDataForForm = (data?: Partial<ExperienceSectionData>): ExperienceSectionData => {
     if (!data || !Array.isArray(data.experience)) {
         return { experience: [] };
@@ -127,7 +116,6 @@ const prepareExperienceSectionDataForForm = (data?: Partial<ExperienceSectionDat
     };
 };
 
-// Prepare data for just the EducationSectionData structure
 const prepareEducationSectionDataForForm = (data?: Partial<EducationSectionData>): EducationSectionData => {
     if (!data || !Array.isArray(data.education)) {
         return { education: [] };
@@ -205,15 +193,15 @@ export default function AdminAboutPage() {
 
       if (experienceState.errors && typeof experienceState.errors === 'object') {
         Object.entries(experienceState.errors).forEach(([fieldName, fieldErrorMessages]) => {
-            if (fieldName.startsWith("experience.") && fieldErrorMessages) {
+            if (fieldName.startsWith("experience.") && fieldErrorMessages && Array.isArray(fieldErrorMessages)) {
                 const parts = fieldName.split('.');
                 if (parts.length === 3) { 
                     const index = parseInt(parts[1]);
-                    const subFieldName = parts[2] as keyof ZodExperienceType;
-                    experienceForm.setError(`experience.${index}.${subFieldName}`, { type: 'server', message: (fieldErrorMessages as string[]).join(', ') });
+                    const subFieldName = parts[2] as keyof ZodExperienceType; // Assuming ZodExperienceType is correct
+                    experienceForm.setError(`experience.${index}.${subFieldName}`, { type: 'server', message: fieldErrorMessages.join(', ') });
                 }
-            } else if (fieldName === "experience" && fieldErrorMessages) { 
-                 experienceForm.setError("experience", { type: 'server', message: (fieldErrorMessages as string[]).join(', ') });
+            } else if (fieldName === "experience" && fieldErrorMessages && Array.isArray(fieldErrorMessages)) { 
+                 experienceForm.setError("experience", { type: 'server', message: fieldErrorMessages.join(', ') });
             }
         });
       }
@@ -248,15 +236,15 @@ export default function AdminAboutPage() {
 
       if (educationState.errors && typeof educationState.errors === 'object') {
         Object.entries(educationState.errors).forEach(([fieldName, fieldErrorMessages]) => {
-            if (fieldName.startsWith("education.") && fieldErrorMessages) {
+            if (fieldName.startsWith("education.") && fieldErrorMessages && Array.isArray(fieldErrorMessages)) {
                 const parts = fieldName.split('.');
                 if (parts.length === 3) { 
                     const index = parseInt(parts[1]);
-                    const subFieldName = parts[2] as keyof ZodEducationType;
-                    educationForm.setError(`education.${index}.${subFieldName}`, { type: 'server', message: (fieldErrorMessages as string[]).join(', ') });
+                    const subFieldName = parts[2] as keyof ZodEducationType; // Assuming ZodEducationType is correct
+                    educationForm.setError(`education.${index}.${subFieldName}`, { type: 'server', message: fieldErrorMessages.join(', ') });
                 }
-            } else if (fieldName === "education" && fieldErrorMessages) { 
-                 educationForm.setError("education", { type: 'server', message: (fieldErrorMessages as string[]).join(', ') });
+            } else if (fieldName === "education" && fieldErrorMessages && Array.isArray(fieldErrorMessages)) { 
+                 educationForm.setError("education", { type: 'server', message: fieldErrorMessages.join(', ') });
             }
         });
       }
@@ -264,24 +252,23 @@ export default function AdminAboutPage() {
   }, [educationState, toast, educationForm]);
 
 
-  // --- Full form logic (now only for Contact & Socials) ---
+  // --- Form and state for Contact & Socials (uses full AboutMeData and aboutMeSchema for now) ---
   const [fullFormState, fullFormAction] = useActionState(updateAboutDataAction, initialFullFormState);
-  const fullForm = useForm<AboutMeData>({ // Still uses full AboutMeData for now
-    resolver: zodResolver(aboutMeSchema), // And full schema
-    // Default values should only reflect contact info now, others are managed by their forms
-    defaultValues: prepareFullAboutMeDataForForm({
-        name: initialAboutMeDataFromLib.name, // these will be ignored by the action
+  const fullForm = useForm<AboutMeData>({ 
+    resolver: zodResolver(aboutMeSchema),
+    defaultValues: prepareFullAboutMeDataForForm({ // Use full preparer, but action only saves contacts
+        email: initialAboutMeDataFromLib.email,
+        linkedinUrl: initialAboutMeDataFromLib.linkedinUrl,
+        githubUrl: initialAboutMeDataFromLib.githubUrl,
+        twitterUrl: initialAboutMeDataFromLib.twitterUrl,
+        // Provide other fields from initial data so form reset on error has complete structure
+        name: initialAboutMeDataFromLib.name,
         title: initialAboutMeDataFromLib.title,
         bio: initialAboutMeDataFromLib.bio,
         profileImage: initialAboutMeDataFromLib.profileImage,
         dataAiHint: initialAboutMeDataFromLib.dataAiHint,
         experience: initialAboutMeDataFromLib.experience,
         education: initialAboutMeDataFromLib.education,
-        // Only these are relevant for this form now
-        email: initialAboutMeDataFromLib.email,
-        linkedinUrl: initialAboutMeDataFromLib.linkedinUrl,
-        githubUrl: initialAboutMeDataFromLib.githubUrl,
-        twitterUrl: initialAboutMeDataFromLib.twitterUrl,
     }), 
   });
 
@@ -289,9 +276,7 @@ export default function AdminAboutPage() {
     if (fullFormState.status === 'success' && fullFormState.message) {
       toast({ title: "Success (Contact/Socials)!", description: fullFormState.message });
       if (fullFormState.data) {
-        // Only reset the relevant parts of the fullForm (contact info)
         fullForm.reset(prepareFullAboutMeDataForForm(fullFormState.data));
-        // No longer need to reset other forms from here as they are independent
       }
     } else if (fullFormState.status === 'error') {
       const errorMessage = (typeof fullFormState.message === 'string' && fullFormState.message.trim() !== '')
@@ -305,10 +290,7 @@ export default function AdminAboutPage() {
         Object.entries(fullFormState.errors).forEach(([fieldName, fieldErrorMessages]) => {
           if (Array.isArray(fieldErrorMessages) && fieldErrorMessages.length > 0) {
             const message = fieldErrorMessages.join(', ');
-            // Only set errors for fields still managed by this form (contact fields)
-            if (['email', 'linkedinUrl', 'githubUrl', 'twitterUrl'].includes(fieldName)) {
-              fullForm.setError(fieldName as Path<AboutMeData>, { type: 'server', message });
-            }
+            fullForm.setError(fieldName as Path<AboutMeData>, { type: 'server', message });
           }
         });
       }
@@ -444,11 +426,9 @@ export default function AdminAboutPage() {
           </Form>
         </TabsContent>
 
-        {/* Contact tab still uses the fullForm for now - this needs to be the final part of the refactor */}
         <TabsContent value="contact">
           <Form {...fullForm}> 
-            <form id="about-full-form" action={fullFormAction} className="space-y-8">
-              {/* No longer need hidden fields for profile/bio, experience as they are managed separately */}
+            <form id="contact-socials-form" action={fullFormAction} className="space-y-8">
               <Card>
                 <CardHeader>
                   <CardTitle>Contact & Social Links</CardTitle>
@@ -469,7 +449,7 @@ export default function AdminAboutPage() {
                   )} />
                 </CardContent>
                  <CardFooter className="flex justify-end">
-                   <SubmitButton form="about-full-form" text="Save Contact & Socials" />
+                   <SubmitButton form="contact-socials-form" text="Save Contact & Socials" />
                 </CardFooter>
               </Card>
             </form>
@@ -479,4 +459,3 @@ export default function AdminAboutPage() {
     </div>
   );
 }
-
