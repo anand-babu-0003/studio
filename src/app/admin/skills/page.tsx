@@ -4,7 +4,7 @@
 import { useEffect, useState, useMemo } from 'react'; 
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom'; 
-import { useForm, type Path } from 'react-hook-form';
+import { useForm, type Path, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusCircle, Edit3, Trash2, Save, Loader2, XCircle } from 'lucide-react';
 
@@ -56,7 +56,8 @@ export default function AdminSkillsPage() {
   const [showForm, setShowForm] = useState(false);
   const { toast } = useToast();
 
-  const [formActionState, formAction] = useActionState(saveSkillAction, initialFormState);
+  // Renamed formAction to dispatchServerAction for clarity with manual invocation
+  const [formActionState, dispatchServerAction] = useActionState(saveSkillAction, initialFormState);
 
   const form = useForm<SkillAdminFormData>({
     resolver: zodResolver(skillAdminSchema),
@@ -145,9 +146,24 @@ export default function AdminSkillsPage() {
     form.reset(defaultFormValues);
   }
 
-  // Watch values for hidden inputs to ensure they are submitted with FormData
-  const watchedCategory = form.watch('category');
-  const watchedIconName = form.watch('iconName');
+  const handleFormSubmit: SubmitHandler<SkillAdminFormData> = async (data) => {
+    console.log("Client-side handleFormSubmit, data from react-hook-form:", data);
+    const formData = new FormData();
+
+    if (data.id) formData.append('id', data.id);
+    formData.append('name', data.name || ''); 
+    formData.append('category', data.category); 
+    formData.append('iconName', data.iconName); 
+
+    if (data.proficiency !== undefined && data.proficiency !== null) {
+      formData.append('proficiency', String(data.proficiency));
+    }
+    // If proficiency is undefined or null, it won't be appended.
+    // The server action's Zod schema handles optional/nullable proficiency.
+    
+    dispatchServerAction(formData);
+  };
+
 
   return (
     <div className="py-6">
@@ -167,11 +183,11 @@ export default function AdminSkillsPage() {
             <CardDescription>Fill in the details for the skill.</CardDescription>
           </CardHeader>
           <Form {...form}>
-            <form action={formAction}>
+            {/* Changed from <form action={formAction}> to <form onSubmit={...}> */}
+            <form onSubmit={form.handleSubmit(handleFormSubmit)}>
+              {/* Hidden input for ID is still useful if editing */}
               {currentSkill?.id && <input type="hidden" {...form.register('id')} value={currentSkill.id} />}
-              {/* Hidden inputs to ensure Select values are submitted with FormData */}
-              <input type="hidden" name="category" value={watchedCategory ?? defaultFormValues.category} />
-              <input type="hidden" name="iconName" value={watchedIconName ?? defaultFormValues.iconName} />
+              {/* Hidden inputs for category and iconName are removed as they are now part of `data` in handleFormSubmit */}
               
               <CardContent className="space-y-6">
                 <FormField control={form.control} name="name" render={({ field }) => (
@@ -237,7 +253,7 @@ export default function AdminSkillsPage() {
                  <Button type="button" variant="outline" onClick={handleCancelForm}>
                   <XCircle className="mr-2 h-4 w-4" /> Cancel
                 </Button>
-                <SubmitButton />
+                <SubmitButton /> {/* SubmitButton will work with form.handleSubmit */}
               </CardFooter>
             </form>
           </Form>
@@ -289,4 +305,3 @@ export default function AdminSkillsPage() {
     </div>
   );
 }
-
