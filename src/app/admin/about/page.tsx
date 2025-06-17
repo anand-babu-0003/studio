@@ -29,10 +29,14 @@ const initialState: UpdateAboutDataFormState = {
   data: undefined,
 };
 
-function SubmitButton() {
+interface SubmitButtonProps {
+  form?: string; // HTML form attribute to associate button with a form
+}
+
+function SubmitButton({ form: formId }: SubmitButtonProps) {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending}>
+    <Button type="submit" disabled={pending} form={formId}>
       <Save className="mr-2 h-4 w-4" />
       {pending ? (
         <>
@@ -138,11 +142,11 @@ export default function AdminAboutPage() {
           subtitle="Edit your profile, bio, contact, experience, and education details."
           className="py-0 text-left"
         />
-        <SubmitButton />
+        <SubmitButton form="about-form" />
       </div>
       
       <Form {...form}>
-        <form action={formAction} className="space-y-8">
+        <form id="about-form" action={formAction} className="space-y-8">
           <Tabs defaultValue="profile" className="w-full">
             <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-6">
               <TabsTrigger value="profile">Profile & Bio</TabsTrigger>
@@ -318,3 +322,4 @@ export default function AdminAboutPage() {
     </div>
   );
 }
+
