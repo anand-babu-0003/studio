@@ -26,10 +26,8 @@ const initialFormState: SkillFormState = { message: '', status: 'idle', errors: 
 
 const defaultFormValues: SkillAdminFormData = {
   name: '',
-  category: skillCategories[0], // e.g., 'Languages'
+  category: skillCategories[0], 
   proficiency: undefined,
-  // Ensure availableIconNames is not empty before accessing its first element.
-  // availableIconNames should always be populated based on lucideIconsMap in data.ts
   iconName: availableIconNames.length > 0 ? availableIconNames[0] : (()=>{ throw new Error("FATAL: availableIconNames is empty. Check src/lib/data.ts and lucide-react imports.")})(),
 };
 
@@ -147,6 +145,10 @@ export default function AdminSkillsPage() {
     form.reset(defaultFormValues);
   }
 
+  // Watch values for hidden inputs
+  const watchedCategory = form.watch('category');
+  const watchedIconName = form.watch('iconName');
+
   return (
     <div className="py-6">
       <div className="flex items-center justify-between">
@@ -167,6 +169,10 @@ export default function AdminSkillsPage() {
           <Form {...form}>
             <form action={formAction}>
               {currentSkill?.id && <input type="hidden" {...form.register('id')} value={currentSkill.id} />}
+              {/* Hidden inputs to ensure Select values are submitted with FormData */}
+              <input type="hidden" name="category" value={watchedCategory} />
+              <input type="hidden" name="iconName" value={watchedIconName} />
+              
               <CardContent className="space-y-6">
                 <FormField control={form.control} name="name" render={({ field }) => (
                   <FormItem>
