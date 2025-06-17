@@ -215,43 +215,6 @@ body {
       opacity: 0;
     }
   }
-
-  .comet {
-    position: absolute;
-    width: 2px; 
-    height: 2px;
-    background-color: white;
-    border-radius: 50%;
-    box-shadow: 0 0 8px 2px #fff, 0 0 12px 4px hsl(var(--accent) / 0.8);
-    animation: shootComet linear infinite;
-  }
-
-  .comet::after { /* Comet tail */
-    content: '';
-    position: absolute;
-    top: 50%; 
-    left: 1px; 
-    width: 80px; /* Tail length */
-    height: 1px; /* Tail thickness */
-    background: linear-gradient(to right, rgba(255, 255, 255, 0.7), transparent);
-    transform-origin: left center;
-    transform: translateY(-50%); /* Vertically center tail relative to head */
-  }
-
-  @keyframes shootComet {
-    0% {
-      opacity: 0;
-      transform: translate(0,0) rotate(var(--comet-angle, 45deg)) scale(0.5);
-    }
-    5% { 
-      opacity: 1;
-      transform: translate(0,0) rotate(var(--comet-angle, 45deg)) scale(1);
-    }
-    100% {
-      opacity: 0;
-      transform: translate(var(--comet-travel-x, 70vw), var(--comet-travel-y, 70vh)) rotate(var(--comet-angle, 45deg)) scale(0.5);
-    }
-  }
 }
 
 
