@@ -92,16 +92,16 @@ export default function RootLayout({
       setMousePosition({ x: event.clientX, y: event.clientY });
     };
 
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && !isAdminRoute) { // Only add listener for non-admin routes
       window.addEventListener('mousemove', handleMouseMove);
     }
 
     return () => {
-      if (typeof window !== 'undefined') {
+      if (typeof window !== 'undefined' && !isAdminRoute) { // Only remove listener if it was added
         window.removeEventListener('mousemove', handleMouseMove);
       }
     };
-  }, []);
+  }, [isAdminRoute]); // Add isAdminRoute to dependency array
 
   // Update document title and meta description when siteSettings are loaded/changed
   useEffect(() => {
@@ -175,7 +175,7 @@ export default function RootLayout({
         
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="dark"
           enableSystem
           disableTransitionOnChange
         >
@@ -188,4 +188,3 @@ export default function RootLayout({
     </html>
   );
 }
-

@@ -38,21 +38,21 @@ export function PortfolioCard({ project }: PortfolioCardProps) {
           {project.liveUrl && (
             <Button asChild variant="outline" size="sm">
               <Link href={project.liveUrl} target="_blank" rel="noopener noreferrer">
-                <Eye className="mr-2 h-4 w-4" /> Live Demo
+                <span><Eye className="mr-2 h-4 w-4" /> Live Demo</span>
               </Link>
             </Button>
           )}
           {project.repoUrl && (
             <Button asChild variant="outline" size="sm">
               <Link href={project.repoUrl} target="_blank" rel="noopener noreferrer">
-                <Code2 className="mr-2 h-4 w-4" /> View Code
+                <span><Code2 className="mr-2 h-4 w-4" /> View Code</span>
               </Link>
             </Button>
           )}
         </div>
         <Button asChild variant="link" className="text-primary p-0 hover:text-accent self-end sm:self-center">
           <Link href={`/portfolio/${project.slug}`}>
-            Details <ArrowRight className="ml-1 h-4 w-4" />
+            <span>Details <ArrowRight className="ml-1 h-4 w-4" /></span>
           </Link>
         </Button>
       </CardFooter>
