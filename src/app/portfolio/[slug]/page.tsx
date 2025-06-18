@@ -14,36 +14,51 @@ import type { PortfolioItem, AppData } from '@/lib/types';
 import fs from 'fs/promises';
 import path from 'path';
 
-const defaultPortfolioItems: PortfolioItem[] = [];
+const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
 
-async function getFreshPortfolioItemsForSlug(): Promise<PortfolioItem[]> {
-  const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
+// Consolidate data fetching for portfolio items
+async function getPortfolioItems(): Promise<PortfolioItem[]> {
   try {
     const fileContent = await fs.readFile(dataFilePath, 'utf-8');
-     if (!fileContent.trim()) {
-        console.warn("Data file is empty for Portfolio slug page, returning empty array.");
-        return defaultPortfolioItems;
+    if (!fileContent.trim()) {
+      // console.warn("Data file is empty (getPortfolioItems), returning empty array.");
+      return [];
     }
     const appData = JSON.parse(fileContent) as Partial<AppData>;
-    return Array.isArray(appData.portfolioItems) ? appData.portfolioItems : defaultPortfolioItems;
+    if (appData && Array.isArray(appData.portfolioItems)) {
+      // Filter for items that have a valid, non-empty string slug
+      return appData.portfolioItems.filter(
+        item => typeof item.slug === 'string' && item.slug.trim() !== ''
+      );
+    }
+    // console.warn("Portfolio items are not an array or appData is missing (getPortfolioItems), returning empty array.");
+    return [];
   } catch (error) {
-    console.error("Error reading or parsing data.json for Portfolio slug page, returning empty array:", error);
-    return defaultPortfolioItems;
+    // console.error("Error reading or parsing data.json (getPortfolioItems), returning empty array:", error);
+    return []; // Return empty array on any error to prevent crashes
   }
 }
 
 export async function generateStaticParams() {
-  const portfolioItems = await getFreshPortfolioItemsForSlug();
+  const portfolioItems = await getPortfolioItems();
+  if (!portfolioItems || portfolioItems.length === 0) {
+    return []; // No params to generate if no valid items
+  }
   return portfolioItems.map((project) => ({
-    slug: project.slug,
+    slug: project.slug, // Slug is guaranteed to be a string here by getPortfolioItems filter
   }));
 }
 
-export default async function PortfolioDetailPage({ params }: { params: { slug: string } }) {
-  const portfolioItems = await getFreshPortfolioItemsForSlug();
+interface PortfolioDetailPageProps {
+  params: { slug: string };
+}
+
+export default async function PortfolioDetailPage({ params }: PortfolioDetailPageProps) {
+  const portfolioItems = await getPortfolioItems();
   const project = portfolioItems.find((p) => p.slug === params.slug);
 
   if (!project) {
+    // console.log(`Project with slug "${params.slug}" not found in PortfolioDetailPage.`);
     notFound();
   }
 
