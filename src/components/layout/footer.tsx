@@ -124,7 +124,7 @@ export default function Footer() {
                       target={link.id === 'email' ? '_self' : '_blank'}
                       rel="noopener noreferrer"
                     >
-                      <link.icon className="h-5 w-5" />
+                      <span><link.icon className="h-5 w-5" /></span>
                     </Link>
                   </Button>
                 ))}
@@ -144,7 +144,7 @@ export default function Footer() {
             {isMounted ? (
               <Button asChild variant="link" className="p-0 h-auto text-sm text-primary hover:text-accent focus:outline-none focus:ring-1 focus:ring-ring rounded">
                 <Link href="/admin/dashboard">
-                  {displayedAboutMe.name || 'B.Anand' /* Fallback if name is somehow empty after fetch */}
+                 <span>{displayedAboutMe.name || 'B.Anand'}</span>
                 </Link>
               </Button>
             ) : (
@@ -156,3 +156,4 @@ export default function Footer() {
     </footer>
   );
 }
+
