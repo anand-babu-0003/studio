@@ -11,7 +11,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { lucideIconsMap } from '@/lib/data';
 import StarryBackground from '@/components/layout/starry-background';
-import { PortfolioCard } from '@/components/portfolio/portfolio-card'; // Added this import
+import { PortfolioCard } from '@/components/portfolio/portfolio-card';
 
 const defaultAppData: AppData = {
   portfolioItems: [],
@@ -32,8 +32,8 @@ const defaultAppData: AppData = {
   siteSettings: {
     siteName: 'AnandVerse',
     defaultMetaDescription: 'A showcase of my projects and skills.',
-    defaultMetaKeywords: 'webdeveloper,portfolio', 
-    siteOgImageUrl: 'https://github.com/anand-babu-0003/TrueValidator2/blob/main/Screenshot%202025-06-17%20154532.png?raw=true',    
+    defaultMetaKeywords: 'webdeveloper,portfolio',
+    siteOgImageUrl: 'https://github.com/anand-babu-0003/TrueValidator2/blob/main/Screenshot%202025-06-17%20154532.png?raw=true',
   },
 };
 
@@ -46,12 +46,12 @@ async function getFreshAppData(): Promise<AppData> {
         return defaultAppData;
     }
     const parsedData = JSON.parse(fileContent) as Partial<AppData>;
-    
+
     const portfolioItems = Array.isArray(parsedData.portfolioItems) ? parsedData.portfolioItems : defaultAppData.portfolioItems;
     const skills = Array.isArray(parsedData.skills) ? parsedData.skills : defaultAppData.skills;
-    
-    const validAboutMe = (typeof parsedData.aboutMe === 'object' && parsedData.aboutMe !== null) 
-                         ? parsedData.aboutMe 
+
+    const validAboutMe = (typeof parsedData.aboutMe === 'object' && parsedData.aboutMe !== null)
+                         ? parsedData.aboutMe
                          : {};
     const aboutMe = { ...defaultAppData.aboutMe, ...validAboutMe };
 
@@ -69,7 +69,7 @@ async function getFreshAppData(): Promise<AppData> {
 
   } catch (error) {
     console.error("Error reading or parsing data.json for Home page, returning default structure:", error);
-    return defaultAppData; 
+    return defaultAppData;
   }
 }
 
@@ -78,7 +78,7 @@ export default async function Home() {
   const aboutMeData = appData.aboutMe;
   const allPortfolioItems = appData.portfolioItems;
   const featuredProjects = allPortfolioItems.slice(0, 2);
-  const highlightedSkills = appData.skills.slice(0, 6); 
+  const highlightedSkills = appData.skills.slice(0, 6);
 
   const firstParagraphBio = (aboutMeData.bio || '').split('\n\n')[0];
 
@@ -88,13 +88,13 @@ export default async function Home() {
       <section className="relative w-full min-h-screen flex flex-col justify-center items-center py-20 md:py-32 bg-gradient-to-br from-primary/15 via-background to-accent/15 bg-animated-gradient overflow-hidden">
         <StarryBackground />
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col justify-center items-center flex-grow">
-          <div> 
+          <div>
             <h1 className="font-headline text-5xl md:text-7xl font-bold tracking-tight text-foreground">
               <span className="block animate-fadeInUp-1">Hi, I&apos;m <span className="text-foreground">{aboutMeData.name.split(' ')[0]}</span></span>
               <span className="block text-primary animate-fadeInUp-2">{aboutMeData.title}</span>
             </h1>
             <p className="mt-6 max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground animate-fadeInUp-2" style={{ animationDelay: '0.5s' }}>
-              {(aboutMeData.bio || '').substring(0, 150)}... 
+              {(aboutMeData.bio || '').substring(0, 150)}...
             </p>
             <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4 animate-fadeInUp-2" style={{ animationDelay: '0.7s' }}>
               <Button asChild size="lg" className="text-lg px-8 py-6 shadow-lg hover:shadow-primary/30 transition-shadow duration-300">
@@ -190,7 +190,7 @@ export default async function Home() {
                   My Core Skills
                 </h2>
               </ScrollAnimationWrapper>
-              
+
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 md:gap-8">
                 {highlightedSkills.map((skill, index) => {
                   const IconComponent = lucideIconsMap[skill.iconName] || Package;
@@ -223,5 +223,3 @@ export default async function Home() {
     </div>
   );
 }
-
-    
