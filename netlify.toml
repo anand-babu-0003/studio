@@ -1,0 +1,24 @@
+# Netlify configuration file
+# This file tells Netlify how to build and deploy your Next.js site.
+
+[build]
+  # Command to build your Next.js site.
+  # This uses the "build" script from your package.json.
+  command = "npm run build"
+
+  # Directory (relative to the root of your repository) that Netlify will deploy.
+  # For Next.js, this is the .next directory.
+  publish = ".next"
+
+# Environment Variables:
+# If your application, especially Genkit for AI features, requires API keys
+# (e.g., GOOGLE_API_KEY), you MUST set these as environment variables
+# in your Netlify site's dashboard:
+# Site settings > Build & deploy > Environment > Environment variables.
+
+# Next.js Runtime on Netlify:
+# For Next.js 13+ (which this project uses) with App Router, Server Components,
+# API Routes, and Image Optimization, Netlify's build system automatically
+# uses its Next.js Runtime. You typically do not need to explicitly install
+# or configure a plugin like "@netlify/plugin-nextjs" as Netlify handles this.
+# If you encounter issues, refer to the Netlify documentation for Next.js.
