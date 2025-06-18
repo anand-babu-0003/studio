@@ -2,12 +2,13 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
+  output: 'standalone', // Added for better deployment bundling
   /* config options here */
   typescript: {
-    ignoreBuildErrors: false,
+    ignoreBuildErrors: false, // Enforce type checking at build time
   },
   eslint: {
-    ignoreDuringBuilds: false,
+    ignoreDuringBuilds: false, // Enforce linting at build time
   },
   images: {
     remotePatterns: [
