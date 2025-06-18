@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect } from 'react';
-import { useActionState } from 'react'; // Changed from 'react-dom' and useFormState
+import { useActionState } from 'react'; 
 import { useFormStatus } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -39,7 +39,11 @@ const initialState: ContactFormState = {
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending} size="lg" className="w-full sm:w-auto">
+    <Button 
+      type="submit" 
+      disabled={pending} 
+      className="bg-[hsl(260,55%,78%)] text-[hsl(260,25%,30%)] hover:bg-[hsl(260,55%,72%)] dark:bg-[hsl(260,55%,78%)] dark:text-[hsl(260,25%,30%)] dark:hover:bg-[hsl(260,55%,72%)] font-semibold shadow-lg transition-all duration-300 rounded-md text-base leading-snug px-6 py-3 w-full sm:w-auto"
+    >
       {pending ? (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -53,7 +57,7 @@ function SubmitButton() {
 }
 
 export function ContactForm() {
-  const [state, formAction] = useActionState(submitContactForm, initialState); // Changed from useFormState
+  const [state, formAction] = useActionState(submitContactForm, initialState);
   const { toast } = useToast();
 
   const form = useForm<ContactFormData>({
@@ -78,7 +82,6 @@ export function ContactForm() {
         description: state.message,
         variant: "destructive",
       });
-      // Populate field errors from server validation
       if (state.errors) {
         if(state.errors.name) form.setError("name", { type: "server", message: state.errors.name.join(', ') });
         if(state.errors.email) form.setError("email", { type: "server", message: state.errors.email.join(', ') });

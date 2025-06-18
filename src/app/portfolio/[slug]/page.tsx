@@ -131,18 +131,24 @@ export default async function PortfolioDetailPage({
             <CardContent>
               <div className="flex flex-wrap gap-4">
                 {project.liveUrl && (
-                  <Button asChild variant="default" size="lg">
+                  <Button
+                    asChild
+                    className="bg-[hsl(260,55%,78%)] text-[hsl(260,25%,30%)] hover:bg-[hsl(260,55%,72%)] dark:bg-[hsl(260,55%,78%)] dark:text-[hsl(260,25%,30%)] dark:hover:bg-[hsl(260,55%,72%)] font-semibold shadow-lg transition-all duration-300 rounded-md text-base leading-snug px-6 py-3"
+                  >
                     <Link href={project.liveUrl} target="_blank" rel="noopener noreferrer">
-                      <span>
+                      <span className="inline-flex items-center">
                         <ExternalLink className="mr-2 h-5 w-5" /> View Live Demo
                       </span>
                     </Link>
                   </Button>
                 )}
                 {project.repoUrl && (
-                  <Button asChild variant="secondary" size="lg">
+                  <Button
+                    asChild
+                    className="bg-[hsl(260,55%,78%)] text-[hsl(260,25%,30%)] hover:bg-[hsl(260,55%,72%)] dark:bg-[hsl(260,55%,78%)] dark:text-[hsl(260,25%,30%)] dark:hover:bg-[hsl(260,55%,72%)] font-semibold shadow-lg transition-all duration-300 rounded-md text-base leading-snug px-6 py-3"
+                  >
                     <Link href={project.repoUrl} target="_blank" rel="noopener noreferrer">
-                      <span>
+                      <span className="inline-flex items-center">
                         <Github className="mr-2 h-5 w-5" /> View Code on GitHub
                       </span>
                     </Link>

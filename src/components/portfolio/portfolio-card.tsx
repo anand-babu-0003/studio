@@ -1,3 +1,4 @@
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +12,8 @@ interface PortfolioCardProps {
 }
 
 export function PortfolioCard({ project }: PortfolioCardProps) {
+  const cardCtaButtonStyle = "bg-[hsl(260,55%,78%)] text-[hsl(260,25%,30%)] hover:bg-[hsl(260,55%,72%)] dark:bg-[hsl(260,55%,78%)] dark:text-[hsl(260,25%,30%)] dark:hover:bg-[hsl(260,55%,72%)] font-semibold shadow-md transition-all duration-300 rounded-md text-sm px-4 py-2";
+
   return (
     <Card className="flex flex-col h-full overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-[1.02] rounded-lg">
       <CardHeader className="p-0 relative aspect-video">
@@ -36,16 +39,20 @@ export function PortfolioCard({ project }: PortfolioCardProps) {
       <CardFooter className="p-6 bg-muted/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex gap-2 flex-wrap">
           {project.liveUrl && (
-            <Button asChild variant="outline" size="sm">
+            <Button asChild className={cardCtaButtonStyle}>
               <Link href={project.liveUrl} target="_blank" rel="noopener noreferrer">
-                <span><Eye className="mr-2 h-4 w-4" /> Live Demo</span>
+                <span className="inline-flex items-center">
+                  <Eye className="mr-2 h-4 w-4" /> Live Demo
+                </span>
               </Link>
             </Button>
           )}
           {project.repoUrl && (
-            <Button asChild variant="outline" size="sm">
+            <Button asChild className={cardCtaButtonStyle}>
               <Link href={project.repoUrl} target="_blank" rel="noopener noreferrer">
-                <span><Code2 className="mr-2 h-4 w-4" /> View Code</span>
+                <span className="inline-flex items-center">
+                  <Code2 className="mr-2 h-4 w-4" /> View Code
+                </span>
               </Link>
             </Button>
           )}
