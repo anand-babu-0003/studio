@@ -30,6 +30,7 @@ async function getPortfolioItems(): Promise<PortfolioItem[]> {
     }
     return [];
   } catch (error) {
+    console.error("Error reading portfolio items in [slug]/page.tsx:", error);
     return [];
   }
 }
@@ -45,13 +46,12 @@ export async function generateStaticParams() {
 }
 
 export default async function PortfolioDetailPage({
-  params,
+  routeParams, // Renamed from params
 }: {
-  params: { slug: string };
-  // searchParams?: Record<string, string | string[] | undefined>; // Removed as it's not used
+  routeParams: { slug: string }; // Kept the standard type for the renamed prop
 }) {
   const portfolioItems = await getPortfolioItems();
-  const project = portfolioItems.find((p) => p.slug === params.slug);
+  const project = portfolioItems.find((p) => p.slug === routeParams.slug);
 
   if (!project) {
     notFound();
