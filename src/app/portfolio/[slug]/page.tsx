@@ -16,7 +16,6 @@ import path from 'path';
 
 const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
 
-// Consolidate data fetching for portfolio items
 async function getPortfolioItems(): Promise<PortfolioItem[]> {
   try {
     const fileContent = await fs.readFile(dataFilePath, 'utf-8');
@@ -35,22 +34,24 @@ async function getPortfolioItems(): Promise<PortfolioItem[]> {
     return [];
   } catch (error) {
     // console.error("Error reading or parsing data.json (getPortfolioItems), returning empty array:", error);
-    return []; // Return empty array on any error to prevent crashes
+    return []; 
   }
 }
 
 export async function generateStaticParams() {
   const portfolioItems = await getPortfolioItems();
   if (!portfolioItems || portfolioItems.length === 0) {
-    return []; // No params to generate if no valid items
+    return []; 
   }
   return portfolioItems.map((project) => ({
-    slug: project.slug, // Slug is guaranteed to be a string here by getPortfolioItems filter
+    slug: project.slug, 
   }));
 }
 
+// Explicitly define the props for this page component
 interface PortfolioDetailPageProps {
   params: { slug: string };
+  // searchParams?: { [key: string]: string | string[] | undefined }; // Optional: if you use searchParams
 }
 
 export default async function PortfolioDetailPage({ params }: PortfolioDetailPageProps) {
