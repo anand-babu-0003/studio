@@ -1,12 +1,12 @@
 
-"use client"; // Footer remains a client component for now
+"use client"; 
 
 import Link from 'next/link';
 import { Github, Linkedin, Twitter, Mail } from 'lucide-react';
 import type { SocialLink, AboutMeData } from '@/lib/types';
 import { useEffect, useState } from 'react';
 import { getAboutMeDataAction } from '@/actions/getAboutMeDataAction';
-import { Button } from '@/components/ui/button'; // Import Button component
+import { Button } from '@/components/ui/button'; 
 
 const mainNavItems = [
   { href: '/', label: 'Home' },
@@ -16,10 +16,11 @@ const mainNavItems = [
   { href: '/contact', label: 'Contact' },
 ];
 
-const defaultAboutMe: AboutMeData = {
-    name: "AnandVerse", // Default name for footer brand
-    title: "", bio: "", profileImage: "", dataAiHint: "", experience: [], education: [],
-    email: "hello@example.com", // Default email
+// Default AboutMeData specifically for footer's needs if fetch fails or before client mounts
+// Only include fields directly used by the footer for its fallbacks.
+const defaultAboutMeForFooter: Pick<AboutMeData, 'name' | 'email' | 'githubUrl' | 'linkedinUrl' | 'twitterUrl'> = {
+    name: "B.Anand", // To be used in "by B.Anand"
+    email: "hello@example.com", 
     githubUrl: "https://github.com",
     linkedinUrl: "https://linkedin.com",
     twitterUrl: "https://twitter.com",
@@ -27,22 +28,34 @@ const defaultAboutMe: AboutMeData = {
 
 
 export default function Footer() {
-  const currentYear = new Date().getFullYear();
-  const [aboutMeData, setAboutMeData] = useState<AboutMeData>(defaultAboutMe);
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [aboutMeData, setAboutMeData] = useState<AboutMeData | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
+    setCurrentYear(new Date().getFullYear()); // Ensure year is client-side
+
     async function fetchData() {
-      const data = await getAboutMeDataAction();
-      setAboutMeData(data || defaultAboutMe);
+      try {
+        const data = await getAboutMeDataAction();
+        setAboutMeData(data);
+      } catch (error) {
+        console.error("Failed to fetch about me data for footer:", error);
+        // Data will remain null, displayedAboutMe will use defaultAboutMeForFooter
+      }
     }
     fetchData();
   }, []);
 
+  // Use fetched data if available and mounted, otherwise use defaults
+  const displayedAboutMe = isMounted && aboutMeData ? aboutMeData : defaultAboutMeForFooter;
+
   const socialLinksToDisplay: SocialLink[] = [
-    ...(aboutMeData.githubUrl ? [{ id: 'github', name: 'GitHub', url: aboutMeData.githubUrl, icon: Github }] : []),
-    ...(aboutMeData.linkedinUrl ? [{ id: 'linkedin', name: 'LinkedIn', url: aboutMeData.linkedinUrl, icon: Linkedin }] : []),
-    ...(aboutMeData.twitterUrl ? [{ id: 'twitter', name: 'Twitter', url: aboutMeData.twitterUrl, icon: Twitter }] : []),
-    ...(aboutMeData.email ? [{ id: 'email', name: 'Email', url: `mailto:${aboutMeData.email}`, icon: Mail }] : []),
+    ...(displayedAboutMe.githubUrl ? [{ id: 'github', name: 'GitHub', url: displayedAboutMe.githubUrl, icon: Github }] : []),
+    ...(displayedAboutMe.linkedinUrl ? [{ id: 'linkedin', name: 'LinkedIn', url: displayedAboutMe.linkedinUrl, icon: Linkedin }] : []),
+    ...(displayedAboutMe.twitterUrl ? [{ id: 'twitter', name: 'Twitter', url: displayedAboutMe.twitterUrl, icon: Twitter }] : []),
+    ...(displayedAboutMe.email ? [{ id: 'email', name: 'Email', url: `mailto:${displayedAboutMe.email}`, icon: Mail }] : []),
   ];
 
 
@@ -53,16 +66,18 @@ export default function Footer() {
           {/* Brand Section */}
           <div className="md:col-span-1 lg:col-span-2">
             <Link 
-              href="/" 
+              href="/admin/dashboard" // Static link to admin
               className="inline-flex items-center gap-2 mb-4 group focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-background rounded-md"
-              aria-label="Back to homepage"
+              aria-label="Go to Admin Panel" // Static aria-label
             >
               <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="text-primary group-hover:text-accent transition-colors">
                 <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
                 <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
                 <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              <span className="font-headline text-xl font-bold text-primary group-hover:text-accent transition-colors">{aboutMeData.name ? aboutMeData.name.split(' ')[0] + 'Verse' : 'AnandVerse'}</span>
+              <span className="font-headline text-xl font-bold text-primary group-hover:text-accent transition-colors">
+                AnandVerse {/* Static Brand Name */}
+              </span>
             </Link>
             <p className="text-sm text-muted-foreground max-w-md">
               Crafting digital experiences, one line of code at a time. Passionate about building intuitive and performant web solutions.
@@ -89,7 +104,7 @@ export default function Footer() {
           </div>
 
           {/* Social Links Section */}
-          {socialLinksToDisplay.length > 0 && (
+          {(isMounted && socialLinksToDisplay.length > 0) && ( // Only render if mounted and links exist
             <div className="md:col-span-1">
               <h3 className="text-sm font-semibold text-foreground/80 uppercase tracking-wider mb-4">
                 Connect
@@ -101,7 +116,7 @@ export default function Footer() {
                     asChild 
                     variant="ghost" 
                     size="icon" 
-                    className="text-muted-foreground hover:text-primary hover:bg-muted rounded-full focus:ring-offset-background" // Ensure offset for focus ring
+                    className="text-muted-foreground hover:text-primary hover:bg-muted rounded-full focus:ring-offset-background"
                     aria-label={link.name}
                   >
                     <Link
@@ -121,11 +136,20 @@ export default function Footer() {
         {/* Copyright Section */}
         <div className="mt-10 border-t border-border pt-8 text-center">
           <p className="text-sm text-muted-foreground">
-            &copy; {currentYear} {aboutMeData.name ? aboutMeData.name.split(' ')[0] + 'Verse' : 'AnandVerse'}. All rights reserved.
-            <span className="mx-1">|</span>
-            <Link href="/admin/dashboard" className="hover:text-primary transition-colors">
-              Admin
-            </Link>
+            &copy; {isMounted ? currentYear : new Date().getFullYear()}{' '}
+            AnandVerse. All rights reserved. {/* Static Brand Name */}
+          </p>
+          <p className="text-sm text-muted-foreground mt-2">
+            💻 Made with caffeine, code, and mild chaos — by{' '}
+            {isMounted ? (
+              <Button asChild variant="link" className="p-0 h-auto text-sm text-primary hover:text-accent focus:outline-none focus:ring-1 focus:ring-ring rounded">
+                <Link href="/admin/dashboard">
+                  {displayedAboutMe.name || 'B.Anand' /* Fallback if name is somehow empty after fetch */}
+                </Link>
+              </Button>
+            ) : (
+              defaultAboutMeForFooter.name // Server render / initial client render
+            )}
           </p>
         </div>
       </div>
