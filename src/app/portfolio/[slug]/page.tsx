@@ -46,10 +46,10 @@ export async function generateStaticParams() {
 
 export default async function PortfolioDetailPage({
   params,
-  searchParams, // Adding searchParams for completeness, though not used
+  searchParams,
 }: {
   params: { slug: string };
-  searchParams?: { [key: string]: string | string[] | undefined };
+  searchParams?: Record<string, string | string[] | undefined>;
 }) {
   const portfolioItems = await getPortfolioItems();
   const project = portfolioItems.find((p) => p.slug === params.slug);
