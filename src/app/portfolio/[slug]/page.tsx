@@ -46,12 +46,12 @@ export async function generateStaticParams() {
 }
 
 export default async function PortfolioDetailPage({
-  routeParams, // Renamed from params
+  params,
 }: {
-  routeParams: { slug: string }; // Kept the standard type for the renamed prop
+  params: { slug: string };
 }) {
   const portfolioItems = await getPortfolioItems();
-  const project = portfolioItems.find((p) => p.slug === routeParams.slug);
+  const project = portfolioItems.find((p) => p.slug === params.slug);
 
   if (!project) {
     notFound();
