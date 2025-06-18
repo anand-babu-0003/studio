@@ -20,46 +20,41 @@ async function getPortfolioItems(): Promise<PortfolioItem[]> {
   try {
     const fileContent = await fs.readFile(dataFilePath, 'utf-8');
     if (!fileContent.trim()) {
-      // console.warn("Data file is empty (getPortfolioItems), returning empty array.");
       return [];
     }
     const appData = JSON.parse(fileContent) as Partial<AppData>;
     if (appData && Array.isArray(appData.portfolioItems)) {
-      // Filter for items that have a valid, non-empty string slug
       return appData.portfolioItems.filter(
         item => typeof item.slug === 'string' && item.slug.trim() !== ''
       );
     }
-    // console.warn("Portfolio items are not an array or appData is missing (getPortfolioItems), returning empty array.");
     return [];
   } catch (error) {
-    // console.error("Error reading or parsing data.json (getPortfolioItems), returning empty array:", error);
-    return []; 
+    return [];
   }
 }
 
 export async function generateStaticParams() {
   const portfolioItems = await getPortfolioItems();
   if (!portfolioItems || portfolioItems.length === 0) {
-    return []; 
+    return [];
   }
   return portfolioItems.map((project) => ({
-    slug: project.slug, 
+    slug: project.slug,
   }));
 }
 
-// Explicitly define the props for this page component
-interface PortfolioDetailPageProps {
+export default async function PortfolioDetailPage({
+  params,
+  searchParams, // Adding searchParams for completeness, though not used
+}: {
   params: { slug: string };
-  // searchParams?: { [key: string]: string | string[] | undefined }; // Optional: if you use searchParams
-}
-
-export default async function PortfolioDetailPage({ params }: PortfolioDetailPageProps) {
+  searchParams?: { [key: string]: string | string[] | undefined };
+}) {
   const portfolioItems = await getPortfolioItems();
   const project = portfolioItems.find((p) => p.slug === params.slug);
 
   if (!project) {
-    // console.log(`Project with slug "${params.slug}" not found in PortfolioDetailPage.`);
     notFound();
   }
 
@@ -67,12 +62,14 @@ export default async function PortfolioDetailPage({ params }: PortfolioDetailPag
     <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
       <Button asChild variant="outline" className="mb-8">
         <Link href="/portfolio">
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Portfolio
+          <span>
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Portfolio
+          </span>
         </Link>
       </Button>
 
       <PageHeader title={project.title} />
-      
+
       {project.images && project.images.length > 0 && (
         <div className="mb-16">
           <Carousel className="w-full max-w-3xl mx-auto shadow-2xl rounded-lg overflow-hidden">
@@ -80,9 +77,9 @@ export default async function PortfolioDetailPage({ params }: PortfolioDetailPag
               {(project.images || []).map((src, index) => (
                 <CarouselItem key={index}>
                   <div className="aspect-video relative">
-                    <Image 
+                    <Image
                       src={src || 'https://placehold.co/600x400.png'}
-                      alt={`${project.title} - Screenshot ${index + 1}`} 
+                      alt={`${project.title} - Screenshot ${index + 1}`}
                       fill
                       className="object-cover"
                       data-ai-hint={project.dataAiHint || 'project detail'}
@@ -137,14 +134,18 @@ export default async function PortfolioDetailPage({ params }: PortfolioDetailPag
                 {project.liveUrl && (
                   <Button asChild variant="default" size="lg">
                     <Link href={project.liveUrl} target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="mr-2 h-5 w-5" /> View Live Demo
+                      <span>
+                        <ExternalLink className="mr-2 h-5 w-5" /> View Live Demo
+                      </span>
                     </Link>
                   </Button>
                 )}
                 {project.repoUrl && (
                   <Button asChild variant="secondary" size="lg">
                     <Link href={project.repoUrl} target="_blank" rel="noopener noreferrer">
-                      <Github className="mr-2 h-5 w-5" /> View Code on GitHub
+                      <span>
+                        <Github className="mr-2 h-5 w-5" /> View Code on GitHub
+                      </span>
                     </Link>
                   </Button>
                 )}
