@@ -3,7 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { ArrowRight, Eye, Code2, Package } from 'lucide-react';
+import { ArrowRight, Eye, Code2, Package, HelpCircle } from 'lucide-react'; // Added HelpCircle
 import type { PortfolioItem, AboutMeData, AppData, Skill } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wrapper';
@@ -96,7 +96,7 @@ export default async function Home() {
             <p className="mt-6 max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground animate-fadeInUp-2" style={{ animationDelay: '0.5s' }}>
               {(aboutMeData.bio || '').substring(0, 150)}...
             </p>
-            <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4 animate-fadeInUp-2" style={{ animationDelay: '0.7s' }}>
+            <div className="mt-10 flex flex-col sm:flex-row flex-wrap justify-center items-center gap-4 animate-fadeInUp-2" style={{ animationDelay: '0.7s' }}>
               <Button asChild size="lg" className="text-lg px-8 py-6 shadow-lg hover:shadow-primary/30 transition-shadow duration-300">
                 <Link href="/portfolio">
                   <span>
@@ -107,6 +107,13 @@ export default async function Home() {
               <Button asChild variant="secondary" size="lg" className="text-lg px-8 py-6 shadow-lg hover:shadow-secondary/30 transition-shadow duration-300">
                 <Link href="/contact">
                   <span>Get in Touch</span>
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="text-lg px-8 py-6 shadow-lg hover:shadow-accent/20 transition-shadow duration-300">
+                <Link href="/contact">
+                  <span>
+                    <HelpCircle className="mr-2 h-5 w-5" /> Need Help?
+                  </span>
                 </Link>
               </Button>
             </div>
