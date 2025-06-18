@@ -3,7 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { ArrowRight, Eye, Code2, Package } from 'lucide-react'; 
+import { ArrowRight, Eye, Code2, Package, HelpCircle } from 'lucide-react'; 
 import type { PortfolioItem, AboutMeData, AppData, Skill } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wrapper';
@@ -102,17 +102,17 @@ export default async function Home() {
                 className="
                   bg-[hsl(260,55%,78%)] text-[hsl(260,25%,30%)] hover:bg-[hsl(260,55%,72%)]
                   dark:bg-[hsl(260,55%,78%)] dark:text-[hsl(260,25%,30%)] dark:hover:bg-[hsl(260,55%,72%)]
-                  font-semibold shadow-lg transition-all duration-300 rounded-md px-6 py-3 text-base leading-snug
+                  font-semibold shadow-lg transition-all duration-300 rounded-md text-base leading-snug px-6 py-3
                 "
               >
                 <Link href="/portfolio">
-                  <span className="flex flex-col items-center">
-                    <span>View My Work</span>
-                    <ArrowRight className="h-5 w-5 mt-1" />
+                  <span className="inline-flex items-center">
+                    View My Work
+                    <ArrowRight className="h-5 w-5 ml-2" />
                   </span>
                 </Link>
               </Button>
-              <Button asChild variant="secondary" size="lg" className="text-lg shadow-lg hover:shadow-secondary/30 transition-shadow duration-300">
+              <Button asChild variant="secondary" size="lg" className="shadow-lg hover:shadow-secondary/30 transition-shadow duration-300">
                 <Link href="/contact">
                   <span>Get in Touch</span>
                 </Link>
@@ -231,3 +231,4 @@ export default async function Home() {
     </div>
   );
 }
+
