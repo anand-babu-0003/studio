@@ -128,11 +128,11 @@ export default function RootLayout({
     if (typeof document !== 'undefined' && currentSiteSettings && !isLayoutLoading) {
         const pathSegments = pathname.split('/').filter(Boolean);
         let pageTitleSegment = '';
-        let formattedPageTitle = ''; // Define here
+        let formattedPageTitle = '';
 
         if (pathSegments.length > 0) {
           pageTitleSegment = pathSegments[pathSegments.length - 1];
-          formattedPageTitle = pageTitleSegment // Format it
+          formattedPageTitle = pageTitleSegment
                               .replace(/-/g, ' ')
                               .split(' ')
                               .map(word => word.charAt(0).toUpperCase() + word.slice(1))
@@ -151,7 +151,7 @@ export default function RootLayout({
             title = `Admin: ${adminPageTitle} | ${siteNameBase}`;
         } else if (isAdminRoute && (pathname === '/admin' || pathname === '/admin/')) {
             title = `Admin: Dashboard | ${siteNameBase}`;
-        } else if (formattedPageTitle) { // Fallback for other cases if formattedPageTitle exists
+        } else if (formattedPageTitle) { 
              title = `${formattedPageTitle} | ${siteNameBase}`;
         }
         document.title = title;
@@ -185,6 +185,8 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css?family=Arvo&display=swap" rel="stylesheet" />
+
 
         <title>{defaultSiteSettingsForClient.siteName}</title>
         <meta name="description" content={defaultSiteSettingsForClient.defaultMetaDescription} />
@@ -234,7 +236,7 @@ export default function RootLayout({
             </div>
           )}
           
-          {isLayoutLoading && !isAdminRoute ? (
+          {isLayoutLoading && !isAdminRoute && pathname !== '/admin/login' ? ( // Added pathname check for login page
              <FullScreenLoader />
           ) : (
             <>
@@ -249,6 +251,3 @@ export default function RootLayout({
         </ThemeProvider>
       </body>
     </html>
-  );
-}
-
