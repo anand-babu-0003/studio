@@ -19,7 +19,7 @@ const missingKeys = requiredConfigKeys.filter(key => !firebaseConfig[key]);
 
 if (missingKeys.length > 0) {
   console.error(
-    "FIREBASE INITIALIZATION ERROR: Missing critical Firebase config values. Ensure all NEXT_PUBLIC_FIREBASE_... environment variables are set.",
+    "FIREBASE INITIALIZATION ERROR: Missing critical Firebase config values. Ensure all NEXT_PUBLIC_FIREBASE_... environment variables are set in your .env file and in your Vercel project settings.",
     "Missing keys:", missingKeys.join(', ')
   );
   console.warn("Firebase will NOT be initialized. Firestore and other Firebase services will be unavailable.");
@@ -27,20 +27,20 @@ if (missingKeys.length > 0) {
   if (!getApps().length) {
     try {
       app = initializeApp(firebaseConfig);
-      console.log("Firebase app initialized successfully.");
+      // console.log("Firebase app initialized successfully."); // Reduced verbosity
     } catch (error) {
       console.error("FIREBASE INITIALIZATION ERROR: Failed to initialize Firebase app:", error);
-      app = undefined; // Ensure app is undefined if initialization fails
+      app = undefined; 
     }
   } else {
     app = getApp();
-    console.log("Existing Firebase app retrieved.");
+    // console.log("Existing Firebase app retrieved."); // Reduced verbosity
   }
 
   if (app) {
     try {
       firestore = getFirestore(app);
-      console.log("Firestore instance obtained successfully.");
+      // console.log("Firestore instance obtained successfully."); // Reduced verbosity
     } catch (error) {
       console.error("FIREBASE INITIALIZATION ERROR: Failed to get Firestore instance:", error);
       firestore = null;
