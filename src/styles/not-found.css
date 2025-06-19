@@ -1,3 +1,4 @@
+
 /* src/styles/not-found.css */
 
 .fullscreen-nf-wrapper {
@@ -8,101 +9,76 @@
   height: 100vh;
   background-color: #ffffff !important; /* Solid white background */
   color: #24292f;
-  font-family: 'Arvo', serif;
+  font-family: 'Arvo', serif; /* Matching font from the target image */
   display: flex;
-  flex-direction: column; /* Allow content to stack vertically */
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
   padding: 20px;
   box-sizing: border-box;
-  z-index: 9999; /* Ensure it's on top */
-  overflow: auto;
+  z-index: 9999; /* Ensure it's on top of other content */
+  overflow: auto; /* Allow scrolling if content is too tall, though unlikely with centering */
 }
 
-.page_404 {
+.content-nf {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 100%;
-  max-width: 500px; /* Max width for the content block */
-}
-
-.gif-background-container-nf {
-  /* This container has the GIF as a background for the "404" text */
-  background-image: url(https://cdn.dribbble.com/users/285475/screenshots/2083086/dribbble_1.gif);
-  height: 200px; /* Or adjust as needed */
-  width: 100%;
-  max-width: 400px; /* Control the width of the background GIF area */
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: contain;
-  display: flex;
-  align-items: center;
   justify-content: center;
-  margin-bottom: 20px; /* Space before the next image/content */
-  position: relative;
+  width: 100%;
+  max-width: 550px; /* Max width for the content block */
 }
 
-.main-404-text-nf {
-  font-size: 100px; /* Large 404 text */
-  font-weight: bold;
-  color: #000000;
-  text-align: center;
+.text-404-nf {
+  font-size: 10rem; /* Large 404 text */
+  font-weight: 700;
+  color: #333; /* Darker grey */
+  margin-bottom: 0px; /* Reduced margin */
   line-height: 1;
-  /* Optional: Add a slight shadow if text over GIF is hard to read */
-  /* text-shadow: 0 0 8px rgba(255, 255, 255, 0.6); */
+  margin-top: -20px; /* Adjust to pull up if needed */
 }
 
-.illustration-container-nf { /* Container for the main illustration image */
-  margin-bottom: 30px;
-  line-height: 0; /* Helps remove extra space below image if any */
+.illustration-container-nf {
+  margin-top: -20px; /* Negative margin to overlap slightly with "404" if desired, or adjust to 0 */
+  margin-bottom: 25px; /* Space before heading */
+  line-height: 0; /* Remove extra space from div */
 }
 
-.illustration-image-nf { /* Styles for the main illustration Image component */
+.illustration-image-nf {
   max-width: 100%;
   height: auto; /* Maintain aspect ratio */
   display: block;
 }
 
-.contant_box_404 {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.heading-nf {
+  font-size: 2rem; 
+  font-weight: 600;
+  color: #333333; 
+  margin-top: 0; 
+  margin-bottom: 15px;
 }
 
-.lost-heading-nf {
-  font-size: 2rem; /* Adjusted from 30px in image */
-  font-weight: bold;
-  color: #333333; /* Dark grey from image */
-  margin-top: 0;
-  margin-bottom: 15px; /* Spacing from image */
-}
-
-.lost-subtext-nf {
-  font-size: 1.125rem; /* Adjusted from 18px in image */
-  color: #555555; /* Medium grey */
+.subtext-nf {
+  font-size: 1.125rem;
+  color: #555555;
   margin-bottom: 30px;
 }
 
-.go-home-btn-nf {
-  color: #ffffff !important;
-  padding: 12px 30px; /* Slightly larger padding */
-  background: #39ac31; /* Green button color */
-  margin: 20px 0;
+.button-nf {
+  color: #ffffff !important; /* Ensure white text */
+  padding: 12px 30px;
+  background-color: #39ac31; /* Green button color */
   display: inline-block;
   text-decoration: none;
   border-radius: 6px;
   font-weight: bold;
   font-size: 1rem;
   transition: background-color 0.2s ease;
-  border: none; /* Ensure no border */
+  border: none;
 }
 
-.go-home-btn-nf:hover {
-  background: #2b8a24; /* Darker green on hover */
+.button-nf:hover {
+  background-color: #2b8a24; /* Darker green on hover */
   text-decoration: none;
 }
-
-/* Remove specific width/height from .page_404 if it causes issues with flex centering */
-/* .page_404 { width: auto; } */
