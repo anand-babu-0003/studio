@@ -65,16 +65,16 @@ body {
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
 
-    /* Loader cell colors for light theme */
-    --loader-cell-1: hsl(var(--primary-h) var(--primary-s) var(--primary-l));
-    --loader-cell-2: hsl(var(--primary-h) var(--primary-s) calc(var(--primary-l) + 5%));
-    --loader-cell-3: hsl(var(--primary-h) var(--primary-s) calc(var(--primary-l) + 10%));
-    --loader-cell-4: hsl(var(--accent-h) var(--accent-s) calc(var(--accent-l) - 10%));
-    --loader-cell-5: hsl(var(--accent-h) var(--accent-s) calc(var(--accent-l) - 5%));
-    --loader-cell-6: hsl(var(--accent-h) var(--accent-s) var(--accent-l));
-    --loader-cell-7: hsl(var(--secondary-h) var(--secondary-s) calc(var(--secondary-l) - 20%)); /* Darker shade of light secondary */
-    --loader-cell-8: hsl(var(--primary-h) var(--primary-s) calc(var(--primary-l) + 7%));
-    --loader-cell-9: hsl(var(--accent-h) var(--accent-s) calc(var(--accent-l) - 7%));
+    /* Loader cell colors for light theme - all primary */
+    --loader-cell-1: hsl(var(--primary));
+    --loader-cell-2: hsl(var(--primary));
+    --loader-cell-3: hsl(var(--primary));
+    --loader-cell-4: hsl(var(--primary));
+    --loader-cell-5: hsl(var(--primary));
+    --loader-cell-6: hsl(var(--primary));
+    --loader-cell-7: hsl(var(--primary));
+    --loader-cell-8: hsl(var(--primary));
+    --loader-cell-9: hsl(var(--primary));
   }
 
   .dark {
@@ -130,16 +130,16 @@ body {
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
 
-    /* Loader cell colors for dark theme */
-    --loader-cell-1: hsl(var(--primary-h) var(--primary-s) var(--primary-l));
-    --loader-cell-2: hsl(var(--primary-h) var(--primary-s) calc(var(--primary-l) - 5%));
-    --loader-cell-3: hsl(var(--primary-h) var(--primary-s) calc(var(--primary-l) - 10%));
-    --loader-cell-4: hsl(var(--accent-h) var(--accent-s) calc(var(--accent-l) + 10%));
-    --loader-cell-5: hsl(var(--accent-h) var(--accent-s) calc(var(--accent-l) + 5%));
-    --loader-cell-6: hsl(var(--accent-h) var(--accent-s) var(--accent-l));
-    --loader-cell-7: hsl(var(--secondary-h) var(--secondary-s) calc(var(--secondary-l) + 20%)); /* Lighter shade of dark secondary */
-    --loader-cell-8: hsl(var(--primary-h) var(--primary-s) calc(var(--primary-l) - 7%));
-    --loader-cell-9: hsl(var(--accent-h) var(--accent-s) calc(var(--accent-l) + 7%));
+    /* Loader cell colors for dark theme - all primary */
+    --loader-cell-1: hsl(var(--primary));
+    --loader-cell-2: hsl(var(--primary));
+    --loader-cell-3: hsl(var(--primary));
+    --loader-cell-4: hsl(var(--primary));
+    --loader-cell-5: hsl(var(--primary));
+    --loader-cell-6: hsl(var(--primary));
+    --loader-cell-7: hsl(var(--primary));
+    --loader-cell-8: hsl(var(--primary));
+    --loader-cell-9: hsl(var(--primary));
   }
 }
 
@@ -183,14 +183,6 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 20px;
-}
-
-.loader-message {
-  font-family: var(--font-headline, 'Space Grotesk', sans-serif); 
-  font-size: 1.25rem; 
-  color: hsl(var(--primary)); 
-  text-align: center;
-  margin-top: 1rem; 
 }
 
 
@@ -395,3 +387,4 @@ body:has(div[role="alert"][aria-live="polite"]:not([style*="opacity: 0"]):not([d
 body:has(div[data-maintenance-banner]):not(:has(div[role="alert"][aria-live="polite"]:not([style*="opacity: 0"]):not([data-maintenance-banner]))) {
   padding-top: 3rem; 
 }
+

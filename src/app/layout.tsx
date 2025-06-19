@@ -13,7 +13,7 @@ import { getAboutMeDataAction } from '@/actions/getAboutMeDataAction';
 import { defaultSiteSettingsForClient, defaultAboutMeDataForClient } from '@/lib/data';
 import { AlertTriangle } from 'lucide-react'; 
 import LiveAnnouncementBanner from '@/components/announcements/LiveAnnouncementBanner';
-import FullScreenLoader from '@/components/shared/FullScreenLoader'; // Import the new loader
+import FullScreenLoader from '@/components/shared/FullScreenLoader'; 
 
 import { firestore } from '@/lib/firebaseConfig'; 
 import { doc, onSnapshot } from 'firebase/firestore'; 
@@ -128,9 +128,11 @@ export default function RootLayout({
     if (typeof document !== 'undefined' && currentSiteSettings && !isLayoutLoading) {
         const pathSegments = pathname.split('/').filter(Boolean);
         let pageTitleSegment = '';
+        let formattedPageTitle = ''; // Define here
 
         if (pathSegments.length > 0) {
-          pageTitleSegment = pathSegments[pathSegments.length - 1]
+          pageTitleSegment = pathSegments[pathSegments.length - 1];
+          formattedPageTitle = pageTitleSegment // Format it
                               .replace(/-/g, ' ')
                               .split(' ')
                               .map(word => word.charAt(0).toUpperCase() + word.slice(1))
@@ -142,15 +144,15 @@ export default function RootLayout({
 
         if (pathname === '/') {
             title = siteNameBase;
-        } else if (pageTitleSegment && !isAdminRoute) {
-            title = `${pageTitleSegment} | ${siteNameBase}`;
+        } else if (formattedPageTitle && !isAdminRoute) {
+            title = `${formattedPageTitle} | ${siteNameBase}`;
         } else if (isAdminRoute && pathSegments.length > 1 && pathSegments[0] === 'admin') {
-            const adminPageTitle = pageTitleSegment || 'Dashboard'; 
+            const adminPageTitle = formattedPageTitle || 'Dashboard'; 
             title = `Admin: ${adminPageTitle} | ${siteNameBase}`;
         } else if (isAdminRoute && (pathname === '/admin' || pathname === '/admin/')) {
             title = `Admin: Dashboard | ${siteNameBase}`;
-        } else if (pageTitleSegment) {
-             title = `${pageTitleSegment} | ${siteNameBase}`;
+        } else if (formattedPageTitle) { // Fallback for other cases if formattedPageTitle exists
+             title = `${formattedPageTitle} | ${siteNameBase}`;
         }
         document.title = title;
 
@@ -233,7 +235,7 @@ export default function RootLayout({
           )}
           
           {isLayoutLoading && !isAdminRoute ? (
-             <FullScreenLoader message="Loading AnandVerse..." />
+             <FullScreenLoader />
           ) : (
             <>
               {!isAdminRoute && <Navbar />}
@@ -249,3 +251,4 @@ export default function RootLayout({
     </html>
   );
 }
+

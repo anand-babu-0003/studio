@@ -33,7 +33,7 @@ export default function AboutPage() {
   }, []);
 
   if (isLoading || !aboutMeData) {
-    return <FullScreenLoader message="Loading About Me..." />;
+    return <FullScreenLoader />;
   }
 
   const displayedData = aboutMeData; 
@@ -132,3 +132,4 @@ export default function AboutPage() {
     </div>
   );
 }
+

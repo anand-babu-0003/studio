@@ -292,7 +292,7 @@ export default function AdminSkillsPage() {
       )}
       {!showForm && (
          isLoadingSkills ? (
-          <FullScreenLoader message="Loading Skills..." />
+          <FullScreenLoader />
         ) : (
         <div className="space-y-8">
           {skills.length === 0 && (
@@ -361,3 +361,4 @@ export default function AdminSkillsPage() {
     </div>
   );
 }
+

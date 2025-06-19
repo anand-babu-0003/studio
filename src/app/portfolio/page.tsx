@@ -31,7 +31,7 @@ export default function PortfolioPage() {
   }, []);
 
   if (isLoading) {
-    return <FullScreenLoader message="Loading Portfolio..." />;
+    return <FullScreenLoader />;
   }
 
   return (
@@ -61,3 +61,4 @@ export default function PortfolioPage() {
     </div>
   );
 }
+

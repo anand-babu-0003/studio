@@ -303,7 +303,7 @@ export default function AdminPortfolioPage() {
       )}
       {!showForm && (
         isLoadingProjects ? (
-          <FullScreenLoader message="Loading Projects..." />
+          <FullScreenLoader />
         ) : (
           <div className="space-y-4">
             {projects.length === 0 && <p className="text-muted-foreground text-center py-4">No projects yet. Click "Add New Project" to start.</p>}
@@ -344,3 +344,4 @@ export default function AdminPortfolioPage() {
     </div>
   );
 }
+

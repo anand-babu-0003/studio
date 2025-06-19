@@ -33,7 +33,7 @@ export default function ContactPage() {
   }, []);
 
   if (isLoading || !aboutMeData) {
-    return <FullScreenLoader message="Loading Contact Info..." />;
+    return <FullScreenLoader />;
   }
 
   const displayedData = aboutMeData; 
@@ -66,3 +66,4 @@ export default function ContactPage() {
     </div>
   );
 }
+

@@ -49,7 +49,7 @@ export default function AdminMessagesPage() {
   };
 
   if (isLoading) {
-    return <FullScreenLoader message="Loading Messages..." />;
+    return <FullScreenLoader />;
   }
 
   return (
@@ -111,3 +111,4 @@ export default function AdminMessagesPage() {
     </div>
   );
 }
+

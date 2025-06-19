@@ -117,7 +117,7 @@ export default function AdminSettingsPage() {
   }, [settingsState, toast, form]);
   
   if (isLoadingInitialData) {
-    return <FullScreenLoader message="Loading Site Settings..." />;
+    return <FullScreenLoader />;
   }
 
   return (
@@ -233,3 +233,4 @@ export default function AdminSettingsPage() {
     </div>
   );
 }
+

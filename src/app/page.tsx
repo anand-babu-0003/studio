@@ -54,7 +54,7 @@ export default function Home() {
 
 
   if (isLoading) {
-    return <FullScreenLoader message="Loading My Universe..." />;
+    return <FullScreenLoader />;
   }
 
   return (
@@ -214,3 +214,4 @@ export default function Home() {
     </div>
   );
 }
+

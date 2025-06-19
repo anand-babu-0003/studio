@@ -34,11 +34,11 @@ export default function AdminLayout({
   }
 
   if (isClientSideLoggedIn === null) {
-    return <FullScreenLoader message="Authenticating Admin..." />;
+    return <FullScreenLoader />;
   }
 
   if (isClientSideLoggedIn === false) {
-      return <FullScreenLoader message="Redirecting to Login..." />;
+      return <FullScreenLoader />;
   }
 
   return (
@@ -54,3 +54,4 @@ export default function AdminLayout({
     </div>
   );
 }
+

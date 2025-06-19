@@ -282,7 +282,7 @@ export default function AdminAboutPage() {
   }, [fullFormState, toast, fullForm]);
 
   if (initialDataLoading) {
-    return <FullScreenLoader message="Loading About Page Settings..." />;
+    return <FullScreenLoader />;
   }
 
   return (
@@ -452,3 +452,4 @@ export default function AdminAboutPage() {
     </div>
   );
 }
+

@@ -34,7 +34,7 @@ export default function SkillsPage() {
   }, []);
 
   if (isLoading) {
-    return <FullScreenLoader message="Loading Skills..." />;
+    return <FullScreenLoader />;
   }
 
   return (
@@ -120,3 +120,4 @@ export default function SkillsPage() {
     </div>
   );
 }
+
