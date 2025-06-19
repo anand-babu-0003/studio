@@ -1,55 +1,64 @@
 
-/*======================
-    404 page
-=======================*/
-
+/* src/styles/not-found.css */
 .page_404 {
   padding: 40px 0;
   background: #fff; /* White background for the 404 page specifically */
   font-family: 'Arvo', serif;
   color: #333; /* Default text color for the 404 page content */
-  display: flex;
+  display: flex; /* Used to center the .container vertically and horizontally */
   align-items: center;
   justify-content: center;
   min-height: 100vh; /* Ensure it takes full viewport height */
-  text-align: center; /* Center align content within the section */
+  /* text-align: center; /* Global text-align can be handled by specific elements or .text-center class */
 }
 
-.page_404 img {
+.container {
   width: 100%;
+  padding-right: 15px; /* Standard Bootstrap container padding */
+  padding-left: 15px;  /* Standard Bootstrap container padding */
+  margin-right: auto;
+  margin-left: auto;
+}
+/* Responsive max-widths for the container, typical for Bootstrap */
+@media (min-width: 576px) { .container { max-width: 540px; } }
+@media (min-width: 768px) { .container { max-width: 720px; } }
+@media (min-width: 992px) { .container { max-width: 970px; } }
+@media (min-width: 1200px) { .container { max-width: 1170px; } }
+
+.row {
+  /* Bootstrap rows often use negative margins to counteract padding on cols,
+     but for a simple centered layout, this might not be strictly necessary
+     if direct children handle their own spacing. */
+  margin-right: -15px;
+  margin-left: -15px;
+  /* display: flex; flex-wrap: wrap; /* Add if complex column layouts are needed */
 }
 
-.container_404 { /* Renamed to avoid potential conflicts */
-  max-width: 800px; /* Limit width for better readability */
-  margin: 0 auto; /* Center the container */
-}
-
-/* Basic grid-like structure, though not a full Bootstrap replacement */
-.row_404 {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-.col_sm_12_404 {
+.col-sm-12 {
   width: 100%;
-}
-.col_sm_10_offset_1_404 {
-  width: calc(100% * (10/12)); /* Roughly 10/12 width */
-  margin-left: calc(100% * (1/12)); /* Roughly 1/12 offset */
-}
-@media (max-width: 767px) { /* Simple mobile adjustments */
-  .col_sm_10_offset_1_404 {
-    width: 95%;
-    margin-left: auto;
-    margin-right: auto;
-  }
+  position: relative; /* For positioning context if needed */
+  padding-right: 15px; /* Standard Bootstrap column padding */
+  padding-left: 15px;  /* Standard Bootstrap column padding */
 }
 
-.text_center_404 {
-  text-align: center;
+/* This targets the specific div that needs to be centered and control its content width */
+.col-sm-10.col-sm-offset-1 {
+  /* For a 12-column system:
+     col-sm-10 means width: 83.333333%
+     col-sm-offset-1 means margin-left: 8.333333%
+     This structure is best achieved by making this block itself centered if the parent doesn't force it.
+  */
+  margin-left: auto;  /* Center the block */
+  margin-right: auto; /* Center the block */
+  /* If a specific width for 10 columns is desired. Bootstrap col-sm-10 is 10/12 of parent. */
+  /* max-width: 83.333333%; */ /* You can uncomment this if you want to strictly enforce 10-column width */
 }
 
+.text-center {
+  text-align: center !important; /* Ensure this utility class works */
+}
 
+/* User's specific styles for the 404 page elements */
 .four_zero_four_bg {
   background-image: url(https://cdn.dribbble.com/users/285475/screenshots/2083086/dribbble_1.gif);
   height: 400px;
@@ -59,14 +68,10 @@
 
 .four_zero_four_bg h1 {
   font-size: 80px;
-  color: #555; /* Slightly darker color for the 404 text to stand out on the gif */
-  margin:0;
-  padding-top: 60px; /* Adjust to position text over gif nicely */
-}
-
-.four_zero_four_bg h3 { /* This style wasn't used in the HTML, kept if needed */
-  font-size: 80px;
-  color: #555;
+  margin: 0; /* From user original */
+  color: #555; /* Added color for visibility */
+  padding-top: 60px; /* User's original value to position text on GIF */
+  /* text-align: center; is applied by the className="text-center" on the h1 tag */
 }
 
 .link_404 {
@@ -75,23 +80,26 @@
   background: #39ac31;
   margin: 20px 0;
   display: inline-block;
-  text-decoration: none;
-  border-radius: 4px;
+  text-decoration: none; /* Ensure it's not underlined by default */
+  border-radius: 4px; /* Add some rounding */
 }
 .link_404:hover {
-  background: #2b8a24;
+  background: #2b8a24; /* Add hover effect */
 }
 
 .contant_box_404 {
-  margin-top: -50px;
+  margin-top: -50px; /* From user original */
 }
-.contant_box_404 h3.h2_404 { /* Renamed class */
-    font-size: 28px; /* Adjusted for better hierarchy */
-    margin-bottom: 15px;
-    color: #333;
+
+/* Targeting the h3 element with class "h2" as in original HTML */
+.contant_box_404 .h2 {
+  font-size: 28px; /* A reasonable size for this heading */
+  margin-bottom: 15px;
+  color: #333;
 }
+
 .contant_box_404 p {
-    font-size: 16px;
-    margin-bottom: 20px;
-    color: #555;
+  font-size: 16px;
+  margin-bottom: 20px;
+  color: #555;
 }

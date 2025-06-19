@@ -6,16 +6,19 @@ import '../styles/not-found.css'; // Import the custom CSS
 export default function NotFound() {
   return (
     <section className="page_404">
-      <div className="container_404"> {/* Changed class to avoid conflict if Bootstrap was ever added */}
-        <div className="row_404">
-          <div className="col_sm_12_404">
-            <div className="col_sm_10_offset_1_404 text_center_404">
+      <div className="container"> {/* Use original class name */}
+        <div className="row"> {/* Use original class name */}
+          <div className="col-sm-12"> {/* Use original class name */}
+            {/* This div uses multiple classes as per original HTML */}
+            <div className="col-sm-10 col-sm-offset-1 text-center">
               <div className="four_zero_four_bg">
-                <h1 className="text_center_404">404</h1>
+                {/* h1 has text-center class from parent, but explicit class can be kept if desired from original */}
+                <h1 className="text-center">404</h1>
               </div>
               <div className="contant_box_404">
-                <h3 className="h2_404">Look like you&apos;re lost</h3>
-                <p>The page you are looking for is not available!</p>
+                {/* Original class for h3 was "h2" */}
+                <h3 className="h2">Look like you&apos;re lost</h3>
+                <p>the page you are looking for not avaible!</p> {/* Typo from user's original, kept for fidelity */}
                 <Link href="/" className="link_404">
                   Go to Home
                 </Link>
