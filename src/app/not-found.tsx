@@ -10,13 +10,13 @@ export default function NotFound() {
         <div className="gif-background-container-nf">
           <h1 className="main-404-text-nf">404</h1>
         </div>
-        <div className="illustration-container-nf"> {/* Renamed from caveman-image-container-nf for clarity */}
+        <div className="illustration-container-nf"> {/* Container for the main illustration */}
           <Image
             src="https://cdn.dribbble.com/users/285475/screenshots/2083086/dribbble_1.gif"
             alt="Animated 404 error graphic - Page Not Found"
             width={400}
             height={300}
-            className="illustration-image-nf" // Renamed from caveman-image-nf
+            className="illustration-image-nf"
             unoptimized={true} // Important for GIFs
             priority // Load this image eagerly
           />
