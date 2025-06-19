@@ -4,7 +4,7 @@ import type {NextConfig} from 'next';
 const nextConfig: NextConfig = {
   // output: 'standalone', // Ensure this is removed or commented out for Vercel
   typescript: {
-    ignoreBuildErrors: true, // To bypass the persistent type error during build
+    ignoreBuildErrors: false, // Changed to false for production
   },
   eslint: {
     ignoreDuringBuilds: false, // Keep ESLint checks active unless they also cause issues
@@ -32,6 +32,12 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'photos.fife.usercontent.google.com',
+        port: '',
+        pathname: '/**',
+      },
+      { // Added for Dribbble GIF
+        protocol: 'https',
+        hostname: 'cdn.dribbble.com',
         port: '',
         pathname: '/**',
       }

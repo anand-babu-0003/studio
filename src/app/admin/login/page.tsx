@@ -2,13 +2,13 @@
 "use client";
 
 import { useState, type FormEvent } from 'react';
-import Link from 'next/link'; // Added for the new button
+import Link from 'next/link'; 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { AlertCircle, LogIn, Home } from 'lucide-react'; // Removed ShieldAlert
+import { AlertCircle, LogIn, Home } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 // VERY IMPORTANT: These credentials are hardcoded and visible in the client-side code.
@@ -58,8 +58,9 @@ export default function AdminLoginPage() {
           <CardDescription>Please log in to continue.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Security Warning Alert Removed */}
-          <form onSubmit={handleSubmit} className="space-y-4 pt-4"> {/* Added pt-4 to compensate for removed alert */}
+          {/* The prominent security warning alert has been removed for a cleaner production look. */}
+          {/* The underlying security issue of hardcoded credentials remains and MUST be addressed. */}
+          <form onSubmit={handleSubmit} className="space-y-4 pt-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input

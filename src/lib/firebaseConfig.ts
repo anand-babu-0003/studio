@@ -19,8 +19,6 @@ const logPrefix = IS_SERVER ? "[SERVER FirebaseConfig]" : "[CLIENT FirebaseConfi
 
 if (!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) {
   console.error(`${logPrefix} CRITICAL_ERROR: NEXT_PUBLIC_FIREBASE_PROJECT_ID is not set in environment variables. Firebase will not initialize correctly.`);
-} else {
-  console.log(`${logPrefix} Attempting to use Project ID: ${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}`);
 }
 
 const requiredConfigKeys: (keyof FirebaseOptions)[] = ['apiKey', 'authDomain', 'projectId', 'appId'];
@@ -35,14 +33,14 @@ if (missingKeys.length > 0) {
   if (!getApps().length) {
     try {
       app = initializeApp(firebaseConfig);
-      console.log(`${logPrefix} Firebase app initialized successfully (new instance). Target Project ID from config: ${firebaseConfig.projectId}. Initialized App Project ID: ${app.options.projectId}`);
+      // console.log(`${logPrefix} Firebase app initialized successfully (new instance).`); // Reduced verbosity
     } catch (error) {
       console.error(`${logPrefix} FIREBASE CRITICAL ERROR: Failed to initialize Firebase app:`, error);
       app = undefined;
     }
   } else {
     app = getApp();
-    console.log(`${logPrefix} Firebase app retrieved successfully (existing instance). Target Project ID from config: ${firebaseConfig.projectId}. Retrieved App Project ID: ${app.options.projectId}`);
+    // console.log(`${logPrefix} Firebase app retrieved successfully (existing instance).`); // Reduced verbosity
   }
 
   if (app) {
@@ -52,7 +50,7 @@ if (missingKeys.length > 0) {
     try {
       firestoreInstance = getFirestore(app);
       if (firestoreInstance && typeof (firestoreInstance as any).type === 'string' && (firestoreInstance as any).type === 'firestore') {
-         console.log(`${logPrefix} Firestore instance obtained successfully for project: ${firestoreInstance.app.options.projectId}.`);
+         // console.log(`${logPrefix} Firestore instance obtained successfully.`); // Reduced verbosity
       } else {
         console.warn(`${logPrefix} Firestore instance obtained, but it doesn't look like a valid Firestore object. Type:`, typeof firestoreInstance, firestoreInstance);
         firestoreInstance = null;
@@ -68,10 +66,9 @@ if (missingKeys.length > 0) {
 }
 
 if (firestoreInstance) {
-    console.log(`${logPrefix} Firestore IS CONFIGURED and available.`);
+    console.log(`${logPrefix} Firebase & Firestore are configured.`);
 } else {
-    console.error(`${logPrefix} Firestore IS NOT CONFIGURED or available. Admin panel and other Firestore-dependent features will fail. CHECK YOUR ENVIRONMENT VARIABLES AND FIREBASE CONSOLE!`);
+    console.error(`${logPrefix} Firebase & Firestore ARE NOT CONFIGURED or available. Admin panel and other Firestore-dependent features will fail. CHECK YOUR ENVIRONMENT VARIABLES AND FIREBASE CONSOLE!`);
 }
 
 export { firestoreInstance as firestore, firebaseConfig, app as firebaseApp };
-
