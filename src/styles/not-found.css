@@ -6,10 +6,10 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: #ffffff; /* Ensure full white background */
-  color: #24292f; /* Default text color for 404 content, can be overridden */
+  background-color: #ffffff !important; /* Ensure solid white background */
+  color: #24292f; 
   font-family: 'Arvo', serif;
-  z-index: 9999;
+  z-index: 9999; /* High z-index to cover other content */
   display: flex;
   align-items: center; /* Vertically center */
   justify-content: center; /* Horizontally center */
@@ -18,16 +18,16 @@
   box-sizing: border-box;
 }
 
-.page_404 {
-  padding: 20px 0; /* Reduced padding from 40px to 20px if content is too large */
-  /* background: #fff; /* This white background is fine, will blend */
+.page_404{ 
+  padding:20px 0; /* Adjusted padding */
+  /* background:#fff; /* This internal background can be white or transparent */
   font-family: 'Arvo', serif;
   width: 100%;
-  max-width: 1140px; 
+  max-width: 1140px; /* Max width for the content block */
   text-align: center;
 }
 
-.page_404 img { 
+.page_404  img{ 
   width:100%;
 }
 
@@ -41,21 +41,18 @@
 }
 
 .row_nf {
-  /* For flex centering, direct children of .page_404 will be centered if display:flex is on .page_404 */
-  /* If .page_404 is text-align: center, children will center if they are inline or inline-block */
+  /* No specific styling needed if centering is handled by flexbox on parent */
 }
 
 .col_sm_12_nf {
   width: 100%;
-  /* max-width: 960px; /* This might constrain too much if page_404 is already max-width */
   position: relative;
   padding-right: 15px;
   padding-left: 15px;
 }
 
 .col_sm_10_nf.col_sm_offset_1_nf {
-  /* margin-left: auto; /* Handled by text-center on parent */
-  /* margin-right: auto; */
+  /* Centering handled by text-align: center on .page_404 or flex on parent */
 }
 
 .text_center_nf {
@@ -69,25 +66,25 @@
     background-repeat: no-repeat;
     margin-left: auto;
     margin-right: auto;
-    max-width: 100%; /* Ensures GIF scales down if container is smaller */
+    max-width: 100%; 
  }
  
 .four_zero_four_bg h1{ /* Text over the GIF */
   font-size:80px;
   margin:0;
-  color: #555; /* Default color for text over GIF, adjust if needed */
+  color: #555; 
   padding-top: 60px; 
  }
  
 .link_404{			 
-  color: #fff!important;
-  padding: 10px 20px;
-  background: #39ac31; 
-  margin: 20px 0;
-  display: inline-block;
-  text-decoration: none;
-  border-radius: 4px;
-  font-weight: bold;
+	color: #fff!important;
+    padding: 10px 20px;
+    background: #39ac31; 
+    margin: 20px 0;
+    display: inline-block;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: bold;
 }
 .link_404:hover {
   background: #2b8a24;
@@ -100,20 +97,21 @@
 .contant_box_404 .h2_nf { 
   font-size: 28px;
   margin-bottom: 15px;
-  color: #333; /* Darker text for readability on white */
+  color: #333; 
   font-weight: bold;
 }
 
 .contant_box_404 p {
   font-size: 16px;
   margin-bottom: 20px;
-  color: #555; /* Muted text color */
+  color: #555; 
 }
 
+/* This is the "404" text that appears above the "Go to Home" button */
 .contant_box_404 .internal_404_text_nf { 
   font-size: 80px;
   margin-top: 20px;
   margin-bottom: 20px;
-  color: #39ac31; /* Primary green color */
+  color: #39ac31; /* Primary green color from your example */
   font-weight: bold;
 }
