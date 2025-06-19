@@ -1,64 +1,69 @@
-
 /* src/styles/not-found.css */
+
+/* Fullscreen wrapper to hide nav/footer */
+.fullscreen-nf-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #fff; /* Match page_404 background */
+  z-index: 10000; /* Ensure it's above everything */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto; /* Allow scrolling if content overflows on small screens */
+}
+
 .page_404 {
   padding: 40px 0;
   background: #fff; /* White background for the 404 page specifically */
   font-family: 'Arvo', serif;
   color: #333; /* Default text color for the 404 page content */
-  display: flex; /* Used to center the .container vertically and horizontally */
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh; /* Ensure it takes full viewport height */
-  /* text-align: center; /* Global text-align can be handled by specific elements or .text-center class */
+  width: 100%; /* Ensure section takes full width of its wrapper */
+  text-align: center; /* Center content within the section */
 }
+
+.page_404  img{ width:100%;}
 
 .container {
   width: 100%;
-  padding-right: 15px; /* Standard Bootstrap container padding */
-  padding-left: 15px;  /* Standard Bootstrap container padding */
+  padding-right: 15px;
+  padding-left: 15px;
   margin-right: auto;
   margin-left: auto;
 }
-/* Responsive max-widths for the container, typical for Bootstrap */
+
 @media (min-width: 576px) { .container { max-width: 540px; } }
 @media (min-width: 768px) { .container { max-width: 720px; } }
-@media (min-width: 992px) { .container { max-width: 970px; } }
-@media (min-width: 1200px) { .container { max-width: 1170px; } }
+@media (min-width: 992px) { .container { max-width: 960px; } } /* Adjusted from 970px */
+@media (min-width: 1200px) { .container { max-width: 1140px; } } /* Adjusted from 1170px */
+
 
 .row {
-  /* Bootstrap rows often use negative margins to counteract padding on cols,
-     but for a simple centered layout, this might not be strictly necessary
-     if direct children handle their own spacing. */
   margin-right: -15px;
   margin-left: -15px;
-  /* display: flex; flex-wrap: wrap; /* Add if complex column layouts are needed */
+  /* display: flex; flex-wrap: wrap; /* Removed for simpler centering */
 }
 
 .col-sm-12 {
   width: 100%;
-  position: relative; /* For positioning context if needed */
-  padding-right: 15px; /* Standard Bootstrap column padding */
-  padding-left: 15px;  /* Standard Bootstrap column padding */
+  position: relative;
+  padding-right: 15px;
+  padding-left: 15px;
 }
 
-/* This targets the specific div that needs to be centered and control its content width */
 .col-sm-10.col-sm-offset-1 {
-  /* For a 12-column system:
-     col-sm-10 means width: 83.333333%
-     col-sm-offset-1 means margin-left: 8.333333%
-     This structure is best achieved by making this block itself centered if the parent doesn't force it.
-  */
-  margin-left: auto;  /* Center the block */
-  margin-right: auto; /* Center the block */
-  /* If a specific width for 10 columns is desired. Bootstrap col-sm-10 is 10/12 of parent. */
-  /* max-width: 83.333333%; */ /* You can uncomment this if you want to strictly enforce 10-column width */
+  /* This block will be centered by text-align on parent and its own margins if needed */
+  margin-left: auto;
+  margin-right: auto;
+  /* max-width: 83.333333%; /* Optional: if strictly adhering to 10/12 columns */
 }
 
 .text-center {
-  text-align: center !important; /* Ensure this utility class works */
+  text-align: center !important;
 }
 
-/* User's specific styles for the 404 page elements */
 .four_zero_four_bg {
   background-image: url(https://cdn.dribbble.com/users/285475/screenshots/2083086/dribbble_1.gif);
   height: 400px;
@@ -68,10 +73,35 @@
 
 .four_zero_four_bg h1 {
   font-size: 80px;
-  margin: 0; /* From user original */
-  color: #555; /* Added color for visibility */
-  padding-top: 60px; /* User's original value to position text on GIF */
-  /* text-align: center; is applied by the className="text-center" on the h1 tag */
+  margin: 0;
+  color: #555; /* Consistent color */
+  padding-top: 60px; /* Adjust as needed to position over GIF */
+  /* text-align: center; is handled by className */
+}
+
+.contant_box_404 {
+  margin-top: -50px; /* Pulls this box up over the GIF area */
+}
+
+.contant_box_404 .h2 { /* Targets h3 with class="h2" */
+  font-size: 28px;
+  margin-bottom: 15px;
+  color: #333;
+  font-weight: bold;
+}
+
+.contant_box_404 p {
+  font-size: 16px;
+  margin-bottom: 20px;
+  color: #555;
+}
+
+.contant_box_404 .internal-404-text { /* Style for the new h1 */
+  font-size: 80px; /* Prominent size */
+  margin-top: 20px;
+  margin-bottom: 20px;
+  color: #444; /* Slightly different from the one on GIF for distinction */
+  font-weight: bold;
 }
 
 .link_404 {
@@ -80,26 +110,9 @@
   background: #39ac31;
   margin: 20px 0;
   display: inline-block;
-  text-decoration: none; /* Ensure it's not underlined by default */
-  border-radius: 4px; /* Add some rounding */
+  text-decoration: none;
+  border-radius: 4px;
 }
 .link_404:hover {
-  background: #2b8a24; /* Add hover effect */
-}
-
-.contant_box_404 {
-  margin-top: -50px; /* From user original */
-}
-
-/* Targeting the h3 element with class "h2" as in original HTML */
-.contant_box_404 .h2 {
-  font-size: 28px; /* A reasonable size for this heading */
-  margin-bottom: 15px;
-  color: #333;
-}
-
-.contant_box_404 p {
-  font-size: 16px;
-  margin-bottom: 20px;
-  color: #555;
+  background: #2b8a24;
 }
