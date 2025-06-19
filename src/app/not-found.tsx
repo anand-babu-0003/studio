@@ -17,16 +17,14 @@ export default function NotFound() {
                 </div>
                 
                 <div className="contant_box_404">
-                  <div className="dribbble-gif-container-nf">
-                     <Image
-                        src="https://cdn.dribbble.com/users/285475/screenshots/2083086/dribbble_1.gif"
-                        alt="Animated 404 error graphic - page not found"
-                        width={400} 
-                        height={300}
-                        className="dribbble-gif-nf"
-                        unoptimized={true} 
-                      />
-                  </div>
+                   <Image
+                    src="https://cdn.dribbble.com/users/285475/screenshots/2083086/dribbble_1.gif"
+                    alt="Animated graphic of a lost page or connection error"
+                    width={400} 
+                    height={300} 
+                    className="dribbble-gif-nf" 
+                    unoptimized={true} 
+                  />
                   <h1 className="contextual-404-text-nf">404</h1>
                   <h3 className="h2_nf">
                     Look like you&apos;re lost
