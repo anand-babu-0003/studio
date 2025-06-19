@@ -15,11 +15,10 @@ const firebaseConfig: FirebaseOptions = {
 let app;
 let firestore: ReturnType<typeof getFirestore> | null = null;
 
-const requiredConfigKeys: (keyof FirebaseOptions)[] = ['apiKey', 'authDomain', 'projectId'];
+const requiredConfigKeys: (keyof FirebaseOptions)[] = ['apiKey', 'authDomain', 'projectId', 'appId'];
 let missingKeys: string[] = [];
 
 if (typeof process !== 'undefined' && process.env.NODE_ENV === 'test') {
-  // Special handling for test environment if needed, or skip initialization
   console.warn("Running in test environment, Firebase initialization might be skipped or mocked.");
 } else {
   missingKeys = requiredConfigKeys.filter(key => !firebaseConfig[key]);
@@ -36,11 +35,10 @@ if (typeof process !== 'undefined' && process.env.NODE_ENV === 'test') {
         app = initializeApp(firebaseConfig);
       } catch (error) {
         console.error("Failed to initialize Firebase app:", error);
-        // Prevent further execution if app initialization fails
-        app = undefined; 
+        app = undefined;
       }
     } else {
-      app = getApp(); // Get the default app if already initialized
+      app = getApp();
     }
 
     if (app) {
@@ -48,7 +46,7 @@ if (typeof process !== 'undefined' && process.env.NODE_ENV === 'test') {
         firestore = getFirestore(app);
       } catch (error) {
         console.error("Failed to get Firestore instance:", error);
-        firestore = null; // Ensure firestore is null if it fails
+        firestore = null;
       }
     } else {
        console.warn("Firebase app object is undefined. Firestore cannot be initialized.");
