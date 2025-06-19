@@ -1,4 +1,4 @@
-# **App Name**: VermaVerse
+# **App Name**: AnandVerse
 
 ## Core Features:
 

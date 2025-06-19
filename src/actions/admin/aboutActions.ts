@@ -128,8 +128,8 @@ export async function updateProfileBioDataAction(
       name: String(formData.get('name') || currentAboutMeData.name),
       title: String(formData.get('title') || currentAboutMeData.title),
       bio: String(formData.get('bio') || currentAboutMeData.bio),
-      profileImage: String(formData.get('profileImage') || currentAboutMeData.profileImage),
-      dataAiHint: String(formData.get('dataAiHint') || currentAboutMeData.dataAiHint),
+      profileImage: String(formData.get('profileImage') || currentAboutMeData.profileImage || ''),
+      dataAiHint: String(formData.get('dataAiHint') || currentAboutMeData.dataAiHint || ''),
     };
 
     const validatedFields = profileBioSchema.safeParse(rawData);
@@ -147,7 +147,11 @@ export async function updateProfileBioDataAction(
     const dataToSave = validatedFields.data;
     const updatedAboutMeData: AboutMeData = {
       ...currentAboutMeData,
-      ...dataToSave,
+      name: dataToSave.name,
+      title: dataToSave.title,
+      bio: dataToSave.bio,
+      profileImage: dataToSave.profileImage || defaultAboutMeDataForClient.profileImage, // Ensure fallback if cleared
+      dataAiHint: dataToSave.dataAiHint || defaultAboutMeDataForClient.dataAiHint,     // Ensure fallback if cleared
     };
     await writeAboutMeDataToFirestore(updatedAboutMeData);
 
@@ -169,8 +173,8 @@ export async function updateProfileBioDataAction(
       name: String(formData.get('name') || currentAboutMeData.name),
       title: String(formData.get('title') || currentAboutMeData.title),
       bio: String(formData.get('bio') || currentAboutMeData.bio),
-      profileImage: String(formData.get('profileImage') || currentAboutMeData.profileImage),
-      dataAiHint: String(formData.get('dataAiHint') || currentAboutMeData.dataAiHint),
+      profileImage: String(formData.get('profileImage') || currentAboutMeData.profileImage || ''),
+      dataAiHint: String(formData.get('dataAiHint') || currentAboutMeData.dataAiHint || ''),
     };
     return {
       message: "An unexpected server error occurred while updating profile & bio.",
@@ -367,10 +371,8 @@ export async function updateAboutDataAction( // This action name implies updatin
   let rawDataForValidation: Partial<AboutMeData> | undefined = undefined;
 
   try {
-    // Construct the object for validation, ensuring all fields are present
-    // using current data as baseline, then overlaying form data.
     rawDataForValidation = {
-      ...currentAboutMeData, // Start with all current data
+      ...currentAboutMeData, 
       email: String(formData.get('email') || currentAboutMeData.email || ''),
       linkedinUrl: String(formData.get('linkedinUrl') || currentAboutMeData.linkedinUrl || ''),
       githubUrl: String(formData.get('githubUrl') || currentAboutMeData.githubUrl || ''),
@@ -390,11 +392,11 @@ export async function updateAboutDataAction( // This action name implies updatin
     }
 
     const dataToSave: AboutMeData = {
-        ...currentAboutMeData, // Keep existing non-contact fields
-        email: validatedFields.data.email,
-        linkedinUrl: validatedFields.data.linkedinUrl,
-        githubUrl: validatedFields.data.githubUrl,
-        twitterUrl: validatedFields.data.twitterUrl,
+        ...currentAboutMeData,
+        email: validatedFields.data.email || '', // Ensure empty string if undefined from Zod
+        linkedinUrl: validatedFields.data.linkedinUrl || '',
+        githubUrl: validatedFields.data.githubUrl || '',
+        twitterUrl: validatedFields.data.twitterUrl || '',
     };
       
     await writeAboutMeDataToFirestore(dataToSave);
@@ -422,3 +424,6 @@ export async function updateAboutDataAction( // This action name implies updatin
     };
   }
 }
+
+
+    

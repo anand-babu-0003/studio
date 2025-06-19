@@ -29,9 +29,10 @@ export async function getContactMessagesAction(): Promise<ContactMessage[]> {
     }
     return snapshot.docs.map(docSnap => {
       const data = docSnap.data();
+      // Ensure submittedAt is always a string (ISO format)
       const submittedAt = data.submittedAt instanceof Timestamp 
                        ? data.submittedAt.toDate().toISOString() 
-                       : (data.submittedAt || new Date().toISOString()); // Fallback for submittedAt
+                       : (typeof data.submittedAt === 'string' ? data.submittedAt : new Date().toISOString()); 
       return {
         id: docSnap.id,
         name: data.name || 'N/A',
@@ -67,3 +68,6 @@ export async function deleteContactMessageAction(messageId: string): Promise<Del
         return { success: false, message: "Failed to delete message due to a server error." };
     }
 }
+
+
+    

@@ -34,8 +34,8 @@ const portfolioDocRef = (id: string) => {
 // Action to get all portfolio items
 export async function getPortfolioItemsAction(): Promise<LibPortfolioItemType[]> {
   if (!firestore) {
-    console.warn("Firestore not initialized in getPortfolioItemsAction. Returning empty array.");
-    return [];
+    console.warn("Firestore not initialized in getPortfolioItemsAction. Returning default client items.");
+    return JSON.parse(JSON.stringify(defaultPortfolioItemsDataForClient)); // Deep clone
   }
   try {
     const q = query(portfolioCollectionRef(), orderBy('createdAt', 'desc'));
@@ -60,15 +60,15 @@ export async function getPortfolioItemsAction(): Promise<LibPortfolioItemType[]>
         liveUrl: data.liveUrl || '',
         repoUrl: data.repoUrl || '',
         slug: data.slug || `project-${docSnap.id}`,
-        dataAiHint: data.dataAiHint || '',
-        readmeContent: data.readmeContent || '',
+        dataAiHint: data.dataAiHint || defaultPortfolioItemStructure.dataAiHint,
+        readmeContent: data.readmeContent || defaultPortfolioItemStructure.readmeContent,
         createdAt: createdAt,
         updatedAt: updatedAt,
       } as LibPortfolioItemType;
     });
   } catch (error) {
     console.error("Error fetching portfolio items from Firestore:", error);
-    return []; 
+    return JSON.parse(JSON.stringify(defaultPortfolioItemsDataForClient));  // Fallback on error
   }
 }
 
@@ -106,8 +106,8 @@ export async function getPortfolioItemBySlugAction(slug: string): Promise<LibPor
       liveUrl: data.liveUrl || '',
       repoUrl: data.repoUrl || '',
       slug: data.slug, 
-      dataAiHint: data.dataAiHint || '',
-      readmeContent: data.readmeContent || '',
+      dataAiHint: data.dataAiHint || defaultPortfolioItemStructure.dataAiHint,
+      readmeContent: data.readmeContent || defaultPortfolioItemStructure.readmeContent,
       createdAt: createdAt,
       updatedAt: updatedAt,
     } as LibPortfolioItemType;
@@ -166,11 +166,15 @@ export async function savePortfolioItemAction(
 
   const data = validatedFields.data;
   
-  const images: string[] = [];
-  if (data.image1 && data.image1.trim() !== '') images.push(data.image1);
-  if (data.image2 && data.image2.trim() !== '') images.push(data.image2);
-  // Use default image if no images provided and it's a new project or existing images are cleared
-  const finalImages = images.length > 0 ? images : (data.id ? [] : [...defaultPortfolioItemStructure.images]);
+  const imagesFromForm: string[] = [];
+  if (data.image1 && data.image1.trim() !== '') imagesFromForm.push(data.image1);
+  if (data.image2 && data.image2.trim() !== '') imagesFromForm.push(data.image2);
+  
+  // Use default images only if it's a new project AND no images were provided from the form.
+  // For existing projects, if user clears images, respect that (empty array).
+  const finalImages = (imagesFromForm.length > 0)
+    ? imagesFromForm
+    : (!data.id ? [...defaultPortfolioItemStructure.images] : []);
 
 
   const tags: string[] = data.tagsString ? data.tagsString.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
@@ -184,8 +188,8 @@ export async function savePortfolioItemAction(
     liveUrl: data.liveUrl || '',
     repoUrl: data.repoUrl || '',
     slug: data.slug,
-    dataAiHint: data.dataAiHint || '',
-    readmeContent: data.readmeContent || defaultPortfolioItemStructure.readmeContent, // Ensure readme has a default
+    dataAiHint: data.dataAiHint || defaultPortfolioItemStructure.dataAiHint,
+    readmeContent: data.readmeContent || defaultPortfolioItemStructure.readmeContent,
     updatedAt: serverTimestamp(),
   };
   
@@ -226,7 +230,9 @@ export async function savePortfolioItemAction(
         throw new Error("Failed to retrieve saved project from Firestore after save operation.");
     }
     const savedData = savedDoc.data()!;
-    const createdAt = savedData.createdAt instanceof Timestamp ? savedData.createdAt.toDate().toISOString() : (projectDataForFirestore.createdAt ? new Date().toISOString() : new Date(0).toISOString());
+    // Ensure createdAt is only set if it's a new document, otherwise, it gets overwritten by serverTimestamp() if not careful
+    const createdAtRaw = data.id ? savedData.createdAt : projectDataForFirestore.createdAt;
+    const createdAt = createdAtRaw instanceof Timestamp ? createdAtRaw.toDate().toISOString() : (createdAtRaw ? new Date().toISOString() : new Date(0).toISOString());
     const updatedAt = savedData.updatedAt instanceof Timestamp ? savedData.updatedAt.toDate().toISOString() : new Date().toISOString();
 
     const finalSavedProject: LibPortfolioItemType = {
@@ -234,7 +240,7 @@ export async function savePortfolioItemAction(
       title: savedData.title || projectDataForFirestore.title,
       description: savedData.description || projectDataForFirestore.description,
       longDescription: savedData.longDescription || projectDataForFirestore.longDescription,
-      images: savedData.images && savedData.images.length > 0 ? savedData.images : (data.id ? [] : [...defaultPortfolioItemStructure.images]),
+      images: savedData.images || projectDataForFirestore.images, // Use saved images directly
       tags: savedData.tags || projectDataForFirestore.tags,
       liveUrl: savedData.liveUrl || projectDataForFirestore.liveUrl,
       repoUrl: savedData.repoUrl || projectDataForFirestore.repoUrl,
@@ -303,3 +309,6 @@ export async function deletePortfolioItemAction(itemId: string): Promise<DeleteP
         return { success: false, message: "Failed to delete project due to a server error." };
     }
 }
+
+
+    

@@ -29,8 +29,6 @@ export default function Footer({ aboutMeData }: FooterProps) {
     setCurrentYear(new Date().getFullYear()); 
   }, []);
 
-  // Use default data if aboutMeData is null or not yet loaded,
-  // or if not mounted (server-side render will use default)
   const displayedData = (isMounted && aboutMeData) ? aboutMeData : defaultAboutMeDataForClient;
 
   const socialLinksToDisplay: SocialLink[] = [
@@ -131,3 +129,5 @@ export default function Footer({ aboutMeData }: FooterProps) {
     </footer>
   );
 }
+
+    

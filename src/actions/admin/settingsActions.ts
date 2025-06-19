@@ -97,7 +97,12 @@ export async function updateSiteSettingsAction(
       };
     }
 
-    const dataToSave: SiteSettings = validatedFields.data; 
+    const dataToSave: SiteSettings = {
+      siteName: validatedFields.data.siteName,
+      defaultMetaDescription: validatedFields.data.defaultMetaDescription,
+      defaultMetaKeywords: validatedFields.data.defaultMetaKeywords || '', // Ensure empty string if undefined
+      siteOgImageUrl: validatedFields.data.siteOgImageUrl || '', // Ensure empty string if undefined
+    };
 
     await setDoc(siteSettingsDocRef(), dataToSave, { merge: true });
 
@@ -134,3 +139,6 @@ export async function updateSiteSettingsAction(
     };
   }
 }
+
+
+    

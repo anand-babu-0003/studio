@@ -37,7 +37,6 @@ export async function getSkillsAction(): Promise<LibSkillType[]> {
         name: data.name || 'Unnamed Skill',
         category: data.category || 'Other',
         iconName: data.iconName || 'Package',
-        // Ensure proficiency is either a number or null, not undefined
         proficiency: (data.proficiency === undefined || data.proficiency === null) ? null : Number(data.proficiency),
       } as LibSkillType;
     });
@@ -73,7 +72,6 @@ export async function saveSkillAction(
     name: String(formData.get('name') || ''),
     category: String(formData.get('category') || 'Other') as LibSkillType['category'],
     iconName: String(formData.get('iconName') || 'Package'),
-    // Zod schema will handle conversion of empty string to undefined for proficiency
     proficiency: formData.get('proficiency') as any, 
   };
 
@@ -95,7 +93,6 @@ export async function saveSkillAction(
     name: data.name,
     category: data.category,
     iconName: data.iconName,
-    // Ensure proficiency is explicitly null if it's undefined after Zod (empty input)
     proficiency: data.proficiency === undefined ? null : data.proficiency,
   };
 
@@ -152,3 +149,6 @@ export async function deleteSkillAction(itemId: string): Promise<DeleteSkillResu
         return { success: false, message: "Failed to delete skill due to a server error." };
     }
 }
+
+
+    

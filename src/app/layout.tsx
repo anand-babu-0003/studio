@@ -12,6 +12,7 @@ import type { SiteSettings, AboutMeData } from '@/lib/types';
 import { getSiteSettingsAction } from '@/actions/admin/settingsActions';
 import { getAboutMeDataAction } from '@/actions/getAboutMeDataAction';
 import { defaultSiteSettingsForClient, defaultAboutMeDataForClient } from '@/lib/data';
+import { Loader2 } from 'lucide-react';
 
 // Helper function to create or update a meta tag
 function updateMetaTag(name: string, content: string, isProperty: boolean = false) {
@@ -53,30 +54,33 @@ export default function RootLayout({
   const pathname = usePathname();
   const isAdminRoute = pathname.startsWith('/admin');
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [isMounted, setIsMounted] = useState(false); // For client-side only effects
+  const [isMounted, setIsMounted] = useState(false); 
   
-  // Initialize with default values to prevent undefined errors during initial render
   const [currentSiteSettings, setCurrentSiteSettings] = useState<SiteSettings>(defaultSiteSettingsForClient);
   const [currentAboutMeData, setCurrentAboutMeData] = useState<AboutMeData>(defaultAboutMeDataForClient);
+  const [isLayoutLoading, setIsLayoutLoading] = useState(true);
+
 
   useEffect(() => {
     setIsMounted(true); 
 
     const fetchInitialData = async () => {
+      setIsLayoutLoading(true);
       try {
-        const settings = await getSiteSettingsAction();
-        setCurrentSiteSettings(settings || defaultSiteSettingsForClient);
-      } catch (error) {
-        console.error("Failed to fetch site settings for layout:", error);
-        setCurrentSiteSettings(defaultSiteSettingsForClient); // Fallback
-      }
+        const settingsPromise = getSiteSettingsAction();
+        const aboutPromise = getAboutMeDataAction();
+        
+        const [settings, aboutData] = await Promise.all([settingsPromise, aboutPromise]);
 
-      try {
-        const aboutData = await getAboutMeDataAction();
+        setCurrentSiteSettings(settings || defaultSiteSettingsForClient);
         setCurrentAboutMeData(aboutData || defaultAboutMeDataForClient);
+
       } catch (error) {
-          console.error("Failed to fetch about me data for layout:", error);
-          setCurrentAboutMeData(defaultAboutMeDataForClient); // Fallback
+        console.error("Failed to fetch initial layout data:", error);
+        setCurrentSiteSettings(defaultSiteSettingsForClient); 
+        setCurrentAboutMeData(defaultAboutMeDataForClient);
+      } finally {
+        setIsLayoutLoading(false);
       }
     };
 
@@ -99,27 +103,37 @@ export default function RootLayout({
 
 
   useEffect(() => {
-    if (typeof document !== 'undefined' && currentSiteSettings) {
+    if (typeof document !== 'undefined' && currentSiteSettings && !isLayoutLoading) {
         const pathSegments = pathname.split('/').filter(Boolean);
-        const pageTitleSegment = pathSegments.length > 0 ? pathSegments[pathSegments.length -1].replace(/-/g, ' ') : '';
+        let pageTitleSegment = '';
+        if (pathSegments.length > 0) {
+          // For /admin/something, use "Something"
+          // For /portfolio/my-project, use "My Project"
+          pageTitleSegment = pathSegments[pathSegments.length -1]
+                              .replace(/-/g, ' ')
+                              .split(' ')
+                              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                              .join(' ');
+        }
         
-        const formattedPageTitle = pageTitleSegment
-            ? pageTitleSegment.charAt(0).toUpperCase() + pageTitleSegment.slice(1)
-            : '';
-
         const siteNameBase = currentSiteSettings.siteName || defaultSiteSettingsForClient.siteName;
 
         if (pathname === '/') {
             document.title = siteNameBase;
         } else if (formattedPageTitle && !isAdminRoute) {
             document.title = `${formattedPageTitle} | ${siteNameBase}`;
-        } else if (isAdminRoute && formattedPageTitle && pathSegments[0] === 'admin' && pathSegments.length > 1) {
-             document.title = `Admin: ${formattedPageTitle} | ${siteNameBase}`;
-        } else if (isAdminRoute && pathSegments[0] === 'admin' && pathSegments.length === 1) { // for /admin or /admin/
+        } else if (isAdminRoute && pathSegments.length > 1 && pathSegments[0] === 'admin') {
+             const adminPageTitle = pageTitleSegment || 'Dashboard'; // Default to Dashboard for /admin
+             document.title = `Admin: ${adminPageTitle} | ${siteNameBase}`;
+        } else if (isAdminRoute && pathSegments.length <= 1 && pathSegments[0] === 'admin') {
              document.title = `Admin Dashboard | ${siteNameBase}`;
         }
          else {
-            document.title = siteNameBase;
+             // Fallback or for pages without clear title segments
+            const formattedPageTitle = pageTitleSegment
+              ? pageTitleSegment.charAt(0).toUpperCase() + pageTitleSegment.slice(1)
+              : '';
+            document.title = formattedPageTitle ? `${formattedPageTitle} | ${siteNameBase}` : siteNameBase;
         }
 
         updateMetaTag('description', currentSiteSettings.defaultMetaDescription || defaultSiteSettingsForClient.defaultMetaDescription);
@@ -135,16 +149,15 @@ export default function RootLayout({
         if (currentSiteSettings.siteOgImageUrl && currentSiteSettings.siteOgImageUrl.trim() !== '') {
             updateMetaTag('og:image', currentSiteSettings.siteOgImageUrl, true);
         } else {
-            removeMetaTag('og:image', true); // Or set to a default fallback image URL
+            removeMetaTag('og:image', true); 
         }
     }
-  }, [currentSiteSettings, pathname, isAdminRoute]);
+  }, [currentSiteSettings, pathname, isAdminRoute, isLayoutLoading]);
 
 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Favicon links are static and don't depend on fetched data */}
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         
@@ -153,7 +166,6 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-        {/* Default title and meta for initial load / JS disabled, will be updated by useEffect */}
         <title>{defaultSiteSettingsForClient.siteName}</title>
         <meta name="description" content={defaultSiteSettingsForClient.defaultMetaDescription} />
         {defaultSiteSettingsForClient.defaultMetaKeywords && (
@@ -168,7 +180,7 @@ export default function RootLayout({
 
       </head>
       <body className="font-body antialiased flex flex-col min-h-screen">
-        {isMounted && !isAdminRoute && (
+        {isMounted && !isAdminRoute && !isLayoutLoading && (
           <>
             <div
               className="light-orb light-orb-1"
@@ -192,12 +204,22 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {!isAdminRoute && <Navbar />}
-          <div className="flex-grow">{children}</div>
-          {!isAdminRoute && <Footer aboutMeData={currentAboutMeData} />}
+          {isLayoutLoading && !isAdminRoute ? (
+             <div className="flex-grow flex items-center justify-center">
+                <Loader2 className="h-10 w-10 animate-spin text-primary" />
+             </div>
+          ) : (
+            <>
+              {!isAdminRoute && <Navbar />}
+              <div className="flex-grow">{children}</div>
+              {!isAdminRoute && <Footer aboutMeData={currentAboutMeData} />}
+            </>
+          )}
           <Toaster />
         </ThemeProvider>
       </body>
     </html>
   );
 }
+
+    
