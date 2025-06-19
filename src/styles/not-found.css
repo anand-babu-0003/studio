@@ -1,30 +1,34 @@
 /* src/styles/not-found.css */
 
-/* Fullscreen wrapper to hide nav/footer */
 .fullscreen-nf-wrapper {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: #fff; /* Match page_404 background */
-  z-index: 10000; /* Ensure it's above everything */
+  background-color: #fff; /* White background for the wrapper */
+  color: #333; /* Default text color for content within this wrapper */
+  font-family: 'Arvo', serif; /* Apply Arvo font to the wrapper */
+  z-index: 200; /* Ensure it's above Navbar (z-50) and banners (z-100/101) */
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: auto; /* Allow scrolling if content overflows on small screens */
+  padding: 20px; /* Add some padding for smaller screens */
+  box-sizing: border-box;
 }
 
 .page_404 {
-  padding: 40px 0;
-  background: #fff; /* White background for the 404 page specifically */
-  font-family: 'Arvo', serif;
-  color: #333; /* Default text color for the 404 page content */
-  width: 100%; /* Ensure section takes full width of its wrapper */
-  text-align: center; /* Center content within the section */
+  padding: 20px 0; /* Reduced padding, as wrapper has padding now */
+  /* background is inherited from fullscreen-nf-wrapper */
+  width: 100%;
+  max-width: 1140px; /* Max width for the content area */
+  text-align: center;
 }
 
-.page_404  img{ width:100%;}
+.page_404 img { 
+  width:100%;
+}
 
 .container {
   width: 100%;
@@ -34,30 +38,26 @@
   margin-left: auto;
 }
 
-@media (min-width: 576px) { .container { max-width: 540px; } }
-@media (min-width: 768px) { .container { max-width: 720px; } }
-@media (min-width: 992px) { .container { max-width: 960px; } } /* Adjusted from 970px */
-@media (min-width: 1200px) { .container { max-width: 1140px; } } /* Adjusted from 1170px */
-
-
+/* Basic grid alignment for the provided structure */
 .row {
   margin-right: -15px;
   margin-left: -15px;
-  /* display: flex; flex-wrap: wrap; /* Removed for simpler centering */
+  display: flex; /* Use flex for centering content */
+  justify-content: center; /* Center .col-sm-12 in the row */
 }
 
 .col-sm-12 {
-  width: 100%;
+  width: 100%; /* Takes full width of its parent if parent is flex-centered */
+  max-width: 960px; /* Limit width of this column for better layout on larger screens */
   position: relative;
   padding-right: 15px;
   padding-left: 15px;
 }
 
 .col-sm-10.col-sm-offset-1 {
-  /* This block will be centered by text-align on parent and its own margins if needed */
+  /* This block will be centered by text-align on itself or flex on parent */
   margin-left: auto;
   margin-right: auto;
-  /* max-width: 83.333333%; /* Optional: if strictly adhering to 10/12 columns */
 }
 
 .text-center {
@@ -69,18 +69,38 @@
   height: 400px;
   background-position: center;
   background-repeat: no-repeat;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 100%; /* Ensure GIF container doesn't overflow */
 }
 
 .four_zero_four_bg h1 {
   font-size: 80px;
   margin: 0;
-  color: #555; /* Consistent color */
-  padding-top: 60px; /* Adjust as needed to position over GIF */
-  /* text-align: center; is handled by className */
+  color: #555;
+  padding-top: 60px; /* Adjust as needed */
+}
+ 
+.four_zero_four_bg h3{ /* This was likely a typo in original CSS, probably meant for .contant_box_404 h3 */
+	font-size:80px;
+}
+			 
+.link_404 {			 
+	color: #fff !important;
+  padding: 10px 20px;
+  background: #39ac31;
+  margin: 20px 0;
+  display: inline-block;
+  text-decoration: none;
+  border-radius: 4px;
+  font-weight: bold;
+}
+.link_404:hover {
+  background: #2b8a24;
 }
 
-.contant_box_404 {
-  margin-top: -50px; /* Pulls this box up over the GIF area */
+.contant_box_404 { 
+  margin-top:-50px;
 }
 
 .contant_box_404 .h2 { /* Targets h3 with class="h2" */
@@ -97,22 +117,9 @@
 }
 
 .contant_box_404 .internal-404-text { /* Style for the new h1 */
-  font-size: 80px; /* Prominent size */
+  font-size: 80px;
   margin-top: 20px;
   margin-bottom: 20px;
-  color: #444; /* Slightly different from the one on GIF for distinction */
+  color: #444;
   font-weight: bold;
-}
-
-.link_404 {
-  color: #fff !important;
-  padding: 10px 20px;
-  background: #39ac31;
-  margin: 20px 0;
-  display: inline-block;
-  text-decoration: none;
-  border-radius: 4px;
-}
-.link_404:hover {
-  background: #2b8a24;
 }
