@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { AlertCircle, LogIn, Home, ShieldAlert } from 'lucide-react'; // Added Home icon and ShieldAlert
+import { AlertCircle, LogIn, Home } from 'lucide-react'; // Removed ShieldAlert
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 // VERY IMPORTANT: These credentials are hardcoded and visible in the client-side code.
@@ -58,16 +58,8 @@ export default function AdminLoginPage() {
           <CardDescription>Please log in to continue.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <Alert variant="destructive" className="bg-yellow-50 border-yellow-400 text-yellow-700 [&>svg]:text-yellow-700">
-            <ShieldAlert className="h-4 w-4" />
-            <AlertTitle className="font-semibold">Security Warning</AlertTitle>
-            <AlertDescription className="text-xs">
-              This login uses hardcoded credentials and is highly insecure.
-              For demonstration purposes only. DO NOT use in a real production environment.
-            </AlertDescription>
-          </Alert>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Security Warning Alert Removed */}
+          <form onSubmit={handleSubmit} className="space-y-4 pt-4"> {/* Added pt-4 to compensate for removed alert */}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
