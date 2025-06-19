@@ -18,7 +18,6 @@ const AUTO_HIDE_DELAY = 15000; // 15 seconds
 export default function LiveAnnouncementBanner() {
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
   const [isVisible, setIsVisible] = useState(false);
-  const [hideTimer, setHideTimer] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!firestore) {
@@ -37,7 +36,8 @@ export default function LiveAnnouncementBanner() {
         const doc = snapshot.docs[0];
         const data = doc.data() as FetchedAnnouncement;
         
-        if (data.isActive !== false) {
+        // Show announcement if it's active (or isActive is undefined, defaulting to active)
+        if (data.isActive !== false) { 
           const newAnnouncement: Announcement = {
             id: doc.id,
             message: data.message,
@@ -45,19 +45,24 @@ export default function LiveAnnouncementBanner() {
             isActive: data.isActive,
           };
           
-          // If it's a new announcement or different message, show it
-          if (!announcement || announcement.id !== newAnnouncement.id || announcement.message !== newAnnouncement.message) {
+          // Update state only if it's a truly new/different announcement to avoid unnecessary re-renders/timer resets
+          if (!announcement || 
+              announcement.id !== newAnnouncement.id || 
+              announcement.message !== newAnnouncement.message ||
+              (announcement.createdAt && newAnnouncement.createdAt && announcement.createdAt.getTime() !== newAnnouncement.createdAt.getTime())
+            ) {
             setAnnouncement(newAnnouncement);
-            setIsVisible(true);
-          } else if (announcement && announcement.id === newAnnouncement.id && !isVisible) {
-            // Potentially re-show if it's the same but was dismissed, though auto-hide might make this less relevant
-            // setIsVisible(true); // Optional: re-trigger visibility if needed
+            setIsVisible(true); // Show the banner when a new announcement comes in
           }
         } else {
-          setAnnouncement(null);
-          setIsVisible(false);
+          // If announcement is explicitly not active, ensure it's hidden
+          if (announcement && announcement.id === doc.id) { // Only hide if it's the current one being deactivated
+            setAnnouncement(null);
+            setIsVisible(false);
+          }
         }
       } else {
+        // No announcements found
         setAnnouncement(null);
         setIsVisible(false);
       }
@@ -68,35 +73,29 @@ export default function LiveAnnouncementBanner() {
     });
 
     return () => unsubscribe();
-  }, [announcement]); // Rerun if current announcement changes to allow for updates
+  }, [announcement]); // Re-subscribe if the current announcement state changes (e.g., cleared)
 
+  // Timer useEffect
   useEffect(() => {
-    if (hideTimer) {
-      clearTimeout(hideTimer);
-      setHideTimer(null);
-    }
+    let timerId: NodeJS.Timeout | undefined;
 
     if (isVisible && announcement) {
-      const timer = setTimeout(() => {
-        setIsVisible(false);
+      timerId = setTimeout(() => {
+        setIsVisible(false); // Hide the banner after the delay
       }, AUTO_HIDE_DELAY);
-      setHideTimer(timer);
     }
 
+    // Cleanup function: this will run when the component unmounts
+    // or when any of the dependencies (isVisible, announcement) change.
     return () => {
-      if (hideTimer) {
-        clearTimeout(hideTimer);
+      if (timerId) {
+        clearTimeout(timerId);
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isVisible, announcement]); // Re-run if visibility or announcement changes
+  }, [isVisible, announcement]); // Rerun effect if visibility or the announcement itself changes
 
   const handleDismiss = () => {
-    setIsVisible(false);
-    if (hideTimer) {
-      clearTimeout(hideTimer);
-      setHideTimer(null);
-    }
+    setIsVisible(false); // This will also trigger the cleanup of the timer useEffect
   };
 
   if (!isVisible || !announcement) {
