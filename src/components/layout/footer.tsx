@@ -116,13 +116,7 @@ export default function Footer({ aboutMeData }: FooterProps) {
             {displayedData.name || defaultAboutMeDataForClient.name}. All rights reserved.
           </p>
           <p className="text-sm text-muted-foreground mt-2">
-             Built with Next.js, Tailwind CSS, and Firebase by{' '}
-              <Button asChild variant="link" className="p-0 h-auto text-sm text-primary hover:text-accent focus:outline-none focus:ring-1 focus:ring-ring rounded">
-                <Link href="/admin/dashboard">
-                 <span>Anand</span>
-                </Link>
-              </Button>
-            .
+            💻 Made with caffeine, code, and mild chaos — by B.Anand
           </p>
         </div>
       </div>
