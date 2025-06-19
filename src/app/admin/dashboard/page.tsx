@@ -3,7 +3,7 @@ import { PageHeader } from '@/components/shared/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Briefcase, Sparkles, UserCircle, SettingsIcon, Inbox, FileQuestion, Megaphone } from 'lucide-react';
+import { ArrowRight, Briefcase, Sparkles, UserCircle, SettingsIcon, Inbox, FileQuestion } from 'lucide-react'; // Removed Megaphone
 
 export default function AdminDashboardPage() {
   return (
@@ -26,22 +26,7 @@ export default function AdminDashboardPage() {
             </Button>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xl font-medium">
-              Announcements
-            </CardTitle>
-            <Megaphone className="h-5 w-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <CardDescription className="mb-4">Publish site-wide announcements.</CardDescription>
-            <Button asChild variant="outline">
-              <Link href="/admin/announcements">
-                Manage Announcements <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
+        {/* Card for Announcements Removed */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xl font-medium">

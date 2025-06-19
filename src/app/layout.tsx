@@ -12,7 +12,7 @@ import type { SiteSettings, AboutMeData } from '@/lib/types';
 import { getAboutMeDataAction } from '@/actions/getAboutMeDataAction';
 import { defaultSiteSettingsForClient, defaultAboutMeDataForClient } from '@/lib/data';
 import { AlertTriangle } from 'lucide-react';
-import LiveAnnouncementBanner from '@/components/announcements/LiveAnnouncementBanner';
+// import LiveAnnouncementBanner from '@/components/announcements/LiveAnnouncementBanner'; // Removed
 import FullScreenLoader from '@/components/shared/FullScreenLoader';
 
 import { firestore } from '@/lib/firebaseConfig';
@@ -226,7 +226,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {!isAdminRoute && <LiveAnnouncementBanner />}
+          {/* {!isAdminRoute && <LiveAnnouncementBanner />} */}{/* Removed */}
           {currentSiteSettings.maintenanceMode && !isAdminRoute && (
             <div data-maintenance-banner className="fixed top-0 left-0 right-0 z-[101] p-3 bg-destructive text-destructive-foreground shadow-md flex items-center justify-center gap-2">
               <AlertTriangle className="h-5 w-5 flex-shrink-0" />

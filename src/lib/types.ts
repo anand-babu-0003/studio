@@ -69,8 +69,8 @@ export interface SiteSettings {
   defaultMetaKeywords?: string;
   siteOgImageUrl?: string;
   maintenanceMode?: boolean;
-  skillsPageMetaTitle?: string; // Added
-  skillsPageMetaDescription?: string; // Added
+  skillsPageMetaTitle?: string; 
+  skillsPageMetaDescription?: string; 
 }
 
 export interface NotFoundPageData {
@@ -97,10 +97,4 @@ export interface ContactMessage {
   submittedAt: string; // ISO date string
 }
 
-export interface Announcement {
-  id?: string; // Optional on creation, present when fetched
-  message: string;
-  createdAt: any; // Firestore Timestamp on write, Date or string on read
-  isActive?: boolean; // To potentially control visibility
-}
-
+// Announcement interface removed
