@@ -6,8 +6,8 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { AdminHeader } from '@/components/admin/admin-header';
 import { AdminSidebar } from '@/components/admin/admin-sidebar';
-import { Toaster } from '@/components/ui/toaster'; // Added for admin panel toasts
-import { Loader2 } from 'lucide-react'; // For loading spinner
+import { Toaster } from '@/components/ui/toaster';
+import { Loader2 } from 'lucide-react';
 
 export default function AdminLayout({
   children,
@@ -16,7 +16,7 @@ export default function AdminLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [isClientSideLoggedIn, setIsClientSideLoggedIn] = useState<boolean | null>(null); // null means unresolved
+  const [isClientSideLoggedIn, setIsClientSideLoggedIn] = useState<boolean | null>(null); // null: unresolved, true: logged in, false: not logged in
 
   useEffect(() => {
     // This effect runs only on the client side after hydration
@@ -26,47 +26,49 @@ export default function AdminLayout({
     if (!loggedInStatus && pathname !== '/admin/login') {
       router.replace('/admin/login');
     } else if (loggedInStatus && pathname === '/admin/login') {
+      // If somehow on login page while logged in, redirect to dashboard
       router.replace('/admin/dashboard');
     }
   }, [pathname, router]);
-  
-  // Show a loader until client-side auth check is complete
-  if (isClientSideLoggedIn === null && pathname !== '/admin/login') {
-    return (
-        <div className="flex h-screen w-screen items-center justify-center bg-background">
-             <Loader2 className="animate-spin h-8 w-8 text-primary" />
-        </div>
-    ); 
+
+  // If on the login page, render children directly without the admin layout wrapper.
+  // isClientSideLoggedIn check is not strictly needed here because the content of login page
+  // itself doesn't depend on this state, but it's consistent.
+  if (pathname === '/admin/login') {
+    return <>{children}<Toaster /></>;
   }
 
-  // If client-side check determined not logged in, and not on login page, also show loader (or null)
-  // as router.replace takes a moment.
-  if (isClientSideLoggedIn === false && pathname !== '/admin/login') {
+  // If auth status is still being determined, show a loader.
+  // This prevents flashing the admin layout or redirecting prematurely.
+  if (isClientSideLoggedIn === null) {
     return (
         <div className="flex h-screen w-screen items-center justify-center bg-background">
-             <Loader2 className="animate-spin h-8 w-8 text-primary" />
+             <Loader2 className="animate-spin h-12 w-12 text-primary" />
         </div>
     );
   }
 
-
-  // Hide admin layout entirely if on the login page
-  // This check can remain as it doesn't rely on localStorage for rendering structure
-  if (pathname === '/admin/login') {
-    return <>{children}<Toaster /></>; // Still need Toaster for login page errors
+  // If determined not logged in (and we are not on the login page, which is handled above),
+  // the redirect to /admin/login should be in progress. Showing a loader here is a good UX.
+  if (isClientSideLoggedIn === false) {
+      return (
+          <div className="flex h-screen w-screen items-center justify-center bg-background">
+               <Loader2 className="animate-spin h-12 w-12 text-primary" />
+          </div>
+      );
   }
 
-  // If logged in (or login page), render the full admin layout
+  // If client-side check confirms logged in, render the full admin layout.
   return (
     <div className="flex h-screen bg-muted/10">
       <AdminSidebar />
       <div className="flex flex-col flex-1">
         <AdminHeader />
-        <main className="flex-1 p-6 overflow-y-auto"> {/* Adjusted padding */}
+        <main className="flex-1 p-6 overflow-y-auto">
           {children}
         </main>
       </div>
-      <Toaster /> {/* Ensure Toaster is available for admin panel actions */}
+      <Toaster />
     </div>
   );
 }
