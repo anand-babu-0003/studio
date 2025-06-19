@@ -1,6 +1,6 @@
 
 .loader {
-  --cell-size: 52px;
+  --cell-size: 32px; /* Reduced from 52px */
   --cell-spacing: 1px;
   --cells: 3;
   --total-size: calc(var(--cells) * (var(--cell-size) + 2 * var(--cell-spacing)));
@@ -61,3 +61,4 @@
     background-color: transparent;
   }
 }
+
