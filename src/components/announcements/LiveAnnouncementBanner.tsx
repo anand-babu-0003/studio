@@ -13,7 +13,7 @@ interface FetchedAnnouncement extends Omit<Announcement, 'createdAt'> {
   createdAt: FirestoreTimestamp;
 }
 
-const AUTO_HIDE_DELAY = 15000; // 15 seconds
+const AUTO_HIDE_DELAY = 5000; // Changed to 5 seconds
 
 export default function LiveAnnouncementBanner() {
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
@@ -36,7 +36,6 @@ export default function LiveAnnouncementBanner() {
         const doc = snapshot.docs[0];
         const data = doc.data() as FetchedAnnouncement;
         
-        // Show announcement if it's active (or isActive is undefined, defaulting to active)
         if (data.isActive !== false) { 
           const newAnnouncement: Announcement = {
             id: doc.id,
@@ -45,24 +44,21 @@ export default function LiveAnnouncementBanner() {
             isActive: data.isActive,
           };
           
-          // Update state only if it's a truly new/different announcement to avoid unnecessary re-renders/timer resets
           if (!announcement || 
               announcement.id !== newAnnouncement.id || 
               announcement.message !== newAnnouncement.message ||
               (announcement.createdAt && newAnnouncement.createdAt && announcement.createdAt.getTime() !== newAnnouncement.createdAt.getTime())
             ) {
             setAnnouncement(newAnnouncement);
-            setIsVisible(true); // Show the banner when a new announcement comes in
+            setIsVisible(true); 
           }
         } else {
-          // If announcement is explicitly not active, ensure it's hidden
-          if (announcement && announcement.id === doc.id) { // Only hide if it's the current one being deactivated
+          if (announcement && announcement.id === doc.id) { 
             setAnnouncement(null);
             setIsVisible(false);
           }
         }
       } else {
-        // No announcements found
         setAnnouncement(null);
         setIsVisible(false);
       }
@@ -73,29 +69,26 @@ export default function LiveAnnouncementBanner() {
     });
 
     return () => unsubscribe();
-  }, [announcement]); // Re-subscribe if the current announcement state changes (e.g., cleared)
+  }, [announcement]); 
 
-  // Timer useEffect
   useEffect(() => {
     let timerId: NodeJS.Timeout | undefined;
 
     if (isVisible && announcement) {
       timerId = setTimeout(() => {
-        setIsVisible(false); // Hide the banner after the delay
+        setIsVisible(false); 
       }, AUTO_HIDE_DELAY);
     }
 
-    // Cleanup function: this will run when the component unmounts
-    // or when any of the dependencies (isVisible, announcement) change.
     return () => {
       if (timerId) {
         clearTimeout(timerId);
       }
     };
-  }, [isVisible, announcement]); // Rerun effect if visibility or the announcement itself changes
+  }, [isVisible, announcement]);
 
   const handleDismiss = () => {
-    setIsVisible(false); // This will also trigger the cleanup of the timer useEffect
+    setIsVisible(false); 
   };
 
   if (!isVisible || !announcement) {
@@ -128,3 +121,4 @@ export default function LiveAnnouncementBanner() {
     </div>
   );
 }
+
