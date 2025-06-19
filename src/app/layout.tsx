@@ -1,8 +1,8 @@
 
-"use client"; 
+"use client";
 
 import type { Metadata } from 'next'; // Keep for potential future use with generateMetadata
-import { usePathname } from 'next/navigation'; 
+import { usePathname } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
@@ -10,15 +10,15 @@ import Navbar from '@/components/layout/navbar';
 import Footer from '@/components/layout/footer';
 import { ThemeProvider } from '@/components/layout/theme-provider';
 import type { SiteSettings, AboutMeData } from '@/lib/types';
-import { getSiteSettingsAction } from '@/actions/admin/settingsActions'; 
+import { getSiteSettingsAction } from '@/actions/admin/settingsActions';
 import { getAboutMeDataAction } from '@/actions/getAboutMeDataAction';
 import { defaultSiteSettingsForClient, defaultAboutMeDataForClient } from '@/lib/data';
 
 // Helper function to create or update a meta tag
 function updateMetaTag(name: string, content: string, isProperty: boolean = false) {
-  if (typeof document === 'undefined') return; 
+  if (typeof document === 'undefined') return;
 
-  let element = isProperty 
+  let element = isProperty
     ? document.querySelector(`meta[property="${name}"]`)
     : document.querySelector(`meta[name="${name}"]`);
 
@@ -56,72 +56,74 @@ export default function RootLayout({
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isMounted, setIsMounted] = useState(false);
   const [currentSiteSettings, setCurrentSiteSettings] = useState<SiteSettings>(defaultSiteSettingsForClient);
-  const [currentAboutMeData, setCurrentAboutMeData] = useState<AboutMeData>(defaultAboutMeDataForClient); 
-
-  const fetchInitialData = useCallback(async () => {
-    try {
-      const settings = await getSiteSettingsAction();
-      setCurrentSiteSettings(settings || defaultSiteSettingsForClient);
-    } catch (error) {
-      console.error("Failed to fetch site settings for layout:", error);
-      setCurrentSiteSettings(defaultSiteSettingsForClient);
-    }
-
-    try { 
-      const aboutData = await getAboutMeDataAction();
-      setCurrentAboutMeData(aboutData || defaultAboutMeDataForClient);
-    } catch (error) {
-        console.error("Failed to fetch about me data for layout:", error);
-        setCurrentAboutMeData(defaultAboutMeDataForClient);
-    }
-  }, []);
+  const [currentAboutMeData, setCurrentAboutMeData] = useState<AboutMeData>(defaultAboutMeDataForClient);
 
 
   useEffect(() => {
-    setIsMounted(true); 
-    fetchInitialData();
+    setIsMounted(true); // Set isMounted for client-side conditional rendering
+
+    // Define fetchInitialData inside useEffect or useCallback to ensure stable reference
+    const fetchInitialData = async () => {
+      try {
+        const settings = await getSiteSettingsAction();
+        setCurrentSiteSettings(settings || defaultSiteSettingsForClient);
+      } catch (error) {
+        console.error("Failed to fetch site settings for layout:", error);
+        // State already defaults to defaultSiteSettingsForClient
+      }
+
+      try {
+        const aboutData = await getAboutMeDataAction();
+        setCurrentAboutMeData(aboutData || defaultAboutMeDataForClient);
+      } catch (error) {
+          console.error("Failed to fetch about me data for layout:", error);
+          // State already defaults to defaultAboutMeDataForClient
+      }
+    };
+
+    fetchInitialData(); // Call fetch
 
     const handleMouseMove = (event: MouseEvent) => {
       setMousePosition({ x: event.clientX, y: event.clientY });
     };
 
-    if (typeof window !== 'undefined' && !isAdminRoute) { 
+    if (typeof window !== 'undefined' && !isAdminRoute) {
       window.addEventListener('mousemove', handleMouseMove);
     }
 
     return () => {
-      if (typeof window !== 'undefined' && !isAdminRoute) { 
+      if (typeof window !== 'undefined' && !isAdminRoute) {
         window.removeEventListener('mousemove', handleMouseMove);
       }
     };
-  }, [isAdminRoute, fetchInitialData]); 
+  }, [isAdminRoute]); // isAdminRoute is a stable dependency here
 
-  
+
   useEffect(() => {
     if (typeof document !== 'undefined' && currentSiteSettings) {
         const pageTitleSegment = pathname.split('/').pop()?.replace(/-/g, ' ');
-        const formattedPageTitle = pageTitleSegment 
+        const formattedPageTitle = pageTitleSegment
             ? pageTitleSegment.charAt(0).toUpperCase() + pageTitleSegment.slice(1)
             : '';
-        
+
         const siteNameBase = currentSiteSettings.siteName || defaultSiteSettingsForClient.siteName;
 
         if (pathname === '/') {
             document.title = siteNameBase;
         } else if (formattedPageTitle && !isAdminRoute) {
-            document.title = `${formattedPageTitle} | ${siteNameBase}`; // Swapped order for common SEO practice
+            document.title = `${formattedPageTitle} | ${siteNameBase}`;
         } else if (isAdminRoute && formattedPageTitle) {
              document.title = `Admin: ${formattedPageTitle} | ${siteNameBase}`;
         } else if (isAdminRoute) {
              document.title = `Admin | ${siteNameBase}`;
-        } else { 
+        } else {
             document.title = siteNameBase;
         }
 
         updateMetaTag('description', currentSiteSettings.defaultMetaDescription || defaultSiteSettingsForClient.defaultMetaDescription);
-        updateMetaTag('og:title', document.title, true); // Use the dynamically set document.title for OG
+        updateMetaTag('og:title', document.title, true);
         updateMetaTag('og:description', currentSiteSettings.defaultMetaDescription || defaultSiteSettingsForClient.defaultMetaDescription, true);
-        
+
         if (currentSiteSettings.defaultMetaKeywords && currentSiteSettings.defaultMetaKeywords.trim() !== '') {
             updateMetaTag('keywords', currentSiteSettings.defaultMetaKeywords);
         } else {
@@ -131,7 +133,7 @@ export default function RootLayout({
         if (currentSiteSettings.siteOgImageUrl && currentSiteSettings.siteOgImageUrl.trim() !== '') {
             updateMetaTag('og:image', currentSiteSettings.siteOgImageUrl, true);
         } else {
-            removeMetaTag('og:image', true); 
+            removeMetaTag('og:image', true);
         }
     }
   }, [currentSiteSettings, pathname, isAdminRoute]);
@@ -146,7 +148,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
-        
+
         {/* Default title and meta for initial load / JS disabled, will be updated by useEffect */}
         <title>{defaultSiteSettingsForClient.siteName}</title>
         <meta name="description" content={defaultSiteSettingsForClient.defaultMetaDescription} />
@@ -164,30 +166,30 @@ export default function RootLayout({
       <body className="font-body antialiased flex flex-col min-h-screen">
         {isMounted && !isAdminRoute && (
           <>
-            <div 
-              className="light-orb light-orb-1" 
-              style={{ 
+            <div
+              className="light-orb light-orb-1"
+              style={{
                 transform: `translate(calc(${mousePosition.x}px - 30vw), calc(${mousePosition.y}px - 30vh))`,
               }}
             />
-            <div 
-              className="light-orb light-orb-2" 
-              style={{ 
+            <div
+              className="light-orb light-orb-2"
+              style={{
                 transform: `translate(calc(${mousePosition.x}px - 25vw), calc(${mousePosition.y}px - 25vh))`,
-                 transitionDelay: '0.05s' 
+                 transitionDelay: '0.05s'
               }}
             />
           </>
         )}
-        
+
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark" 
+          defaultTheme="dark"
           enableSystem
           disableTransitionOnChange
         >
           {!isAdminRoute && <Navbar />}
-          <div className="flex-grow">{children}</div> 
+          <div className="flex-grow">{children}</div>
           {!isAdminRoute && <Footer aboutMeData={currentAboutMeData} />}
           <Toaster />
         </ThemeProvider>

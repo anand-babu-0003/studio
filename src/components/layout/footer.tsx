@@ -1,12 +1,12 @@
 
-"use client"; 
+"use client";
 
 import Link from 'next/link';
 import { Github, Linkedin, Twitter, Mail } from 'lucide-react';
 import type { SocialLink, AboutMeData } from '@/lib/types';
 import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button'; 
-import { defaultAboutMeDataForClient } from '@/lib/data'; 
+import { Button } from '@/components/ui/button';
+import { defaultAboutMeDataForClient } from '@/lib/data';
 
 const mainNavItems = [
   { href: '/', label: 'Home' },
@@ -17,25 +17,27 @@ const mainNavItems = [
 ];
 
 interface FooterProps {
-  aboutMeData: AboutMeData | null; 
+  aboutMeData: AboutMeData | null;
 }
 
 export default function Footer({ aboutMeData }: FooterProps) {
-  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [currentYear, setCurrentYear] = useState<number | null>(null);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
-    setCurrentYear(new Date().getFullYear()); 
+    setCurrentYear(new Date().getFullYear()); // Set year only on client after mount
   }, []);
 
-  const displayedAboutMe = isMounted && aboutMeData ? aboutMeData : defaultAboutMeDataForClient;
+  // Use default data if aboutMeData is null or not yet loaded,
+  // or if not mounted (server-side render will use default)
+  const displayedData = (isMounted && aboutMeData) ? aboutMeData : defaultAboutMeDataForClient;
 
   const socialLinksToDisplay: SocialLink[] = [
-    ...(displayedAboutMe.githubUrl ? [{ id: 'github', name: 'GitHub', url: displayedAboutMe.githubUrl, icon: Github }] : []),
-    ...(displayedAboutMe.linkedinUrl ? [{ id: 'linkedin', name: 'LinkedIn', url: displayedAboutMe.linkedinUrl, icon: Linkedin }] : []),
-    ...(displayedAboutMe.twitterUrl ? [{ id: 'twitter', name: 'Twitter', url: displayedAboutMe.twitterUrl, icon: Twitter }] : []),
-    ...(displayedAboutMe.email ? [{ id: 'email', name: 'Email', url: `mailto:${displayedAboutMe.email}`, icon: Mail }] : []),
+    ...(displayedData.githubUrl ? [{ id: 'github', name: 'GitHub', url: displayedData.githubUrl, icon: Github }] : []),
+    ...(displayedData.linkedinUrl ? [{ id: 'linkedin', name: 'LinkedIn', url: displayedData.linkedinUrl, icon: Linkedin }] : []),
+    ...(displayedData.twitterUrl ? [{ id: 'twitter', name: 'Twitter', url: displayedData.twitterUrl, icon: Twitter }] : []),
+    ...(displayedData.email ? [{ id: 'email', name: 'Email', url: `mailto:${displayedData.email}`, icon: Mail }] : []),
   ].filter(link => link.url && link.url.trim() !== '');
 
 
@@ -44,10 +46,10 @@ export default function Footer({ aboutMeData }: FooterProps) {
       <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3 lg:grid-cols-4 mb-10">
           <div className="md:col-span-1 lg:col-span-2">
-            <Link 
-              href="/" 
+            <Link
+              href="/"
               className="inline-flex items-center gap-2 mb-4 group focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-background rounded-md"
-              aria-label="Go to Homepage" 
+              aria-label="Go to Homepage"
             >
               <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="text-primary group-hover:text-accent transition-colors">
                 <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
@@ -55,7 +57,7 @@ export default function Footer({ aboutMeData }: FooterProps) {
                 <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               <span className="font-headline text-xl font-bold text-primary group-hover:text-accent transition-colors">
-                {displayedAboutMe.name ? `${displayedAboutMe.name.split(' ')[0]}'s Verse` : "VermaVerse"} 
+                {displayedData.name ? `${displayedData.name.split(' ')[0]}'s Verse` : "VermaVerse"}
               </span>
             </Link>
             <p className="text-sm text-muted-foreground max-w-md">
@@ -81,23 +83,23 @@ export default function Footer({ aboutMeData }: FooterProps) {
             </ul>
           </div>
 
-          {socialLinksToDisplay.length > 0 && ( 
+          {socialLinksToDisplay.length > 0 && (
             <div className="md:col-span-1">
               <h3 className="text-sm font-semibold text-foreground/80 uppercase tracking-wider mb-4">
                 Connect
               </h3>
               <div className="flex items-center space-x-2">
                 {socialLinksToDisplay.map((link) => (
-                  <Button 
+                  <Button
                     key={link.id}
-                    asChild 
-                    variant="ghost" 
-                    size="icon" 
+                    asChild
+                    variant="ghost"
+                    size="icon"
                     className="text-muted-foreground hover:text-primary hover:bg-muted rounded-full focus:ring-offset-background"
                     aria-label={link.name}
                   >
                     <Link
-                      href={link.url!} 
+                      href={link.url!}
                       target={link.id === 'email' ? '_self' : '_blank'}
                       rel="noopener noreferrer"
                     >
@@ -112,8 +114,8 @@ export default function Footer({ aboutMeData }: FooterProps) {
 
         <div className="mt-10 border-t border-border pt-8 text-center">
           <p className="text-sm text-muted-foreground">
-            &copy; {currentYear}{' '}
-            {displayedAboutMe.name || defaultAboutMeDataForClient.name}. All rights reserved. 
+            &copy; {currentYear !== null ? currentYear : new Date().getFullYear()}{' '}
+            {displayedData.name || defaultAboutMeDataForClient.name}. All rights reserved.
           </p>
           <p className="text-sm text-muted-foreground mt-2">
              Built with Next.js, Tailwind CSS, and Firebase by{' '}
