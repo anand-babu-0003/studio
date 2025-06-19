@@ -6,6 +6,7 @@ import { collection, getDocs, doc, setDoc, deleteDoc, query, orderBy, Timestamp 
 import type { Skill as LibSkillType } from '@/lib/types';
 import { skillAdminSchema, type SkillAdminFormData } from '@/lib/adminSchemas';
 import { revalidatePath } from 'next/cache';
+import { defaultSkillsDataForClient } from '@/lib/data'; // For fallback if needed
 
 const skillsCollectionRef = () => {
   if (!firestore) throw new Error("Firestore not initialized");
@@ -20,7 +21,7 @@ const skillDocRef = (id: string) => {
 export async function getSkillsAction(): Promise<LibSkillType[]> {
   if (!firestore) {
     console.warn("Firestore not initialized in getSkillsAction. Returning empty array.");
-    return [];
+    return defaultSkillsDataForClient; // Fallback to default mock data
   }
   try {
     const q = query(skillsCollectionRef(), orderBy('category'), orderBy('name'));
@@ -36,12 +37,12 @@ export async function getSkillsAction(): Promise<LibSkillType[]> {
         name: data.name || 'Unnamed Skill',
         category: data.category || 'Other',
         iconName: data.iconName || 'Package',
-        proficiency: data.proficiency === undefined || data.proficiency === null ? undefined : Number(data.proficiency),
+        proficiency: data.proficiency === undefined || data.proficiency === null ? null : Number(data.proficiency),
       } as LibSkillType;
     });
   } catch (error) {
     console.error("Error fetching skills from Firestore:", error);
-    return [];
+    return defaultSkillsDataForClient; // Fallback to default mock data on error
   }
 }
 
@@ -71,8 +72,7 @@ export async function saveSkillAction(
     name: String(formData.get('name') || ''),
     category: String(formData.get('category') || 'Other') as LibSkillType['category'],
     iconName: String(formData.get('iconName') || 'Package'),
-    // Proficiency is handled by Zod preprocess in skillAdminSchema
-    proficiency: formData.get('proficiency') as any, // Let Zod handle parsing
+    proficiency: formData.get('proficiency') as any, 
   };
 
   const validatedFields = skillAdminSchema.safeParse(rawData);
@@ -86,14 +86,16 @@ export async function saveSkillAction(
     };
   }
 
-  const data = validatedFields.data;
+  const data = validatedFields.data; // This is SkillAdminFormData after Zod validation
   let skillId = data.id || `skill_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
+  // Construct the object to save to Firestore
+  // Explicitly set proficiency to null if it's undefined after Zod processing
   const skillToSave: Omit<LibSkillType, 'id'> = {
     name: data.name,
     category: data.category,
     iconName: data.iconName,
-    proficiency: data.proficiency, // Already correctly typed by Zod
+    proficiency: data.proficiency === undefined ? null : data.proficiency,
   };
 
   try {
@@ -101,7 +103,11 @@ export async function saveSkillAction(
     
     const savedSkillData: LibSkillType = {
       id: skillId,
-      ...skillToSave,
+      name: skillToSave.name,
+      category: skillToSave.category,
+      iconName: skillToSave.iconName,
+      // Ensure proficiency reflects what was intended to be saved (null for undefined)
+      proficiency: skillToSave.proficiency, 
     };
 
     revalidatePath('/skills');
@@ -116,11 +122,11 @@ export async function saveSkillAction(
     };
 
   } catch (error) {
-    console.error("Error saving skill to Firestore:", error);
+    console.error("Error saving skill to Firestore:", error); // THIS LOG IS CRITICAL
     return {
       message: "An unexpected server error occurred while saving the skill. Please try again.",
       status: 'error',
-      errors: {},
+      errors: {}, // No specific field errors, as it's a general server error
       formDataOnError: rawData, 
     };
   }
