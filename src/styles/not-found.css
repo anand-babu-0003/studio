@@ -1,3 +1,4 @@
+
 /* src/styles/not-found.css */
 
 .fullscreen-nf-wrapper {
@@ -6,23 +7,22 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: #fff; /* White background for the wrapper */
-  color: #333; /* Default text color for content within this wrapper */
-  font-family: 'Arvo', serif; /* Apply Arvo font to the wrapper */
-  z-index: 200; /* Ensure it's above Navbar (z-50) and banners (z-100/101) */
+  background-color: #fff; /* Ensure opaque background */
+  color: #333; 
+  font-family: 'Arvo', serif;
+  z-index: 9999; /* Very high z-index to cover everything */
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: auto; /* Allow scrolling if content overflows on small screens */
-  padding: 20px; /* Add some padding for smaller screens */
+  overflow: auto; 
+  padding: 20px; 
   box-sizing: border-box;
 }
 
 .page_404 {
-  padding: 20px 0; /* Reduced padding, as wrapper has padding now */
-  /* background is inherited from fullscreen-nf-wrapper */
+  padding: 20px 0;
   width: 100%;
-  max-width: 1140px; /* Max width for the content area */
+  max-width: 1140px; 
   text-align: center;
 }
 
@@ -30,7 +30,8 @@
   width:100%;
 }
 
-.container {
+/* Custom class names to avoid conflicts and provide basic structure */
+.container_nf {
   width: 100%;
   padding-right: 15px;
   padding-left: 15px;
@@ -38,29 +39,29 @@
   margin-left: auto;
 }
 
-/* Basic grid alignment for the provided structure */
-.row {
+.row_nf {
   margin-right: -15px;
   margin-left: -15px;
-  display: flex; /* Use flex for centering content */
-  justify-content: center; /* Center .col-sm-12 in the row */
+  display: flex;
+  justify-content: center;
 }
 
-.col-sm-12 {
-  width: 100%; /* Takes full width of its parent if parent is flex-centered */
-  max-width: 960px; /* Limit width of this column for better layout on larger screens */
+.col_sm_12_nf {
+  width: 100%;
+  max-width: 960px; 
   position: relative;
   padding-right: 15px;
   padding-left: 15px;
 }
 
-.col-sm-10.col-sm-offset-1 {
-  /* This block will be centered by text-align on itself or flex on parent */
+.col_sm_10_nf.col_sm_offset_1_nf {
   margin-left: auto;
   margin-right: auto;
+  /* For col-sm-offset-1 effect if col-sm-10 takes 10/12 width, 
+     this makes it effectively (12-10)/2 = 1 unit offset on each side */
 }
 
-.text-center {
+.text_center_nf {
   text-align: center !important;
 }
 
@@ -71,22 +72,18 @@
   background-repeat: no-repeat;
   margin-left: auto;
   margin-right: auto;
-  max-width: 100%; /* Ensure GIF container doesn't overflow */
+  max-width: 100%;
 }
 
-.four_zero_four_bg h1 {
+.four_zero_four_bg h1 { /* Text over the GIF */
   font-size: 80px;
   margin: 0;
   color: #555;
-  padding-top: 60px; /* Adjust as needed */
+  padding-top: 60px; 
 }
  
-.four_zero_four_bg h3{ /* This was likely a typo in original CSS, probably meant for .contant_box_404 h3 */
-	font-size:80px;
-}
-			 
 .link_404 {			 
-	color: #fff !important;
+  color: #fff !important;
   padding: 10px 20px;
   background: #39ac31;
   margin: 20px 0;
@@ -100,10 +97,10 @@
 }
 
 .contant_box_404 { 
-  margin-top:-50px;
+  margin-top:-50px; /* To pull content up over the GIF's bottom part */
 }
 
-.contant_box_404 .h2 { /* Targets h3 with class="h2" */
+.contant_box_404 .h2_nf { /* Targets h3 with class="h2_nf" */
   font-size: 28px;
   margin-bottom: 15px;
   color: #333;
@@ -116,7 +113,7 @@
   color: #555;
 }
 
-.contant_box_404 .internal-404-text { /* Style for the new h1 */
+.contant_box_404 .internal_404_text_nf { /* Style for the new h1 */
   font-size: 80px;
   margin-top: 20px;
   margin-bottom: 20px;
