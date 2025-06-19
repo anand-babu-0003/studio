@@ -11,11 +11,12 @@ import { ThemeProvider } from '@/components/layout/theme-provider';
 import type { SiteSettings, AboutMeData } from '@/lib/types';
 import { getAboutMeDataAction } from '@/actions/getAboutMeDataAction';
 import { defaultSiteSettingsForClient, defaultAboutMeDataForClient } from '@/lib/data';
-import { Loader2, AlertTriangle } from 'lucide-react'; // Added AlertTriangle
+import { AlertTriangle } from 'lucide-react'; 
 import LiveAnnouncementBanner from '@/components/announcements/LiveAnnouncementBanner';
+import FullScreenLoader from '@/components/shared/FullScreenLoader'; // Import the new loader
 
-import { firestore } from '@/lib/firebaseConfig'; // For live updates
-import { doc, onSnapshot } from 'firebase/firestore'; // For live updates
+import { firestore } from '@/lib/firebaseConfig'; 
+import { doc, onSnapshot } from 'firebase/firestore'; 
 
 
 function updateMetaTag(name: string, content: string, isProperty: boolean = false) {
@@ -87,11 +88,11 @@ export default function RootLayout({
             console.warn("Site settings document not found in Firestore for live listener. Using defaults.");
             setCurrentSiteSettings(defaultSiteSettingsForClient);
           }
-          if(isLayoutLoading) setIsLayoutLoading(false); // Mark as loaded after first snapshot
+          if(isLayoutLoading) setIsLayoutLoading(false); 
         },
         (error) => {
           console.error("Error listening to site settings:", error);
-          setCurrentSiteSettings(defaultSiteSettingsForClient); // Fallback on error
+          setCurrentSiteSettings(defaultSiteSettingsForClient); 
            if(isLayoutLoading) setIsLayoutLoading(false);
         }
       );
@@ -119,7 +120,6 @@ export default function RootLayout({
         settingsUnsubscribe();
       }
     };
-  // isLayoutLoading is added to dependency array to ensure that setIsLayoutLoading(false) is called.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdminRoute, isLayoutLoading]); 
 
@@ -224,7 +224,7 @@ export default function RootLayout({
         >
           {!isAdminRoute && <LiveAnnouncementBanner />}
           {currentSiteSettings.maintenanceMode && !isAdminRoute && (
-            <div className="fixed top-0 left-0 right-0 z-[101] p-3 bg-destructive text-destructive-foreground shadow-md flex items-center justify-center gap-2">
+            <div data-maintenance-banner className="fixed top-0 left-0 right-0 z-[101] p-3 bg-destructive text-destructive-foreground shadow-md flex items-center justify-center gap-2">
               <AlertTriangle className="h-5 w-5 flex-shrink-0" />
               <p className="text-sm font-medium">
                 The site is currently under maintenance. Some features may be unavailable.
@@ -233,9 +233,7 @@ export default function RootLayout({
           )}
           
           {isLayoutLoading && !isAdminRoute ? (
-             <div className="flex-grow flex items-center justify-center">
-                <Loader2 className="h-10 w-10 animate-spin text-primary" />
-             </div>
+             <FullScreenLoader message="Loading AnandVerse..." />
           ) : (
             <>
               {!isAdminRoute && <Navbar />}

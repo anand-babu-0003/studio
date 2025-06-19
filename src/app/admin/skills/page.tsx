@@ -6,7 +6,7 @@ import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom'; 
 import { useForm, type Path } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { PlusCircle, Edit3, Trash2, Save, Loader2, XCircle, Package } from 'lucide-react'; // Added Package for fallback
+import { PlusCircle, Edit3, Trash2, Save, Loader2, XCircle, Package } from 'lucide-react'; 
 
 import { PageHeader } from '@/components/shared/page-header';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import FullScreenLoader from '@/components/shared/FullScreenLoader';
 
 import { 
   skillCategories, 
@@ -39,7 +40,7 @@ const defaultFormValues: SkillAdminFormData = {
   id: undefined,
   name: '',
   category: skillCategories[0], 
-  proficiency: undefined, // Explicitly undefined for optional field
+  proficiency: undefined, 
   iconName: availableIconNames.length > 0 ? availableIconNames[0] : 'Package', 
 };
 
@@ -117,7 +118,6 @@ export default function AdminSkillsPage() {
         } else {
           newSkillsArray = [savedSkill, ...prevSkills];
         }
-        // Sort by category then name
         return newSkillsArray.sort((a, b) => {
             if (a.category < b.category) return -1;
             if (a.category > b.category) return 1;
@@ -292,7 +292,7 @@ export default function AdminSkillsPage() {
       )}
       {!showForm && (
          isLoadingSkills ? (
-          <div className="text-center p-8"><Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" /> <p className="mt-2 text-muted-foreground">Loading skills...</p></div>
+          <FullScreenLoader message="Loading Skills..." />
         ) : (
         <div className="space-y-8">
           {skills.length === 0 && (

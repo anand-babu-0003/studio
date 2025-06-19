@@ -4,12 +4,13 @@
 import Image from 'next/image';
 import { PageHeader } from '@/components/shared/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Briefcase, GraduationCap, Loader2 } from 'lucide-react';
+import { Briefcase, GraduationCap } from 'lucide-react';
 import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wrapper';
 import type { AboutMeData, Experience, Education } from '@/lib/types';
 import { getAboutMeDataAction } from '@/actions/getAboutMeDataAction';
 import { defaultAboutMeDataForClient } from '@/lib/data';
 import { useEffect, useState } from 'react';
+import FullScreenLoader from '@/components/shared/FullScreenLoader';
 
 export default function AboutPage() {
   const [aboutMeData, setAboutMeData] = useState<AboutMeData | null>(null);
@@ -32,11 +33,7 @@ export default function AboutPage() {
   }, []);
 
   if (isLoading || !aboutMeData) {
-    return (
-      <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8 flex justify-center items-center min-h-[calc(100vh-200px)]">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-      </div>
-    );
+    return <FullScreenLoader message="Loading About Me..." />;
   }
 
   const displayedData = aboutMeData; 
@@ -83,7 +80,6 @@ export default function AboutPage() {
         <section>
           <h2 className="font-headline text-3xl md:text-4xl font-bold text-primary mb-8 text-center">Experience & Education</h2>
           <div className="grid md:grid-cols-2 gap-8">
-            {/* Experience Section */}
             <div>
               <h3 className="font-headline text-2xl font-semibold text-primary/90 mb-6 flex items-center">
                 <Briefcase className="mr-3 h-7 w-7 text-primary" /> Professional Journey
@@ -109,7 +105,6 @@ export default function AboutPage() {
               </div>
             </div>
 
-            {/* Education Section */}
             <div>
               <h3 className="font-headline text-2xl font-semibold text-primary/90 mb-6 flex items-center">
                 <GraduationCap className="mr-3 h-7 w-7 text-primary" /> Academic Background

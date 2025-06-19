@@ -7,10 +7,11 @@ import { Progress } from '@/components/ui/progress';
 import { lucideIconsMap, skillCategories as SKILL_CATEGORIES_STATIC, defaultSkillsDataForClient } from '@/lib/data';
 import type { Skill } from '@/lib/types';
 import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wrapper';
-import { Package, Loader2 } from 'lucide-react'; 
+import { Package } from 'lucide-react'; 
 import { Badge } from '@/components/ui/badge';
 import { getSkillsAction } from '@/actions/admin/skillsActions';
 import { useEffect, useState } from 'react';
+import FullScreenLoader from '@/components/shared/FullScreenLoader';
 
 export default function SkillsPage() { 
   const [skillsData, setSkillsData] = useState<Skill[]>([]);
@@ -33,11 +34,7 @@ export default function SkillsPage() {
   }, []);
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8 flex justify-center items-center min-h-[calc(100vh-200px)]">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-      </div>
-    );
+    return <FullScreenLoader message="Loading Skills..." />;
   }
 
   return (
@@ -54,7 +51,6 @@ export default function SkillsPage() {
           const categorySkills = (skillsData || []).filter((skill) => skill.category === category);
           
           if (skillsData.length > 0 && categorySkills.length === 0) {
-             // Don't render a category card if there are skills loaded but none for this specific category
              return null; 
           }
 

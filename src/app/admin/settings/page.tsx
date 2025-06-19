@@ -13,9 +13,10 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Switch } from '@/components/ui/switch'; // Added Switch
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { Info, Save, Loader2, Tool } from 'lucide-react'; // Added Tool icon
+import { Info, Save, Loader2, Tool } from 'lucide-react'; 
+import FullScreenLoader from '@/components/shared/FullScreenLoader';
 
 import { siteSettingsAdminSchema, type SiteSettingsAdminFormData } from '@/lib/adminSchemas';
 import { getSiteSettingsAction, updateSiteSettingsAction, type UpdateSiteSettingsFormState } from '@/actions/admin/settingsActions';
@@ -28,7 +29,7 @@ const defaultFormValues: SiteSettingsAdminFormData = {
   defaultMetaDescription: defaultSiteSettingsForClient.defaultMetaDescription,
   defaultMetaKeywords: defaultSiteSettingsForClient.defaultMetaKeywords || '',
   siteOgImageUrl: defaultSiteSettingsForClient.siteOgImageUrl || '',
-  maintenanceMode: defaultSiteSettingsForClient.maintenanceMode || false, // Added
+  maintenanceMode: defaultSiteSettingsForClient.maintenanceMode || false,
 };
 
 function SubmitButton() {
@@ -71,7 +72,7 @@ export default function AdminSettingsPage() {
             defaultMetaDescription: currentSettings.defaultMetaDescription || defaultSiteSettingsForClient.defaultMetaDescription,
             defaultMetaKeywords: currentSettings.defaultMetaKeywords || '',
             siteOgImageUrl: currentSettings.siteOgImageUrl || '',
-            maintenanceMode: typeof currentSettings.maintenanceMode === 'boolean' ? currentSettings.maintenanceMode : false, // Added
+            maintenanceMode: typeof currentSettings.maintenanceMode === 'boolean' ? currentSettings.maintenanceMode : false,
           });
         } else {
           form.reset(defaultFormValues); 
@@ -116,7 +117,7 @@ export default function AdminSettingsPage() {
   }, [settingsState, toast, form]);
   
   if (isLoadingInitialData) {
-    return <div className="flex justify-center items-center h-64"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+    return <FullScreenLoader message="Loading Site Settings..." />;
   }
 
   return (
@@ -190,7 +191,7 @@ export default function AdminSettingsPage() {
                       <Switch
                         checked={field.value}
                         onCheckedChange={field.onChange}
-                        name={field.name} // Ensure name attribute is passed for FormData
+                        name={field.name} 
                       />
                     </FormControl>
                   </FormItem>

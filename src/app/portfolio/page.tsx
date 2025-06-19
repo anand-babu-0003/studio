@@ -8,7 +8,7 @@ import type { PortfolioItem } from '@/lib/types';
 import { getPortfolioItemsAction } from '@/actions/admin/portfolioActions';
 import { defaultPortfolioItemsDataForClient } from '@/lib/data';
 import { useEffect, useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import FullScreenLoader from '@/components/shared/FullScreenLoader';
 
 export default function PortfolioPage() {
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
@@ -31,11 +31,7 @@ export default function PortfolioPage() {
   }, []);
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8 flex justify-center items-center min-h-[calc(100vh-200px)]">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-      </div>
-    );
+    return <FullScreenLoader message="Loading Portfolio..." />;
   }
 
   return (

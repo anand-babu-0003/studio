@@ -16,6 +16,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import FullScreenLoader from '@/components/shared/FullScreenLoader';
 
 import type { PortfolioItem } from '@/lib/types';
 import {
@@ -41,7 +42,7 @@ const defaultFormValues: PortfolioAdminFormData = {
   repoUrl: '',
   slug: '',
   dataAiHint: '',
-  readmeContent: defaultPortfolioItemsDataForClient[0]?.readmeContent || '', // Add a sensible default
+  readmeContent: defaultPortfolioItemsDataForClient[0]?.readmeContent || '', 
 };
 
 function SubmitButton() {
@@ -302,7 +303,7 @@ export default function AdminPortfolioPage() {
       )}
       {!showForm && (
         isLoadingProjects ? (
-          <div className="text-center p-8"><Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" /> <p className="mt-2 text-muted-foreground">Loading projects...</p></div>
+          <FullScreenLoader message="Loading Projects..." />
         ) : (
           <div className="space-y-4">
             {projects.length === 0 && <p className="text-muted-foreground text-center py-4">No projects yet. Click "Add New Project" to start.</p>}

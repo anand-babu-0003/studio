@@ -5,12 +5,13 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Mail, Loader2, Package } from 'lucide-react';
+import { ArrowRight, Mail, Package } from 'lucide-react';
 import type { PortfolioItem, AboutMeData, Skill } from '@/lib/types';
 import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wrapper';
 import { lucideIconsMap, defaultAboutMeDataForClient, defaultPortfolioItemsDataForClient, defaultSkillsDataForClient } from '@/lib/data';
 import StarryBackground from '@/components/layout/starry-background';
 import { PortfolioCard } from '@/components/portfolio/portfolio-card';
+import FullScreenLoader from '@/components/shared/FullScreenLoader';
 
 import { getAboutMeDataAction } from '@/actions/getAboutMeDataAction';
 import { getPortfolioItemsAction } from '@/actions/admin/portfolioActions';
@@ -53,17 +54,11 @@ export default function Home() {
 
 
   if (isLoading) {
-    return (
-      <div className="flex flex-col min-h-screen items-center justify-center">
-        <Loader2 className="h-16 w-16 animate-spin text-primary" />
-        <p className="mt-4 text-muted-foreground">Loading my universe...</p>
-      </div>
-    );
+    return <FullScreenLoader message="Loading My Universe..." />;
   }
 
   return (
     <div className="flex flex-col">
-      {/* Hero Section */}
       <section className="relative w-full min-h-screen flex flex-col justify-center items-center py-20 md:py-32 bg-gradient-to-br from-primary/15 via-background to-accent/15 bg-animated-gradient overflow-hidden">
         <StarryBackground />
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col justify-center items-center flex-grow">
@@ -103,7 +98,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* About Me Snippet */}
       <ScrollAnimationWrapper className="w-full py-16 md:py-24">
         <section>
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -140,7 +134,6 @@ export default function Home() {
         </section>
       </ScrollAnimationWrapper>
 
-      {/* Featured Projects Section */}
       <ScrollAnimationWrapper className="w-full py-16 md:py-24 bg-primary/5">
         <section>
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -175,7 +168,6 @@ export default function Home() {
         </section>
       </ScrollAnimationWrapper>
 
-      {/* Core Skills Section */}
       <ScrollAnimationWrapper className="w-full py-16 md:py-24">
         <section>
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">

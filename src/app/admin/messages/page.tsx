@@ -9,8 +9,9 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from '@/hooks/use-toast';
 import { getContactMessagesAction, deleteContactMessageAction, type DeleteMessageResult } from '@/actions/admin/messagesActions';
 import type { ContactMessage } from '@/lib/types';
-import { Trash2, Mail, User, CalendarDays, Inbox } from 'lucide-react';
+import { Trash2, Mail, CalendarDays, Inbox } from 'lucide-react';
 import { format } from 'date-fns';
+import FullScreenLoader from '@/components/shared/FullScreenLoader';
 
 export default function AdminMessagesPage() {
   const [messages, setMessages] = useState<ContactMessage[]>([]);
@@ -48,20 +49,7 @@ export default function AdminMessagesPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <PageHeader title="Contact Messages" subtitle="Viewing messages from site visitors." className="py-0 text-left" />
-        <div className="grid gap-4">
-          {[1, 2, 3].map(i => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader><div className="h-6 bg-muted rounded w-3/4"></div></CardHeader>
-              <CardContent><div className="h-4 bg-muted rounded w-full mb-2"></div><div className="h-4 bg-muted rounded w-5/6"></div></CardContent>
-              <CardFooter><div className="h-8 bg-muted rounded w-20"></div></CardFooter>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
+    return <FullScreenLoader message="Loading Messages..." />;
   }
 
   return (

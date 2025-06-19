@@ -17,6 +17,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from '@/hooks/use-toast';
 import { Save, Loader2, PlusCircle, Trash2 } from 'lucide-react';
+import FullScreenLoader from '@/components/shared/FullScreenLoader';
 
 import { defaultAboutMeDataForClient } from '@/lib/data';
 import type { AboutMeData, Experience as LibExperienceType, Education as LibEducationType } from '@/lib/types';
@@ -125,14 +126,12 @@ export default function AdminAboutPage() {
   const { toast } = useToast();
   const [initialDataLoading, setInitialDataLoading] = useState(true);
 
-  // --- Form and state for Profile & Bio ---
   const [profileBioState, profileBioFormAction] = useActionState(updateProfileBioDataAction, initialProfileBioFormState);
   const profileBioForm = useForm<ProfileBioData>({
     resolver: zodResolver(profileBioSchema),
     defaultValues: prepareProfileBioDataForForm(),
   });
 
-  // --- Form and state for Experience Section ---
   const [experienceState, experienceFormAction] = useActionState(updateExperienceDataAction, initialExperienceFormState);
   const experienceForm = useForm<ExperienceSectionData>({
     resolver: zodResolver(experienceSectionSchema),
@@ -144,7 +143,6 @@ export default function AdminAboutPage() {
     keyName: "fieldId", 
   });
   
-  // --- Form and state for Education Section ---
   const [educationState, educationFormAction] = useActionState(updateEducationDataAction, initialEducationFormState);
   const educationForm = useForm<EducationSectionData>({
     resolver: zodResolver(educationSectionSchema),
@@ -156,14 +154,12 @@ export default function AdminAboutPage() {
     keyName: "fieldId",
   });
 
-  // --- Form and state for Contact & Socials ---
   const [fullFormState, fullFormAction] = useActionState(updateAboutDataAction, initialFullFormState);
   const fullForm = useForm<AboutMeData>({ 
     resolver: zodResolver(aboutMeSchema),
     defaultValues: prepareFullAboutMeDataForForm(), 
   });
 
-  // Initial data load for all forms
   useEffect(() => {
     async function loadInitialData() {
       setInitialDataLoading(true);
@@ -179,7 +175,6 @@ export default function AdminAboutPage() {
       } catch (error) {
         console.error("Failed to load initial About Me data for admin:", error);
         toast({ title: "Error", description: "Could not load existing About Me data.", variant: "destructive" });
-        // Fallback to client defaults if fetch fails
         profileBioForm.reset(prepareProfileBioDataForForm(defaultAboutMeDataForClient));
         experienceForm.reset(prepareExperienceSectionDataForForm({ experience: defaultAboutMeDataForClient.experience }));
         educationForm.reset(prepareEducationSectionDataForForm({ education: defaultAboutMeDataForClient.education }));
@@ -192,15 +187,14 @@ export default function AdminAboutPage() {
   }, [profileBioForm, experienceForm, educationForm, fullForm, toast]);
 
 
-  // Effect for Profile & Bio form state
   useEffect(() => {
     if (profileBioState.status === 'success' && profileBioState.message) {
       toast({ title: "Success!", description: profileBioState.message });
       if (profileBioState.data) profileBioForm.reset(prepareProfileBioDataForForm(profileBioState.data));
     } else if (profileBioState.status === 'error') {
       toast({ title: "Error Profile & Bio", description: profileBioState.message || "An error occurred.", variant: "destructive" });
-      if (profileBioState.data) profileBioForm.reset(prepareProfileBioDataForForm(profileBioState.data)); // Repopulate with data that caused error
-      else profileBioForm.reset(profileBioForm.getValues()); // Or current form values
+      if (profileBioState.data) profileBioForm.reset(prepareProfileBioDataForForm(profileBioState.data)); 
+      else profileBioForm.reset(profileBioForm.getValues()); 
       
       if (profileBioState.errors) {
         Object.entries(profileBioState.errors).forEach(([fieldName, fieldErrorMessages]) => {
@@ -212,7 +206,6 @@ export default function AdminAboutPage() {
     }
   }, [profileBioState, toast, profileBioForm]);
 
-  // Effect for Experience form state
   useEffect(() => {
     if (experienceState.status === 'success' && experienceState.message) {
       toast({ title: "Success!", description: experienceState.message });
@@ -241,7 +234,6 @@ export default function AdminAboutPage() {
     }
   }, [experienceState, toast, experienceForm]);
 
-  // Effect for Education form state
   useEffect(() => {
     if (educationState.status === 'success' && educationState.message) {
       toast({ title: "Success!", description: educationState.message });
@@ -270,7 +262,6 @@ export default function AdminAboutPage() {
     }
   }, [educationState, toast, educationForm]);
 
-   // Effect for Contact & Socials form state
    useEffect(() => {
     if (fullFormState.status === 'success' && fullFormState.message) {
       toast({ title: "Success (Contact/Socials)!", description: fullFormState.message });
@@ -291,7 +282,7 @@ export default function AdminAboutPage() {
   }, [fullFormState, toast, fullForm]);
 
   if (initialDataLoading) {
-    return <div className="flex justify-center items-center h-64"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+    return <FullScreenLoader message="Loading About Page Settings..." />;
   }
 
   return (

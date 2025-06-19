@@ -1,13 +1,10 @@
 
+@import "../styles/loader.css";
 @import "../styles/github-markdown.css";
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Import github-markdown-css if it's a separate file, or paste its content here */
-/* Assuming we'll create src/styles/github-markdown.css */
-
 
 body {
   font-family: Arial, Helvetica, sans-serif;
@@ -15,33 +12,33 @@ body {
 
 @layer base {
   :root {
-    --background: 0 0% 94%; /* Light Grey #F0F0F0 */
-    --foreground: 0 0% 3.9%; /* Dark text for readability on light background */
+    --background: 0 0% 94%; 
+    --foreground: 0 0% 3.9%; 
 
-    --card: 0 0% 100%; /* White cards */
+    --card: 0 0% 100%; 
     --card-foreground: 0 0% 3.9%;
 
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 3.9%;
 
-    --primary: 270 31% 50%; /* Dark Purple #7851A9 */
-    --primary-foreground: 0 0% 98%; /* Light text for primary */
+    --primary: 270 31% 50%; 
+    --primary-foreground: 0 0% 98%; 
 
-    --secondary: 0 0% 96.1%; /* Default secondary, can adjust if needed */
+    --secondary: 0 0% 96.1%; 
     --secondary-foreground: 0 0% 9%;
 
-    --muted: 0 0% 90%; /* Slightly darker muted for light theme */
+    --muted: 0 0% 90%; 
     --muted-foreground: 0 0% 45.1%;
 
-    --accent: 182 100% 74%; /* Electric Blue #7DF9FF */
-    --accent-foreground: 270 31% 20%; /* Darker purple for contrast on accent */
+    --accent: 182 100% 74%; 
+    --accent-foreground: 270 31% 20%; 
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 85%; /* Adjusted border for light theme */
+    --border: 0 0% 85%; 
     --input: 0 0% 89.8%;
-    --ring: 270 31% 50%; /* Ring color to match primary */
+    --ring: 270 31% 50%; 
 
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
@@ -50,7 +47,6 @@ body {
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
 
-    /* Sidebar variables - Retained but may not be heavily used in this portfolio layout */
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -62,7 +58,6 @@ body {
   }
 
   .dark {
-    /* Dark theme remains as a fallback, but the primary design is light */
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
 
@@ -72,7 +67,7 @@ body {
     --popover: 0 0% 3.9%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 270 31% 60%; /* Slightly lighter purple for dark mode primary */
+    --primary: 270 31% 60%; 
     --primary-foreground: 0 0% 9%; 
 
     --secondary: 0 0% 14.9%;
@@ -81,15 +76,15 @@ body {
     --muted: 0 0% 14.9%;
     --muted-foreground: 0 0% 63.9%;
 
-    --accent: 182 100% 65%; /* Slightly darker blue for dark mode accent */
+    --accent: 182 100% 65%; 
     --accent-foreground: 0 0% 98%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 72.2% 50.6%;
     --destructive-foreground: 0 0% 98%;
 
     --border: 0 0% 14.9%;
     --input: 0 0% 14.9%;
-    --ring: 270 31% 60%; /* Ring color to match dark primary */
+    --ring: 270 31% 60%; 
 
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
@@ -116,21 +111,49 @@ body {
     @apply bg-background text-foreground;
   }
   main {
-    @apply relative z-10; /* Ensures main content is above z-index -1 orbs */
+    @apply relative z-10; 
   }
 
-  /* Custom text selection styles */
   ::selection {
     background-color: hsl(var(--primary));
     color: hsl(var(--primary-foreground));
   }
-  ::-moz-selection { /* Firefox */
+  ::-moz-selection { 
     background-color: hsl(var(--primary));
     color: hsl(var(--primary-foreground));
   }
 }
 
-/* Added Animations */
+.fullscreen-loader-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column; 
+  justify-content: center;
+  align-items: center;
+  background-color: hsl(var(--background) / 0.9); 
+  z-index: 9999;
+}
+
+.loader-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.loader-message {
+  font-family: var(--font-headline, 'Space Grotesk', sans-serif); 
+  font-size: 1.25rem; 
+  color: hsl(var(--primary)); 
+  text-align: center;
+  margin-top: 1rem; 
+}
+
+
 @layer utilities {
   @keyframes fadeInUp {
     from {
@@ -145,11 +168,11 @@ body {
 
   .animate-fadeInUp-1 {
     animation: fadeInUp 0.6s ease-out forwards;
-    opacity: 0; /* Start hidden */
+    opacity: 0; 
   }
   .animate-fadeInUp-2 {
-    animation: fadeInUp 0.6s ease-out 0.3s forwards; /* 0.3s delay */
-    opacity: 0; /* Start hidden */
+    animation: fadeInUp 0.6s ease-out 0.3s forwards; 
+    opacity: 0; 
   }
   .animate-fadeInUp-delayed { 
     animation: fadeInUp 0.6s ease-out 0.6s forwards; 
@@ -167,12 +190,11 @@ body {
     animation: animatedGradient 15s ease infinite;
   }
 
-  /* Styles for scroll-triggered animations */
   .scroll-trigger {
     opacity: 0;
-    transform: translateY(25px); /* Start slightly lower, reduced from 30px */
+    transform: translateY(25px); 
     transition-property: opacity, transform;
-    transition-duration: 0.7s; /* Increased from 0.5s for smoother effect */
+    transition-duration: 0.7s; 
     transition-timing-function: ease-out;
   }
 
@@ -181,14 +203,13 @@ body {
     transform: translateY(0);
   }
 
-  /* Styles for mouse-tracking light orbs */
   .light-orb {
-    position: fixed; /* Changed from absolute for viewport relative positioning */
+    position: fixed; 
     border-radius: 50%;
     pointer-events: none;
-    z-index: -1; /* Behind all content */
+    z-index: -1; 
     mix-blend-mode: overlay; 
-    transition: transform 0.15s ease-out; /* Smooth transition for mouse following */
+    transition: transform 0.15s ease-out; 
   }
 
   .light-orb-1 {
@@ -203,45 +224,38 @@ body {
     background: radial-gradient(circle, hsl(var(--accent) / 0.2) 0%, transparent 70%);
   }
 
-  /* Starry background styles */
   .star {
     position: absolute;
     background-color: white;
     border-radius: 50%;
     animation: fallAndFade linear infinite;
-    box-shadow: 0 0 4px #fff, 0 0 8px #fff, 0 0 12px hsl(var(--accent) / 0.7); /* Subtle glow */
+    box-shadow: 0 0 4px #fff, 0 0 8px #fff, 0 0 12px hsl(var(--accent) / 0.7); 
   }
 
   @keyframes fallAndFade {
     0% {
-      transform: translateY(-30px) scale(0.5); /* Start slightly higher and smaller */
+      transform: translateY(-30px) scale(0.5); 
       opacity: 0;
     }
-    10%, 20% { /* Appear relatively quickly */
+    10%, 20% { 
       opacity: 1;
       transform: scale(1);
     }
     100% {
-      transform: translateY(100vh) scale(0.7); /* Fall off screen, slightly larger at end */
+      transform: translateY(100vh) scale(0.7); 
       opacity: 0;
     }
   }
 }
 
-
-/* Ensure markdown-body styles do not get purged by Tailwind and provide some reset */
 .markdown-body {
-  box-sizing: border-box; /* from github-markdown.css */
-  padding: 0; /* Override 45px from github-markdown.css; CardContent handles padding */
+  box-sizing: border-box; 
+  padding: 0; 
 }
 
 @media (max-width: 767px) {
-  .markdown-body {
-    /* padding: 15px; */ /* Original mobile padding from github-markdown.css, overridden by padding: 0 above */
-  }
 }
 
-/* Apply card background and foreground to markdown body for theme consistency */
 .markdown-body {
     color: hsl(var(--card-foreground));
 }
@@ -290,9 +304,8 @@ body {
     background-color: hsl(var(--border));
 }
 
-/* Dark mode specific overrides for github-markdown.css if necessary */
 .dark .markdown-body {
-    color: hsl(var(--foreground)); /* Default text in dark mode */
+    color: hsl(var(--foreground)); 
 }
 
 .dark .markdown-body h1,
@@ -301,17 +314,17 @@ body {
 .dark .markdown-body h4,
 .dark .markdown-body h5,
 .dark .markdown-body h6 {
-    color: hsl(var(--primary)); /* Primary color for headings in dark mode */
+    color: hsl(var(--primary)); 
 }
 
 .dark .markdown-body a {
-    color: hsl(var(--accent)); /* Accent color for links in dark mode */
+    color: hsl(var(--accent)); 
 }
 
 .dark .markdown-body code,
 .dark .markdown-body pre {
-    background-color: hsl(var(--muted)); /* Muted background for code blocks in dark mode */
-    color: hsl(var(--muted-foreground)); /* Muted foreground for code text in dark mode */
+    background-color: hsl(var(--muted)); 
+    color: hsl(var(--muted-foreground)); 
 }
 
 .dark .markdown-body blockquote {
@@ -324,20 +337,21 @@ body {
     border-color: hsl(var(--border));
 }
 .dark .markdown-body table tr:nth-child(2n) {
-    background-color: hsl(var(--muted) / 0.5); /* Muted background for alternate table rows in dark mode */
+    background-color: hsl(var(--muted) / 0.5); 
 }
 
 .dark .markdown-body hr {
     background-color: hsl(var(--border));
 }
 
-/* Ensure content is not overlapped by fixed announcement banner */
 body {
-  padding-top: 0; /* Reset any previous padding */
+  padding-top: 0; 
 }
 
-body:has(div[role="alert"][aria-live="polite"]:not([style*="opacity: 0"])) {
-  /* This selector targets the body when the announcement banner is visible */
-  /* Adjust this value if your banner height changes */
-  padding-top: 4rem; /* Example: 64px if banner is roughly that height */
+body:has(div[role="alert"][aria-live="polite"]:not([style*="opacity: 0"]):not([data-maintenance-banner])) {
+  padding-top: 4rem; 
+}
+
+body:has(div[data-maintenance-banner]):not(:has(div[role="alert"][aria-live="polite"]:not([style*="opacity: 0"]):not([data-maintenance-banner]))) {
+  padding-top: 3rem; 
 }

@@ -10,7 +10,7 @@ import type { AboutMeData } from '@/lib/types';
 import { getAboutMeDataAction } from '@/actions/getAboutMeDataAction';
 import { defaultAboutMeDataForClient } from '@/lib/data';
 import { useEffect, useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import FullScreenLoader from '@/components/shared/FullScreenLoader';
 
 export default function ContactPage() {
   const [aboutMeData, setAboutMeData] = useState<AboutMeData | null>(null);
@@ -33,11 +33,7 @@ export default function ContactPage() {
   }, []);
 
   if (isLoading || !aboutMeData) {
-    return (
-      <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8 flex justify-center items-center min-h-[calc(100vh-200px)]">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-      </div>
-    );
+    return <FullScreenLoader message="Loading Contact Info..." />;
   }
 
   const displayedData = aboutMeData; 
