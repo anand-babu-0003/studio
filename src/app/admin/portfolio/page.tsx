@@ -25,11 +25,12 @@ import {
   type PortfolioFormState,
 } from '@/actions/admin/portfolioActions';
 import { portfolioItemAdminSchema, type PortfolioAdminFormData } from '@/lib/adminSchemas';
-import { defaultPortfolioItemsDataForClient } from '@/lib/data'; // For default form values
+import { defaultPortfolioItemsDataForClient } from '@/lib/data'; 
 
 const initialFormState: PortfolioFormState = { message: '', status: 'idle', errors: {} };
 
 const defaultFormValues: PortfolioAdminFormData = {
+  id: undefined,
   title: '',
   description: '',
   longDescription: '',
@@ -40,7 +41,7 @@ const defaultFormValues: PortfolioAdminFormData = {
   repoUrl: '',
   slug: '',
   dataAiHint: '',
-  readmeContent: '',
+  readmeContent: defaultPortfolioItemsDataForClient[0]?.readmeContent || '', // Add a sensible default
 };
 
 function SubmitButton() {
@@ -78,7 +79,7 @@ export default function AdminPortfolioPage() {
   
   const formCardKey = useMemo(() => {
     if (!showForm) return 'hidden-form';
-    if (currentProject) return `edit-${currentProject.id}-${new Date().getTime()}`;
+    if (currentProject?.id) return `edit-${currentProject.id}-${new Date().getTime()}`;
     return `add-new-project-form-${new Date().getTime()}`;
   }, [showForm, currentProject]);
   
@@ -117,7 +118,6 @@ export default function AdminPortfolioPage() {
         } else {
           newProjectsArray = [savedProject, ...prevProjects];
         }
-        // Ensure sorting by createdAt (desc) after update/add
         return newProjectsArray.sort((a, b) => 
           new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
         );
@@ -134,12 +134,9 @@ export default function AdminPortfolioPage() {
 
       toast({ title: "Error Saving", description: errorMessage, variant: "destructive" });
       
-      if (formActionState.formDataOnError) {
-        form.reset(formActionState.formDataOnError); 
-      } else {
-        form.reset(form.getValues()); 
-      }
-
+      const dataToResetWith = formActionState.formDataOnError ? formActionState.formDataOnError : form.getValues();
+      form.reset(dataToResetWith); 
+      
       if (formActionState.errors) {
         Object.entries(formActionState.errors).forEach(([key, fieldErrorMessages]) => {
           if (Array.isArray(fieldErrorMessages) && fieldErrorMessages.length > 0) {
@@ -162,10 +159,17 @@ export default function AdminPortfolioPage() {
   const handleEdit = (project: PortfolioItem) => {
     setCurrentProject(project);
     form.reset({ 
-      ...project,
+      id: project.id,
+      title: project.title || '',
+      description: project.description || '',
+      longDescription: project.longDescription || '',
       image1: project.images[0] || '',
       image2: project.images[1] || '',
       tagsString: (project.tags || []).join(', '),
+      liveUrl: project.liveUrl || '',
+      repoUrl: project.repoUrl || '',
+      slug: project.slug || '',
+      dataAiHint: project.dataAiHint || '',
       readmeContent: project.readmeContent || '',
     });
     setShowForm(true);

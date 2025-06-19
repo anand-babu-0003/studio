@@ -14,7 +14,7 @@ import {
 } from '@/lib/adminSchemas';
 import type { z } from 'zod';
 import { revalidatePath } from 'next/cache';
-import { defaultAboutMeDataForClient } from '@/lib/data'; // For fallbacks
+import { defaultAboutMeDataForClient } from '@/lib/data'; 
 
 const aboutMeDocRef = () => {
   if (!firestore) throw new Error("Firestore not initialized");
@@ -29,24 +29,43 @@ async function readAboutMeDataFromFirestore(): Promise<AboutMeData> {
   try {
     const docSnap = await getDoc(aboutMeDocRef());
     if (docSnap.exists()) {
-      const data = docSnap.data() as AboutMeData;
+      const data = docSnap.data() as Partial<AboutMeData>; // Data from DB might be partial
+      // Merge with defaults to ensure all fields are present
       return {
         ...defaultAboutMeDataForClient,
         ...data,
-        experience: (data.experience || []).map(exp => ({ ...exp, id: exp.id || `exp_fb_${Date.now()}_${Math.random().toString(36).substring(2, 7)}` })),
-        education: (data.education || []).map(edu => ({ ...edu, id: edu.id || `edu_fb_${Date.now()}_${Math.random().toString(36).substring(2, 7)}` })),
+        experience: (data.experience || defaultAboutMeDataForClient.experience).map(exp => ({ 
+            ...exp, 
+            id: exp.id || `exp_fb_${Date.now()}_${Math.random().toString(36).substring(2, 7)}` 
+        })),
+        education: (data.education || defaultAboutMeDataForClient.education).map(edu => ({ 
+            ...edu, 
+            id: edu.id || `edu_fb_${Date.now()}_${Math.random().toString(36).substring(2, 7)}` 
+        })),
       };
     }
-    return defaultAboutMeDataForClient; // Return default if doc doesn't exist
+    return defaultAboutMeDataForClient; 
   } catch (error) {
     console.error("Error reading AboutMeData from Firestore:", error);
-    return defaultAboutMeDataForClient; // Fallback on error
+    return defaultAboutMeDataForClient; 
   }
 }
 
 async function writeAboutMeDataToFirestore(data: AboutMeData): Promise<void> {
   if (!firestore) throw new Error("Firestore not initialized. Cannot write AboutMeData.");
-  await setDoc(aboutMeDocRef(), data, { merge: true });
+  // Ensure experience and education items have IDs before writing
+  const dataToSave: AboutMeData = {
+    ...data,
+    experience: data.experience.map(exp => ({
+      ...exp,
+      id: exp.id || `exp_fs_write_${Date.now()}_${Math.random().toString(36).substring(2,7)}`
+    })),
+    education: data.education.map(edu => ({
+      ...edu,
+      id: edu.id || `edu_fs_write_${Date.now()}_${Math.random().toString(36).substring(2,7)}`
+    }))
+  };
+  await setDoc(aboutMeDocRef(), dataToSave, { merge: true });
 }
 
 
@@ -162,7 +181,7 @@ export async function updateExperienceDataAction(
     const experienceIndices = new Set<string>();
 
     for (const [key] of formData.entries()) {
-      if (key.startsWith('experience.')) {
+      if (key.startsWith('experience.') && key.includes('.id')) {
         experienceIndices.add(key.split('.')[1]);
       }
     }
@@ -170,13 +189,14 @@ export async function updateExperienceDataAction(
     const sortedIndices = Array.from(experienceIndices).sort((a,b) => parseInt(a) - parseInt(b));
 
     for (const index of sortedIndices) {
-      const id = String(formData.get(`experience.${index}.id`) || `exp_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`);
+      const id = String(formData.get(`experience.${index}.id`) || `exp_new_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`);
       const role = String(formData.get(`experience.${index}.role`) || '');
       const company = String(formData.get(`experience.${index}.company`) || '');
       const period = String(formData.get(`experience.${index}.period`) || '');
       const description = String(formData.get(`experience.${index}.description`) || '');
       
-      if (role.trim() !== '' || company.trim() !== '' || period.trim() !== '' || description.trim() !== '' || (id && !id.startsWith('new_exp_')) ) {
+      // Only add if it's an existing item (has a non-placeholder ID) OR if it's new and has some content
+      if (!id.startsWith('new_exp_') || role.trim() || company.trim() || period.trim() || description.trim()) {
           experienceEntries.push({ id, role, company, period, description });
       }
     }
@@ -199,7 +219,10 @@ export async function updateExperienceDataAction(
     const currentAboutMeData = await readAboutMeDataFromFirestore();
     const updatedAboutMeData: AboutMeData = {
       ...currentAboutMeData,
-      experience: dataToSave.experience,
+      experience: dataToSave.experience.map(exp => ({ // Ensure IDs are final
+        ...exp,
+        id: exp.id.startsWith('new_exp_') ? `exp_${Date.now()}_${Math.random().toString(36).substring(2, 7)}` : exp.id
+      })),
     };
     await writeAboutMeDataToFirestore(updatedAboutMeData);
 
@@ -209,7 +232,7 @@ export async function updateExperienceDataAction(
     return {
       message: "Experience data updated successfully!",
       status: 'success',
-      data: dataToSave, 
+      data: { experience: updatedAboutMeData.experience }, // Return the final saved data
       errors: {},
     };
 
@@ -239,7 +262,7 @@ export async function updateEducationDataAction(
     const educationIndices = new Set<string>();
 
     for (const [key] of formData.entries()) {
-      if (key.startsWith('education.')) {
+      if (key.startsWith('education.') && key.includes('.id')) {
         educationIndices.add(key.split('.')[1]);
       }
     }
@@ -247,12 +270,12 @@ export async function updateEducationDataAction(
     const sortedIndices = Array.from(educationIndices).sort((a,b) => parseInt(a) - parseInt(b));
 
     for (const index of sortedIndices) {
-      const id = String(formData.get(`education.${index}.id`) || `edu_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`);
+      const id = String(formData.get(`education.${index}.id`) || `edu_new_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`);
       const degree = String(formData.get(`education.${index}.degree`) || '');
       const institution = String(formData.get(`education.${index}.institution`) || '');
       const period = String(formData.get(`education.${index}.period`) || '');
 
-      if (degree.trim() !== '' || institution.trim() !== '' || period.trim() !== '' || (id && !id.startsWith('new_edu_'))) {
+      if (!id.startsWith('new_edu_') || degree.trim() || institution.trim() || period.trim()) {
         educationEntries.push({ id, degree, institution, period });
       }
     }
@@ -274,7 +297,10 @@ export async function updateEducationDataAction(
     const currentAboutMeData = await readAboutMeDataFromFirestore();
     const updatedAboutMeData: AboutMeData = {
       ...currentAboutMeData,
-      education: dataToSave.education,
+      education: dataToSave.education.map(edu => ({ // Ensure IDs are final
+        ...edu,
+        id: edu.id.startsWith('new_edu_') ? `edu_${Date.now()}_${Math.random().toString(36).substring(2, 7)}` : edu.id
+      })),
     };
     await writeAboutMeDataToFirestore(updatedAboutMeData);
 
@@ -284,7 +310,7 @@ export async function updateEducationDataAction(
     return {
       message: "Education data updated successfully!",
       status: 'success',
-      data: dataToSave,
+      data: { education: updatedAboutMeData.education }, // Return the final saved data
       errors: {},
     };
 
@@ -322,6 +348,8 @@ export async function updateAboutDataAction(
       twitterUrl: String(formData.get('twitterUrl') || ''),
     };
         
+    // Use the full aboutMeSchema for validation as it includes the contact fields
+    // but ensure we only intend to update contact-related fields in this action.
     const validatedFields = aboutMeSchema.safeParse(rawDataForValidation);
 
     if (!validatedFields.success) {
@@ -330,11 +358,11 @@ export async function updateAboutDataAction(
         message: "Failed to update contact data. Please check the errors below.",
         status: 'error',
         errors: fieldErrors,
-        data: rawDataForValidation as AboutMeData, // Cast, ensure UI handles partial data
+        data: rawDataForValidation as AboutMeData, 
       };
     }
 
-    const validatedContactData = validatedFields.data; // This is full AboutMeData structure
+    const validatedContactData = validatedFields.data; 
 
     const allDataToSave: AboutMeData = {
       ...currentAboutMe, 

@@ -1,7 +1,7 @@
 
 "use client"; 
 
-import type { Metadata } from 'next';
+import type { Metadata } from 'next'; // Keep for potential future use with generateMetadata
 import { usePathname } from 'next/navigation'; 
 import { useEffect, useState, useCallback } from 'react';
 import './globals.css';
@@ -13,12 +13,6 @@ import type { SiteSettings, AboutMeData } from '@/lib/types';
 import { getSiteSettingsAction } from '@/actions/admin/settingsActions'; 
 import { getAboutMeDataAction } from '@/actions/getAboutMeDataAction';
 import { defaultSiteSettingsForClient, defaultAboutMeDataForClient } from '@/lib/data';
-
-// Static metadata object - can be a fallback or initial state
-export const staticMetadata: Metadata = {
-  title: defaultSiteSettingsForClient.siteName,
-  description: defaultSiteSettingsForClient.defaultMetaDescription,
-};
 
 // Helper function to create or update a meta tag
 function updateMetaTag(name: string, content: string, isProperty: boolean = false) {
@@ -84,7 +78,7 @@ export default function RootLayout({
 
 
   useEffect(() => {
-    setIsMounted(true); // Indicate client-side mount
+    setIsMounted(true); 
     fetchInitialData();
 
     const handleMouseMove = (event: MouseEvent) => {
@@ -104,38 +98,41 @@ export default function RootLayout({
 
   
   useEffect(() => {
-    if (currentSiteSettings) {
-      const pageTitleSegment = pathname.split('/').pop()?.replace(/-/g, ' ');
-      const formattedPageTitle = pageTitleSegment 
-        ? pageTitleSegment.charAt(0).toUpperCase() + pageTitleSegment.slice(1)
-        : '';
-      
-      const siteNameBase = currentSiteSettings.siteName || defaultSiteSettingsForClient.siteName;
+    if (typeof document !== 'undefined' && currentSiteSettings) {
+        const pageTitleSegment = pathname.split('/').pop()?.replace(/-/g, ' ');
+        const formattedPageTitle = pageTitleSegment 
+            ? pageTitleSegment.charAt(0).toUpperCase() + pageTitleSegment.slice(1)
+            : '';
+        
+        const siteNameBase = currentSiteSettings.siteName || defaultSiteSettingsForClient.siteName;
 
-      if (pathname === '/') {
-         document.title = siteNameBase;
-      } else if (formattedPageTitle && !isAdminRoute) {
-         document.title = `${siteNameBase} | ${formattedPageTitle}`;
-      } else if (!isAdminRoute) { // Fallback for other public pages
-         document.title = siteNameBase;
-      }
-      // Admin pages will manage their own titles or use a default
+        if (pathname === '/') {
+            document.title = siteNameBase;
+        } else if (formattedPageTitle && !isAdminRoute) {
+            document.title = `${formattedPageTitle} | ${siteNameBase}`; // Swapped order for common SEO practice
+        } else if (isAdminRoute && formattedPageTitle) {
+             document.title = `Admin: ${formattedPageTitle} | ${siteNameBase}`;
+        } else if (isAdminRoute) {
+             document.title = `Admin | ${siteNameBase}`;
+        } else { 
+            document.title = siteNameBase;
+        }
 
-      updateMetaTag('description', currentSiteSettings.defaultMetaDescription || defaultSiteSettingsForClient.defaultMetaDescription);
-      updateMetaTag('og:title', siteNameBase, true);
-      updateMetaTag('og:description', currentSiteSettings.defaultMetaDescription || defaultSiteSettingsForClient.defaultMetaDescription, true);
-      
-      if (currentSiteSettings.defaultMetaKeywords && currentSiteSettings.defaultMetaKeywords.trim() !== '') {
-        updateMetaTag('keywords', currentSiteSettings.defaultMetaKeywords);
-      } else {
-        removeMetaTag('keywords');
-      }
+        updateMetaTag('description', currentSiteSettings.defaultMetaDescription || defaultSiteSettingsForClient.defaultMetaDescription);
+        updateMetaTag('og:title', document.title, true); // Use the dynamically set document.title for OG
+        updateMetaTag('og:description', currentSiteSettings.defaultMetaDescription || defaultSiteSettingsForClient.defaultMetaDescription, true);
+        
+        if (currentSiteSettings.defaultMetaKeywords && currentSiteSettings.defaultMetaKeywords.trim() !== '') {
+            updateMetaTag('keywords', currentSiteSettings.defaultMetaKeywords);
+        } else {
+            removeMetaTag('keywords');
+        }
 
-      if (currentSiteSettings.siteOgImageUrl && currentSiteSettings.siteOgImageUrl.trim() !== '') {
-        updateMetaTag('og:image', currentSiteSettings.siteOgImageUrl);
-      } else {
-         removeMetaTag('og:image', true); // remove if empty, or use a global default
-      }
+        if (currentSiteSettings.siteOgImageUrl && currentSiteSettings.siteOgImageUrl.trim() !== '') {
+            updateMetaTag('og:image', currentSiteSettings.siteOgImageUrl, true);
+        } else {
+            removeMetaTag('og:image', true); 
+        }
     }
   }, [currentSiteSettings, pathname, isAdminRoute]);
 
@@ -150,9 +147,19 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
         
-        {/* Default title and meta for initial load / JS disabled */}
-        <title>{currentSiteSettings?.siteName || defaultSiteSettingsForClient.siteName}</title>
-        <meta name="description" content={currentSiteSettings?.defaultMetaDescription || defaultSiteSettingsForClient.defaultMetaDescription} />
+        {/* Default title and meta for initial load / JS disabled, will be updated by useEffect */}
+        <title>{defaultSiteSettingsForClient.siteName}</title>
+        <meta name="description" content={defaultSiteSettingsForClient.defaultMetaDescription} />
+        {defaultSiteSettingsForClient.defaultMetaKeywords && (
+          <meta name="keywords" content={defaultSiteSettingsForClient.defaultMetaKeywords} />
+        )}
+        {defaultSiteSettingsForClient.siteOgImageUrl && (
+          <meta property="og:image" content={defaultSiteSettingsForClient.siteOgImageUrl} />
+        )}
+        <meta property="og:title" content={defaultSiteSettingsForClient.siteName} />
+        <meta property="og:description" content={defaultSiteSettingsForClient.defaultMetaDescription} />
+        <meta property="og:type" content="website" />
+
       </head>
       <body className="font-body antialiased flex flex-col min-h-screen">
         {isMounted && !isAdminRoute && (
@@ -180,7 +187,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {!isAdminRoute && <Navbar />}
-          <div className="flex-grow">{children}</div> {/* Ensure flex-grow is on a direct child of the flex container */}
+          <div className="flex-grow">{children}</div> 
           {!isAdminRoute && <Footer aboutMeData={currentAboutMeData} />}
           <Toaster />
         </ThemeProvider>

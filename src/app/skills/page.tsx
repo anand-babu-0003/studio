@@ -1,5 +1,5 @@
 
-"use client"; // Needs to be client for useState and useEffect for loading state
+"use client"; 
 
 import { PageHeader } from '@/components/shared/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,10 +21,10 @@ export default function SkillsPage() {
       setIsLoading(true);
       try {
         const skills = await getSkillsAction();
-        setSkillsData(skills || []); // Use empty array if null/undefined
+        setSkillsData(skills || []); 
       } catch (error) {
         console.error("Error fetching skills data for page:", error);
-        setSkillsData(defaultSkillsDataForClient); // Fallback to default on error
+        setSkillsData(defaultSkillsDataForClient); 
       } finally {
         setIsLoading(false);
       }
@@ -54,6 +54,7 @@ export default function SkillsPage() {
           const categorySkills = (skillsData || []).filter((skill) => skill.category === category);
           
           if (skillsData.length > 0 && categorySkills.length === 0) {
+             // Don't render a category card if there are skills loaded but none for this specific category
              return null; 
           }
 
@@ -71,7 +72,7 @@ export default function SkillsPage() {
                       {categorySkills.map((skill: Skill, skillIndex: number) => {
                         const IconComponent = lucideIconsMap[skill.iconName] || Package;
                         return (
-                          <ScrollAnimationWrapper key={skill.id || `skill-${category}-${skillIndex}`} delay={skillIndex * 50} threshold={0.05}>
+                          <ScrollAnimationWrapper key={skill.id || `skill-${category}-${skillIndex}-${Date.now()}`} delay={skillIndex * 50} threshold={0.05}>
                             <Card className="shadow-lg hover:shadow-xl transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-[1.03] h-full flex flex-col rounded-lg overflow-hidden border border-border/70">
                               <CardContent className="p-6 flex flex-col items-center text-center flex-grow">
                                 <IconComponent className="h-12 w-12 text-primary mb-4" aria-hidden="true" />
@@ -92,7 +93,7 @@ export default function SkillsPage() {
                                     </>
                                   ) : (
                                     <div className="text-center pt-2">
-                                      <Badge variant="outline" className="font-normal text-xs px-2 py-0.5 border-primary/30 text-primary/80">Highly Experienced</Badge>
+                                      <Badge variant="outline" className="font-normal text-xs px-2 py-0.5 border-primary/30 text-primary/80">Experienced</Badge>
                                     </div>
                                   )}
                                 </div>
@@ -104,7 +105,7 @@ export default function SkillsPage() {
                     </div>
                   ) : (
                     <p className="text-center text-muted-foreground">
-                      {skillsData.length === 0 ? "Loading skills or no skills to display yet. Please check back!" : `No skills listed under ${category} yet.`}
+                      {isLoading ? "Loading skills..." : `No skills listed under ${category} yet. Check back soon!`}
                     </p>
                   )}
                 </CardContent>
@@ -112,10 +113,10 @@ export default function SkillsPage() {
             </ScrollAnimationWrapper>
           );
         })}
-        {skillsData.length === 0 && !isLoading && ( // Show only if not loading and no skills
+        {skillsData.length === 0 && !isLoading && ( 
             <ScrollAnimationWrapper className="text-center">
                 <p className="text-muted-foreground text-lg">
-                Skills are being updated or none are currently listed. Please check back soon!
+                My skills are currently being polished! Please check back soon for a full list.
                 </p>
             </ScrollAnimationWrapper>
         )}

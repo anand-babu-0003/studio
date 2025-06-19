@@ -1,5 +1,5 @@
 
-"use client"; // Needs to be client for useState and useEffect for loading state
+"use client"; 
 
 import { PageHeader } from '@/components/shared/page-header';
 import { PortfolioCard } from '@/components/portfolio/portfolio-card';
@@ -19,10 +19,10 @@ export default function PortfolioPage() {
       setIsLoading(true);
       try {
         const items = await getPortfolioItemsAction();
-        setPortfolioItems(items || []); // Use empty array if null/undefined
+        setPortfolioItems(items || []); 
       } catch (error) {
         console.error("Error fetching portfolio items for page:", error);
-        setPortfolioItems(defaultPortfolioItemsDataForClient); // Fallback to default on error
+        setPortfolioItems(defaultPortfolioItemsDataForClient); 
       } finally {
         setIsLoading(false);
       }
@@ -50,7 +50,7 @@ export default function PortfolioPage() {
       {(portfolioItems || []).length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {portfolioItems.map((project, index) => (
-            <ScrollAnimationWrapper key={project.id || `portfolio-${index}`} delay={index * 100} threshold={0.05} className="h-full">
+            <ScrollAnimationWrapper key={project.id || `portfolio-${index}-${Date.now()}`} delay={index * 100} threshold={0.05} className="h-full">
               <PortfolioCard project={project} />
             </ScrollAnimationWrapper>
           ))}

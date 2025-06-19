@@ -1,5 +1,5 @@
 
-"use client"; // Needs to be client for useState and useEffect for loading state
+"use client"; 
 
 import Image from 'next/image';
 import { PageHeader } from '@/components/shared/page-header';
@@ -23,7 +23,7 @@ export default function AboutPage() {
         setAboutMeData(data || defaultAboutMeDataForClient);
       } catch (error) {
         console.error("Error fetching About Me data for page:", error);
-        setAboutMeData(defaultAboutMeDataForClient); // Fallback to default on error
+        setAboutMeData(defaultAboutMeDataForClient); 
       } finally {
         setIsLoading(false);
       }
@@ -39,7 +39,7 @@ export default function AboutPage() {
     );
   }
 
-  const displayedData = aboutMeData; // Already has fallbacks from action/state
+  const displayedData = aboutMeData; 
 
   return (
     <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
@@ -54,15 +54,15 @@ export default function AboutPage() {
         <ScrollAnimationWrapper className="lg:col-span-1 flex flex-col items-center" delay={100}>
           <Image
             src={displayedData.profileImage || defaultAboutMeDataForClient.profileImage}
-            alt={`Profile picture of ${displayedData.name || 'User'}`}
+            alt={`Profile picture of ${displayedData.name || defaultAboutMeDataForClient.name}`}
             width={350}
             height={350}
             className="rounded-full shadow-2xl object-cover mb-8 aspect-square"
             data-ai-hint={displayedData.dataAiHint || defaultAboutMeDataForClient.dataAiHint}
             priority
           />
-          <h2 className="font-headline text-3xl font-semibold text-primary text-center">{displayedData.name || 'User Name'}</h2>
-          <p className="text-muted-foreground text-center mt-1">{displayedData.title || 'User Title'}</p>
+          <h2 className="font-headline text-3xl font-semibold text-primary text-center">{displayedData.name || defaultAboutMeDataForClient.name}</h2>
+          <p className="text-muted-foreground text-center mt-1">{displayedData.title || defaultAboutMeDataForClient.title}</p>
         </ScrollAnimationWrapper>
 
         <ScrollAnimationWrapper className="lg:col-span-2" delay={200}>
@@ -71,7 +71,7 @@ export default function AboutPage() {
               <CardTitle className="font-headline text-2xl text-primary">My Story</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-lg text-foreground/80 leading-relaxed">
-              {(displayedData.bio || 'Detailed biography coming soon...').split('\n\n').map((paragraph, index) => (
+              {(displayedData.bio || defaultAboutMeDataForClient.bio).split('\n\n').map((paragraph, index) => (
                 <p key={index}>{paragraph}</p>
               ))}
             </CardContent>
@@ -91,7 +91,7 @@ export default function AboutPage() {
               <div className="space-y-6">
                 {(displayedData.experience || []).length > 0 ? (
                   (displayedData.experience || []).map((exp: Experience, index: number) => (
-                    <ScrollAnimationWrapper key={exp.id || `exp-${index}`} delay={index * 100}>
+                    <ScrollAnimationWrapper key={exp.id || `exp-${index}-${Date.now()}`} delay={index * 100}>
                       <Card className="shadow-md hover:shadow-lg transition-shadow">
                         <CardHeader>
                           <CardTitle className="font-headline text-xl text-primary">{exp.role}</CardTitle>
@@ -117,7 +117,7 @@ export default function AboutPage() {
               <div className="space-y-6">
                 {(displayedData.education || []).length > 0 ? (
                   (displayedData.education || []).map((edu: Education, index: number) => (
-                    <ScrollAnimationWrapper key={edu.id || `edu-${index}`} delay={index * 100}>
+                    <ScrollAnimationWrapper key={edu.id || `edu-${index}-${Date.now()}`} delay={index * 100}>
                       <Card className="shadow-md hover:shadow-lg transition-shadow">
                         <CardHeader>
                           <CardTitle className="font-headline text-xl text-primary">{edu.degree}</CardTitle>

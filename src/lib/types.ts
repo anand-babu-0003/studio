@@ -7,33 +7,35 @@ export interface PortfolioItem {
   title: string;
   description: string;
   longDescription?: string;
-  images: string[];
-  tags: string[];
+  images: string[]; // Should always be an array, even if empty
+  tags: string[];   // Should always be an array, even if empty
   liveUrl?: string;
   repoUrl?: string;
   slug: string;
   dataAiHint?: string;
-  readmeContent?: string; // Added for README markdown
+  readmeContent?: string;
+  createdAt?: string; // ISO date string
+  updatedAt?: string; // ISO date string
 }
 
 export interface Skill {
   id: string;
   name: string;
-  iconName: string; // Changed from LucideIcon to string
+  iconName: string;
   category: 'Frontend' | 'Backend' | 'DevOps' | 'Tools' | 'Languages' | 'Other';
-  proficiency?: number;
+  proficiency?: number | null; // Allow null for "not set"
 }
 
 export interface SocialLink {
   id: string;
   name: string;
-  url?: string; // Make URL optional as it will come from AboutMeData
-  baseUrl?: string; // For mailto:, etc.
+  url?: string;
+  baseUrl?: string;
   icon: LucideIcon | React.ElementType;
 }
 
 export interface Experience {
-  id: string;
+  id: string; // Ensure ID is always present
   role: string;
   company: string;
   period: string;
@@ -41,7 +43,7 @@ export interface Experience {
 }
 
 export interface Education {
-  id: string;
+  id: string; // Ensure ID is always present
   degree: string;
   institution: string;
   period: string;
@@ -53,8 +55,8 @@ export interface AboutMeData {
   bio: string;
   profileImage: string;
   dataAiHint: string;
-  experience: Experience[];
-  education: Education[];
+  experience: Experience[]; // Should always be an array
+  education: Education[];   // Should always be an array
   email?: string;
   linkedinUrl?: string;
   githubUrl?: string;
@@ -72,7 +74,7 @@ export interface AppData {
   portfolioItems: PortfolioItem[];
   skills: Skill[];
   aboutMe: AboutMeData;
-  siteSettings: SiteSettings; // Added site settings
+  siteSettings: SiteSettings;
 }
 
 export interface ContactMessage {

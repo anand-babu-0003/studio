@@ -6,7 +6,6 @@ import { collection, getDocs, doc, setDoc, deleteDoc, query, orderBy, Timestamp 
 import type { Skill as LibSkillType } from '@/lib/types';
 import { skillAdminSchema, type SkillAdminFormData } from '@/lib/adminSchemas';
 import { revalidatePath } from 'next/cache';
-import { defaultSkillsDataForClient } from '@/lib/data'; // For fallback
 
 const skillsCollectionRef = () => {
   if (!firestore) throw new Error("Firestore not initialized");
@@ -18,14 +17,13 @@ const skillDocRef = (id: string) => {
   return doc(firestore, 'skills', id);
 }
 
-// Action to get all skills
 export async function getSkillsAction(): Promise<LibSkillType[]> {
   if (!firestore) {
     console.warn("Firestore not initialized in getSkillsAction. Returning empty array.");
     return [];
   }
   try {
-    const q = query(skillsCollectionRef(), orderBy('category'), orderBy('name')); // Example ordering
+    const q = query(skillsCollectionRef(), orderBy('category'), orderBy('name'));
     const snapshot = await getDocs(q);
 
     if (snapshot.empty) {
@@ -37,7 +35,7 @@ export async function getSkillsAction(): Promise<LibSkillType[]> {
         id: docSnap.id,
         name: data.name || 'Unnamed Skill',
         category: data.category || 'Other',
-        iconName: data.iconName || 'Package', // Default icon
+        iconName: data.iconName || 'Package',
         proficiency: data.proficiency === undefined || data.proficiency === null ? undefined : Number(data.proficiency),
       } as LibSkillType;
     });
@@ -73,9 +71,8 @@ export async function saveSkillAction(
     name: String(formData.get('name') || ''),
     category: String(formData.get('category') || 'Other') as LibSkillType['category'],
     iconName: String(formData.get('iconName') || 'Package'),
-    proficiency: formData.get('proficiency') === null || String(formData.get('proficiency')).trim() === ''
-      ? undefined
-      : Number(formData.get('proficiency')),
+    // Proficiency is handled by Zod preprocess in skillAdminSchema
+    proficiency: formData.get('proficiency') as any, // Let Zod handle parsing
   };
 
   const validatedFields = skillAdminSchema.safeParse(rawData);
@@ -96,7 +93,7 @@ export async function saveSkillAction(
     name: data.name,
     category: data.category,
     iconName: data.iconName,
-    proficiency: data.proficiency === null ? undefined : data.proficiency, // Ensure null becomes undefined
+    proficiency: data.proficiency, // Already correctly typed by Zod
   };
 
   try {
@@ -109,7 +106,7 @@ export async function saveSkillAction(
 
     revalidatePath('/skills');
     revalidatePath('/admin/skills');
-    revalidatePath('/'); // If skills are on homepage
+    revalidatePath('/'); 
 
     return {
       message: `Skill "${savedSkillData.name}" ${data.id ? 'updated' : 'added'} successfully!`,

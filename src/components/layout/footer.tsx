@@ -6,7 +6,7 @@ import { Github, Linkedin, Twitter, Mail } from 'lucide-react';
 import type { SocialLink, AboutMeData } from '@/lib/types';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button'; 
-import { defaultAboutMeDataForClient } from '@/lib/data'; // For fallback structure
+import { defaultAboutMeDataForClient } from '@/lib/data'; 
 
 const mainNavItems = [
   { href: '/', label: 'Home' },
@@ -17,7 +17,7 @@ const mainNavItems = [
 ];
 
 interface FooterProps {
-  aboutMeData: AboutMeData | null; // Can be null if fetching fails
+  aboutMeData: AboutMeData | null; 
 }
 
 export default function Footer({ aboutMeData }: FooterProps) {
@@ -29,7 +29,6 @@ export default function Footer({ aboutMeData }: FooterProps) {
     setCurrentYear(new Date().getFullYear()); 
   }, []);
 
-  // Use passed aboutMeData, or fallback to defaults if null or during SSR
   const displayedAboutMe = isMounted && aboutMeData ? aboutMeData : defaultAboutMeDataForClient;
 
   const socialLinksToDisplay: SocialLink[] = [
@@ -46,9 +45,9 @@ export default function Footer({ aboutMeData }: FooterProps) {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3 lg:grid-cols-4 mb-10">
           <div className="md:col-span-1 lg:col-span-2">
             <Link 
-              href="/admin/dashboard" 
+              href="/" 
               className="inline-flex items-center gap-2 mb-4 group focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-background rounded-md"
-              aria-label="Go to Admin Panel" 
+              aria-label="Go to Homepage" 
             >
               <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="text-primary group-hover:text-accent transition-colors">
                 <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
@@ -56,7 +55,7 @@ export default function Footer({ aboutMeData }: FooterProps) {
                 <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               <span className="font-headline text-xl font-bold text-primary group-hover:text-accent transition-colors">
-                {(isMounted && displayedAboutMe.name) ? `${displayedAboutMe.name.split(' ')[0]}'s Verse` : "MyVerse"} 
+                {displayedAboutMe.name ? `${displayedAboutMe.name.split(' ')[0]}'s Verse` : "VermaVerse"} 
               </span>
             </Link>
             <p className="text-sm text-muted-foreground max-w-md">
@@ -82,7 +81,7 @@ export default function Footer({ aboutMeData }: FooterProps) {
             </ul>
           </div>
 
-          {(isMounted && socialLinksToDisplay.length > 0) && ( 
+          {socialLinksToDisplay.length > 0 && ( 
             <div className="md:col-span-1">
               <h3 className="text-sm font-semibold text-foreground/80 uppercase tracking-wider mb-4">
                 Connect
@@ -98,7 +97,7 @@ export default function Footer({ aboutMeData }: FooterProps) {
                     aria-label={link.name}
                   >
                     <Link
-                      href={link.url!} // url is guaranteed by filter
+                      href={link.url!} 
                       target={link.id === 'email' ? '_self' : '_blank'}
                       rel="noopener noreferrer"
                     >
@@ -114,19 +113,20 @@ export default function Footer({ aboutMeData }: FooterProps) {
         <div className="mt-10 border-t border-border pt-8 text-center">
           <p className="text-sm text-muted-foreground">
             &copy; {currentYear}{' '}
-            {(isMounted && displayedAboutMe.name) ? displayedAboutMe.name : "User Name"}. All rights reserved. 
+            {displayedAboutMe.name || defaultAboutMeDataForClient.name}. All rights reserved. 
           </p>
           <p className="text-sm text-muted-foreground mt-2">
-            💻 Made with caffeine, code, and mild chaos — by{' '}
-            {isMounted && displayedAboutMe.name ? (
+             Built with Next.js, Tailwind CSS, and Firebase by{' '}
+            {displayedAboutMe.name ? (
               <Button asChild variant="link" className="p-0 h-auto text-sm text-primary hover:text-accent focus:outline-none focus:ring-1 focus:ring-ring rounded">
-                <Link href="/admin/dashboard">
+                <Link href={displayedAboutMe.githubUrl || "/"} target="_blank" rel="noopener noreferrer">
                  <span>{displayedAboutMe.name}</span>
                 </Link>
               </Button>
             ) : (
               defaultAboutMeDataForClient.name 
             )}
+            .
           </p>
         </div>
       </div>

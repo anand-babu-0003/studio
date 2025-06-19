@@ -26,7 +26,7 @@ import {
   updateExperienceDataAction, type UpdateExperienceDataFormState,
   updateEducationDataAction, type UpdateEducationDataFormState
 } from '@/actions/admin/aboutActions';
-import { getAboutMeDataAction } from '@/actions/getAboutMeDataAction'; // For initial load
+import { getAboutMeDataAction } from '@/actions/getAboutMeDataAction'; 
 import { 
   aboutMeSchema, 
   profileBioSchema, type ProfileBioData,
@@ -75,8 +75,8 @@ const prepareFullAboutMeDataForForm = (data?: Partial<AboutMeData>): AboutMeData
     bio: data?.bio || defaults.bio,
     profileImage: data?.profileImage || defaults.profileImage,
     dataAiHint: data?.dataAiHint || defaults.dataAiHint,
-    experience: (Array.isArray(data?.experience) ? data.experience : defaults.experience).map(exp => ({ ...exp, id: exp.id || `exp_new_${Date.now()}_${Math.random().toString(36).substring(2,7)}` })),
-    education: (Array.isArray(data?.education) ? data.education : defaults.education).map(edu => ({ ...edu, id: edu.id || `edu_new_${Date.now()}_${Math.random().toString(36).substring(2,7)}` })),
+    experience: (Array.isArray(data?.experience) && data.experience.length > 0 ? data.experience : defaults.experience).map(exp => ({ ...exp, id: exp.id || `exp_form_${Date.now()}_${Math.random().toString(36).substring(2,7)}` })),
+    education: (Array.isArray(data?.education) && data.education.length > 0 ? data.education : defaults.education).map(edu => ({ ...edu, id: edu.id || `edu_form_${Date.now()}_${Math.random().toString(36).substring(2,7)}` })),
     email: data?.email || defaults.email,
     linkedinUrl: data?.linkedinUrl || defaults.linkedinUrl,
     githubUrl: data?.githubUrl || defaults.githubUrl,
@@ -99,7 +99,7 @@ const prepareExperienceSectionDataForForm = (data?: Partial<ExperienceSectionDat
     const experienceArray = data?.experience || defaultAboutMeDataForClient.experience;
     return {
         experience: (Array.isArray(experienceArray) ? experienceArray : []).map(exp => ({
-            id: exp.id || `exp_new_${Date.now()}_${Math.random().toString(36).substring(2,7)}`, 
+            id: exp.id || `exp_form_prep_${Date.now()}_${Math.random().toString(36).substring(2,7)}`, 
             role: exp.role || '',
             company: exp.company || '',
             period: exp.period || '',
@@ -112,7 +112,7 @@ const prepareEducationSectionDataForForm = (data?: Partial<EducationSectionData>
     const educationArray = data?.education || defaultAboutMeDataForClient.education;
     return {
         education: (Array.isArray(educationArray) ? educationArray : []).map(edu => ({
-            id: edu.id || `edu_new_${Date.now()}_${Math.random().toString(36).substring(2,7)}`,
+            id: edu.id || `edu_form_prep_${Date.now()}_${Math.random().toString(36).substring(2,7)}`,
             degree: edu.degree || '',
             institution: edu.institution || '',
             period: edu.period || '',
@@ -129,16 +129,16 @@ export default function AdminAboutPage() {
   const [profileBioState, profileBioFormAction] = useActionState(updateProfileBioDataAction, initialProfileBioFormState);
   const profileBioForm = useForm<ProfileBioData>({
     resolver: zodResolver(profileBioSchema),
-    defaultValues: prepareProfileBioDataForForm(defaultAboutMeDataForClient),
+    defaultValues: prepareProfileBioDataForForm(),
   });
 
   // --- Form and state for Experience Section ---
   const [experienceState, experienceFormAction] = useActionState(updateExperienceDataAction, initialExperienceFormState);
   const experienceForm = useForm<ExperienceSectionData>({
     resolver: zodResolver(experienceSectionSchema),
-    defaultValues: prepareExperienceSectionDataForForm({ experience: defaultAboutMeDataForClient.experience }),
+    defaultValues: prepareExperienceSectionDataForForm(),
   });
-  const { fields: experienceFields, append: appendExperience, remove: removeExperience, replace: replaceExperience } = useFieldArray({
+  const { fields: experienceFields, append: appendExperience, remove: removeExperience } = useFieldArray({
     control: experienceForm.control,
     name: "experience",
     keyName: "fieldId", 
@@ -148,9 +148,9 @@ export default function AdminAboutPage() {
   const [educationState, educationFormAction] = useActionState(updateEducationDataAction, initialEducationFormState);
   const educationForm = useForm<EducationSectionData>({
     resolver: zodResolver(educationSectionSchema),
-    defaultValues: prepareEducationSectionDataForForm({ education: defaultAboutMeDataForClient.education }),
+    defaultValues: prepareEducationSectionDataForForm(),
   });
-  const { fields: educationFields, append: appendEducation, remove: removeEducation, replace: replaceEducation } = useFieldArray({
+  const { fields: educationFields, append: appendEducation, remove: removeEducation } = useFieldArray({
     control: educationForm.control,
     name: "education",
     keyName: "fieldId",
@@ -160,7 +160,7 @@ export default function AdminAboutPage() {
   const [fullFormState, fullFormAction] = useActionState(updateAboutDataAction, initialFullFormState);
   const fullForm = useForm<AboutMeData>({ 
     resolver: zodResolver(aboutMeSchema),
-    defaultValues: prepareFullAboutMeDataForForm(defaultAboutMeDataForClient), 
+    defaultValues: prepareFullAboutMeDataForForm(), 
   });
 
   // Initial data load for all forms
@@ -169,16 +169,21 @@ export default function AdminAboutPage() {
       setInitialDataLoading(true);
       try {
         const fetchedData = await getAboutMeDataAction();
-        const preparedData = prepareFullAboutMeDataForForm(fetchedData || defaultAboutMeDataForClient);
+        const preparedData = prepareFullAboutMeDataForForm(fetchedData);
         
         profileBioForm.reset(prepareProfileBioDataForForm(preparedData));
         experienceForm.reset(prepareExperienceSectionDataForForm({ experience: preparedData.experience }));
         educationForm.reset(prepareEducationSectionDataForForm({ education: preparedData.education }));
-        fullForm.reset(preparedData); // For contact/socials part
+        fullForm.reset(preparedData); 
 
       } catch (error) {
         console.error("Failed to load initial About Me data for admin:", error);
         toast({ title: "Error", description: "Could not load existing About Me data.", variant: "destructive" });
+        // Fallback to client defaults if fetch fails
+        profileBioForm.reset(prepareProfileBioDataForForm(defaultAboutMeDataForClient));
+        experienceForm.reset(prepareExperienceSectionDataForForm({ experience: defaultAboutMeDataForClient.experience }));
+        educationForm.reset(prepareEducationSectionDataForForm({ education: defaultAboutMeDataForClient.education }));
+        fullForm.reset(prepareFullAboutMeDataForForm(defaultAboutMeDataForClient));
       } finally {
         setInitialDataLoading(false);
       }
@@ -194,7 +199,9 @@ export default function AdminAboutPage() {
       if (profileBioState.data) profileBioForm.reset(prepareProfileBioDataForForm(profileBioState.data));
     } else if (profileBioState.status === 'error') {
       toast({ title: "Error Profile & Bio", description: profileBioState.message || "An error occurred.", variant: "destructive" });
-      if (profileBioState.data) profileBioForm.reset(prepareProfileBioDataForForm(profileBioState.data));
+      if (profileBioState.data) profileBioForm.reset(prepareProfileBioDataForForm(profileBioState.data)); // Repopulate with data that caused error
+      else profileBioForm.reset(profileBioForm.getValues()); // Or current form values
+      
       if (profileBioState.errors) {
         Object.entries(profileBioState.errors).forEach(([fieldName, fieldErrorMessages]) => {
           if (Array.isArray(fieldErrorMessages) && fieldErrorMessages.length > 0) {
@@ -213,6 +220,8 @@ export default function AdminAboutPage() {
     } else if (experienceState.status === 'error') {
       toast({ title: "Error Experience", description: experienceState.message || "An error occurred.", variant: "destructive" });
       if (experienceState.data) experienceForm.reset(prepareExperienceSectionDataForForm(experienceState.data));
+      else experienceForm.reset(experienceForm.getValues());
+
       if (experienceState.errors) {
         Object.entries(experienceState.errors).forEach(([fieldName, fieldErrorMessages]) => {
             if (fieldName.startsWith("experience.") && Array.isArray(fieldErrorMessages)) {
@@ -222,7 +231,9 @@ export default function AdminAboutPage() {
                     const subFieldName = parts[2] as keyof ZodExperienceType;
                     experienceForm.setError(`experience.${index}.${subFieldName}`, { type: 'server', message: fieldErrorMessages.join(', ') });
                 }
-            } else if (fieldName === "experience" && Array.isArray(fieldErrorMessages)) { 
+            } else if (fieldName === "experience" && typeof fieldErrorMessages === 'string') { 
+                 experienceForm.setError("experience", { type: 'server', message: fieldErrorMessages });
+            } else if (fieldName === "experience" && Array.isArray(fieldErrorMessages)) {
                  experienceForm.setError("experience", { type: 'server', message: fieldErrorMessages.join(', ') });
             }
         });
@@ -238,6 +249,8 @@ export default function AdminAboutPage() {
     } else if (educationState.status === 'error') {
       toast({ title: "Error Education", description: educationState.message || "An error occurred.", variant: "destructive" });
       if (educationState.data) educationForm.reset(prepareEducationSectionDataForForm(educationState.data));
+      else educationForm.reset(educationForm.getValues());
+
       if (educationState.errors) {
         Object.entries(educationState.errors).forEach(([fieldName, fieldErrorMessages]) => {
             if (fieldName.startsWith("education.") && Array.isArray(fieldErrorMessages)) {
@@ -247,7 +260,9 @@ export default function AdminAboutPage() {
                     const subFieldName = parts[2] as keyof ZodEducationType;
                     educationForm.setError(`education.${index}.${subFieldName}`, { type: 'server', message: fieldErrorMessages.join(', ') });
                 }
-            } else if (fieldName === "education" && Array.isArray(fieldErrorMessages)) { 
+            } else if (fieldName === "education" && typeof fieldErrorMessages === 'string') { 
+                 educationForm.setError("education", { type: 'server', message: fieldErrorMessages });
+            } else if (fieldName === "education" && Array.isArray(fieldErrorMessages)) {
                  educationForm.setError("education", { type: 'server', message: fieldErrorMessages.join(', ') });
             }
         });
@@ -263,6 +278,8 @@ export default function AdminAboutPage() {
     } else if (fullFormState.status === 'error') {
       toast({ title: "Error Saving (Contact/Socials)", description: fullFormState.message || "An error occurred.", variant: "destructive" });
       if (fullFormState.data) fullForm.reset(prepareFullAboutMeDataForForm(fullFormState.data));
+      else fullForm.reset(fullForm.getValues());
+      
       if (fullFormState.errors) {
         Object.entries(fullFormState.errors).forEach(([fieldName, fieldErrorMessages]) => {
           if (Array.isArray(fieldErrorMessages) && fieldErrorMessages.length > 0) {
@@ -355,9 +372,12 @@ export default function AdminAboutPage() {
                       </Button>
                     </Card>
                   ))}
-                  <Button type="button" variant="outline" onClick={() => appendExperience({ id: `new_exp_${Date.now()}`, role: '', company: '', period: '', description: '' })}>
+                  <Button type="button" variant="outline" onClick={() => appendExperience({ id: `new_exp_${Date.now()}_${Math.random().toString(36).substring(2,7)}`, role: '', company: '', period: '', description: '' })}>
                     <PlusCircle className="mr-2 h-4 w-4" /> Add New Experience
                   </Button>
+                  {experienceForm.formState.errors.experience?.message && (
+                     <FormMessage>{experienceForm.formState.errors.experience.message}</FormMessage>
+                  )}
                 </CardContent>
                 <CardFooter className="flex justify-end">
                   <SubmitButton form="experience-form" text="Save Experience" />
@@ -393,9 +413,12 @@ export default function AdminAboutPage() {
                       </Button>
                     </Card>
                   ))}
-                  <Button type="button" variant="outline" onClick={() => appendEducation({ id: `new_edu_${Date.now()}`, degree: '', institution: '', period: '' })}>
+                  <Button type="button" variant="outline" onClick={() => appendEducation({ id: `new_edu_${Date.now()}_${Math.random().toString(36).substring(2,7)}`, degree: '', institution: '', period: '' })}>
                     <PlusCircle className="mr-2 h-4 w-4" />Add New Education
                   </Button>
+                   {educationForm.formState.errors.education?.message && (
+                     <FormMessage>{educationForm.formState.errors.education.message}</FormMessage>
+                  )}
                 </CardContent>
                  <CardFooter className="flex justify-end">
                    <SubmitButton form="education-form" text="Save Education" />

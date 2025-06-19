@@ -1,5 +1,5 @@
 
-"use client"; // Needs to be client for useState and useEffect for loading state
+"use client"; 
 
 import { PageHeader } from '@/components/shared/page-header';
 import { ContactForm } from '@/components/contact/contact-form';
@@ -24,7 +24,7 @@ export default function ContactPage() {
         setAboutMeData(data || defaultAboutMeDataForClient);
       } catch (error) {
         console.error("Error fetching About Me data for Contact page:", error);
-        setAboutMeData(defaultAboutMeDataForClient); // Fallback to default on error
+        setAboutMeData(defaultAboutMeDataForClient); 
       } finally {
         setIsLoading(false);
       }
@@ -40,7 +40,7 @@ export default function ContactPage() {
     );
   }
 
-  const displayedData = aboutMeData; // Already has fallbacks
+  const displayedData = aboutMeData; 
 
   return (
     <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">

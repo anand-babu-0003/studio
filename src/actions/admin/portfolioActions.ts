@@ -6,16 +6,17 @@ import { collection, getDocs, doc, getDoc, setDoc, addDoc, deleteDoc, query, whe
 import type { PortfolioItem as LibPortfolioItemType } from '@/lib/types';
 import { portfolioItemAdminSchema, type PortfolioAdminFormData } from '@/lib/adminSchemas';
 import { revalidatePath } from 'next/cache';
+import { defaultPortfolioItemsDataForClient } from '@/lib/data'; // For default structure
 
-const defaultPortfolioItem: Omit<LibPortfolioItemType, 'id' | 'createdAt' | 'updatedAt'> = {
+const defaultPortfolioItemStructure: Omit<LibPortfolioItemType, 'id' | 'createdAt' | 'updatedAt'> = {
   title: 'Untitled Project',
   description: 'Default description.',
   longDescription: 'More detailed default description.',
-  images: ['https://placehold.co/600x400.png'], // Ensure default image
+  images: ['https://placehold.co/600x400.png?text=DefaultProject'],
   tags: ['default'],
   slug: `default-project-${Date.now()}`,
-  dataAiHint: 'project',
-  readmeContent: '# Default README',
+  dataAiHint: 'project placeholder',
+  readmeContent: '# Default README\nThis is a placeholder README for a new project.',
   liveUrl: '',
   repoUrl: '',
 };
@@ -46,16 +47,16 @@ export async function getPortfolioItemsAction(): Promise<LibPortfolioItemType[]>
 
     return snapshot.docs.map(docSnap => {
       const data = docSnap.data();
-      const createdAt = data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : new Date().toISOString();
-      const updatedAt = data.updatedAt instanceof Timestamp ? data.updatedAt.toDate().toISOString() : new Date().toISOString();
+      const createdAt = data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : (data.createdAt || new Date(0).toISOString());
+      const updatedAt = data.updatedAt instanceof Timestamp ? data.updatedAt.toDate().toISOString() : (data.updatedAt || new Date(0).toISOString());
       
       return {
         id: docSnap.id,
-        title: data.title || defaultPortfolioItem.title,
-        description: data.description || defaultPortfolioItem.description,
-        longDescription: data.longDescription || defaultPortfolioItem.longDescription,
-        images: Array.isArray(data.images) && data.images.length > 0 ? data.images : [...defaultPortfolioItem.images],
-        tags: Array.isArray(data.tags) ? data.tags : [...defaultPortfolioItem.tags],
+        title: data.title || defaultPortfolioItemStructure.title,
+        description: data.description || defaultPortfolioItemStructure.description,
+        longDescription: data.longDescription || defaultPortfolioItemStructure.longDescription,
+        images: Array.isArray(data.images) && data.images.length > 0 ? data.images : [...defaultPortfolioItemStructure.images],
+        tags: Array.isArray(data.tags) ? data.tags : [...defaultPortfolioItemStructure.tags],
         liveUrl: data.liveUrl || '',
         repoUrl: data.repoUrl || '',
         slug: data.slug || `project-${docSnap.id}`,
@@ -83,21 +84,22 @@ export async function getPortfolioItemBySlugAction(slug: string): Promise<LibPor
     const snapshot = await getDocs(q);
 
     if (snapshot.empty) {
+      console.warn(`No portfolio item found with slug: ${slug}`);
       return null;
     }
     
     const docSnap = snapshot.docs[0]; 
     const data = docSnap.data();
-    const createdAt = data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : new Date().toISOString();
-    const updatedAt = data.updatedAt instanceof Timestamp ? data.updatedAt.toDate().toISOString() : new Date().toISOString();
+    const createdAt = data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : (data.createdAt || new Date(0).toISOString());
+    const updatedAt = data.updatedAt instanceof Timestamp ? data.updatedAt.toDate().toISOString() : (data.updatedAt || new Date(0).toISOString());
 
     return {
       id: docSnap.id,
-      title: data.title || defaultPortfolioItem.title,
-      description: data.description || defaultPortfolioItem.description,
-      longDescription: data.longDescription || defaultPortfolioItem.longDescription,
-      images: Array.isArray(data.images) && data.images.length > 0 ? data.images : [...defaultPortfolioItem.images],
-      tags: Array.isArray(data.tags) ? data.tags : [...defaultPortfolioItem.tags],
+      title: data.title || defaultPortfolioItemStructure.title,
+      description: data.description || defaultPortfolioItemStructure.description,
+      longDescription: data.longDescription || defaultPortfolioItemStructure.longDescription,
+      images: Array.isArray(data.images) && data.images.length > 0 ? data.images : [...defaultPortfolioItemStructure.images],
+      tags: Array.isArray(data.tags) ? data.tags : [...defaultPortfolioItemStructure.tags],
       liveUrl: data.liveUrl || '',
       repoUrl: data.repoUrl || '',
       slug: data.slug, 
@@ -160,10 +162,12 @@ export async function savePortfolioItemAction(
   }
 
   const data = validatedFields.data;
+  
   const images: string[] = [];
-  if (data.image1) images.push(data.image1);
-  else images.push(defaultPortfolioItem.images[0]); // Ensure at least one default image
-  if (data.image2) images.push(data.image2);
+  if (data.image1 && data.image1.trim() !== '') images.push(data.image1);
+  if (data.image2 && data.image2.trim() !== '') images.push(data.image2);
+  const finalImages = images.length > 0 ? images : [...defaultPortfolioItemStructure.images];
+
 
   const tags: string[] = data.tagsString ? data.tagsString.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
 
@@ -171,7 +175,7 @@ export async function savePortfolioItemAction(
     title: data.title,
     description: data.description,
     longDescription: data.longDescription || '', 
-    images: images.length > 0 ? images : [...defaultPortfolioItem.images], // ensure default if empty
+    images: finalImages,
     tags,
     liveUrl: data.liveUrl || '',
     repoUrl: data.repoUrl || '',
@@ -185,8 +189,30 @@ export async function savePortfolioItemAction(
 
   try {
     if (projectId) { 
+      // Check if slug is being changed to one that already exists (excluding current item)
+      const q = query(portfolioCollectionRef(), where("slug", "==", data.slug));
+      const snapshot = await getDocs(q);
+      if (!snapshot.empty && snapshot.docs.some(doc => doc.id !== projectId)) {
+        return {
+          message: `Slug "${data.slug}" is already in use by another project. Please choose a unique slug.`,
+          status: 'error',
+          errors: { slug: [`Slug "${data.slug}" is already in use.`] },
+          formDataOnError: rawData,
+        };
+      }
       await setDoc(portfolioDocRef(projectId), projectDataForFirestore, { merge: true });
     } else { 
+      // Check if slug already exists for new item
+      const q = query(portfolioCollectionRef(), where("slug", "==", data.slug));
+      const snapshot = await getDocs(q);
+      if (!snapshot.empty) {
+         return {
+          message: `Slug "${data.slug}" is already in use. Please choose a unique slug.`,
+          status: 'error',
+          errors: { slug: [`Slug "${data.slug}" is already in use.`] },
+          formDataOnError: rawData,
+        };
+      }
       projectDataForFirestore.createdAt = serverTimestamp(); 
       const newProjectRef = await addDoc(portfolioCollectionRef(), projectDataForFirestore);
       projectId = newProjectRef.id;
@@ -197,15 +223,15 @@ export async function savePortfolioItemAction(
         throw new Error("Failed to retrieve saved project from Firestore.");
     }
     const savedData = savedDoc.data()!;
-    const createdAt = savedData.createdAt instanceof Timestamp ? savedData.createdAt.toDate().toISOString() : new Date().toISOString();
-    const updatedAt = savedData.updatedAt instanceof Timestamp ? savedData.updatedAt.toDate().toISOString() : new Date().toISOString();
+    const createdAt = savedData.createdAt instanceof Timestamp ? savedData.createdAt.toDate().toISOString() : new Date(0).toISOString();
+    const updatedAt = savedData.updatedAt instanceof Timestamp ? savedData.updatedAt.toDate().toISOString() : new Date(0).toISOString();
 
     const finalSavedProject: LibPortfolioItemType = {
       id: projectId!,
       title: savedData.title || projectDataForFirestore.title,
       description: savedData.description || projectDataForFirestore.description,
       longDescription: savedData.longDescription || projectDataForFirestore.longDescription,
-      images: savedData.images && savedData.images.length > 0 ? savedData.images : [...defaultPortfolioItem.images],
+      images: savedData.images && savedData.images.length > 0 ? savedData.images : [...defaultPortfolioItemStructure.images],
       tags: savedData.tags || projectDataForFirestore.tags,
       liveUrl: savedData.liveUrl || projectDataForFirestore.liveUrl,
       repoUrl: savedData.repoUrl || projectDataForFirestore.repoUrl,

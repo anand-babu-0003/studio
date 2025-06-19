@@ -1,12 +1,11 @@
 
 "use client";
 
-import { useEffect, useState } from 'react'; // Added useState
+import { useEffect, useState } from 'react'; 
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { useForm, type Path } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { z } from 'zod';
 
 import { PageHeader } from '@/components/shared/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -17,10 +16,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import { Info, Save, Loader2 } from 'lucide-react';
 
-import type { SiteSettings } from '@/lib/types';
 import { siteSettingsAdminSchema, type SiteSettingsAdminFormData } from '@/lib/adminSchemas';
 import { getSiteSettingsAction, updateSiteSettingsAction, type UpdateSiteSettingsFormState } from '@/actions/admin/settingsActions';
-import { defaultSiteSettingsForClient } from '@/lib/data'; // For initial form values
+import { defaultSiteSettingsForClient } from '@/lib/data'; 
 
 const initialFormState: UpdateSiteSettingsFormState = { message: '', status: 'idle', errors: {}, data: undefined };
 
@@ -72,6 +70,8 @@ export default function AdminSettingsPage() {
             defaultMetaKeywords: currentSettings.defaultMetaKeywords || '',
             siteOgImageUrl: currentSettings.siteOgImageUrl || '',
           });
+        } else {
+          form.reset(defaultFormValues); // Fallback to hardcoded defaults if action returns null/undefined
         }
       } catch (error) {
         console.error("Failed to fetch initial site settings:", error);
@@ -80,6 +80,7 @@ export default function AdminSettingsPage() {
           description: "Could not load current site settings.",
           variant: "destructive",
         });
+        form.reset(defaultFormValues); // Fallback on error
       } finally {
         setIsLoadingInitialData(false);
       }
@@ -91,7 +92,7 @@ export default function AdminSettingsPage() {
     if (settingsState.status === 'success' && settingsState.message) {
       toast({ title: "Success!", description: settingsState.message });
       if (settingsState.data) {
-        form.reset(settingsState.data); // Reset with successfully saved data
+        form.reset(settingsState.data); 
       }
     } else if (settingsState.status === 'error') {
       const errorMessage = (typeof settingsState.message === 'string' && settingsState.message.trim() !== '')
@@ -99,7 +100,7 @@ export default function AdminSettingsPage() {
       toast({ title: "Error Saving Settings", description: errorMessage, variant: "destructive" });
       
       const dataToResetWith = settingsState.data ? settingsState.data : form.getValues();
-      form.reset(dataToResetWith); // Reset with data from state or current form values
+      form.reset(dataToResetWith); 
       
       if (settingsState.errors && typeof settingsState.errors === 'object') {
         Object.entries(settingsState.errors).forEach(([fieldName, fieldErrorMessages]) => {
@@ -192,14 +193,14 @@ export default function AdminSettingsPage() {
           <CardContent>
             <Alert variant="default" className="mt-0">
               <Info className="h-4 w-4" />
-              <AlertTitle>Favicon Management</AlertTitle>
+              <AlertTitle>Favicon Management Instructions</AlertTitle>
               <AlertDescription>
                 To change your site's favicon:
                 <ol className="list-decimal list-inside mt-1 text-xs space-y-1">
-                  <li>Create `favicon.ico` (typically 32x32 or 16x16).</li>
-                  <li>Create `apple-touch-icon.png` (typically 180x180).</li>
+                  <li>Create `favicon.ico` (typically 32x32 or 16x16 pixels).</li>
+                  <li>Create `apple-touch-icon.png` (typically 180x180 pixels).</li>
                   <li>Place both files in your project's `public/` directory, replacing any existing ones.</li>
-                  <li>Next.js automatically serves these. Clear browser cache to see changes.</li>
+                  <li>Next.js automatically serves these. Clear browser cache and restart your development server to see changes.</li>
                 </ol>
                 Direct favicon upload via this admin panel is not currently supported.
               </AlertDescription>

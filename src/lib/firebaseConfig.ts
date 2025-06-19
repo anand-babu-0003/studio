@@ -13,43 +13,52 @@ const firebaseConfig: FirebaseOptions = {
 
 // Initialize Firebase
 let app;
+let firestore: ReturnType<typeof getFirestore> | null = null;
 
-if (!firebaseConfig.apiKey ||
-    !firebaseConfig.projectId ||
-    !firebaseConfig.authDomain ||
-    !firebaseConfig.storageBucket ||
-    !firebaseConfig.messagingSenderId ||
-    !firebaseConfig.appId) {
-      console.warn(
-        "Firebase config is missing or incomplete. " +
-        "Please ensure all NEXT_PUBLIC_FIREBASE_ prefixed environment variables are set in your .env file or hosting provider. " +
-        "Firebase will NOT be initialized. Some features may not work."
-      );
-      // app will remain undefined, and firestore will be null
+const requiredConfigKeys: (keyof FirebaseOptions)[] = ['apiKey', 'authDomain', 'projectId'];
+let missingKeys: string[] = [];
+
+if (typeof process !== 'undefined' && process.env.NODE_ENV === 'test') {
+  // Special handling for test environment if needed, or skip initialization
+  console.warn("Running in test environment, Firebase initialization might be skipped or mocked.");
 } else {
-  if (!getApps().length) {
-    try {
-      app = initializeApp(firebaseConfig);
-    } catch (error) {
-      console.error("Failed to initialize Firebase app:", error);
-      // app will remain undefined or be whatever initializeApp returns on error
-    }
+  missingKeys = requiredConfigKeys.filter(key => !firebaseConfig[key]);
+
+  if (missingKeys.length > 0) {
+    console.warn(
+      `Firebase config is missing or incomplete. Missing keys: ${missingKeys.join(', ')}. ` +
+      "Please ensure all NEXT_PUBLIC_FIREBASE_ prefixed environment variables are set. " +
+      "Firebase will NOT be fully initialized. Some features may not work."
+    );
   } else {
-    app = getApp(); // Get the default app if already initialized
+    if (!getApps().length) {
+      try {
+        app = initializeApp(firebaseConfig);
+      } catch (error) {
+        console.error("Failed to initialize Firebase app:", error);
+        // Prevent further execution if app initialization fails
+        app = undefined; 
+      }
+    } else {
+      app = getApp(); // Get the default app if already initialized
+    }
+
+    if (app) {
+      try {
+        firestore = getFirestore(app);
+      } catch (error) {
+        console.error("Failed to get Firestore instance:", error);
+        firestore = null; // Ensure firestore is null if it fails
+      }
+    } else {
+       console.warn("Firebase app object is undefined. Firestore cannot be initialized.");
+       firestore = null;
+    }
+
+    if (app && !firestore) {
+      console.warn("Firebase app initialized, but Firestore could not be obtained. Please check Firestore service status and configuration.");
+    }
   }
 }
-
-
-// Get Firestore instance
-// Ensure app is defined and initialized before calling getFirestore
-const firestore = app ? getFirestore(app) : null;
-
-if (app && !firestore) {
-  // This warning will appear if app initialization succeeded but getFirestore failed for some reason
-  console.warn("Firebase app initialized, but Firestore could not be obtained. Please check Firestore service status and configuration.");
-} else if (!app && firebaseConfig.apiKey) { // Only show this if config was present but app init failed
-  console.warn("Firestore could not be initialized because the Firebase app was not initialized successfully, despite config being present.");
-}
-
 
 export { firestore, firebaseConfig, app as firebaseApp };

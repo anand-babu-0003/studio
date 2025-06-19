@@ -5,10 +5,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { ArrowRight, Eye, Code2, Package, Mail, Loader2 } from 'lucide-react';
+import { ArrowRight, Mail, Loader2, Package } from 'lucide-react';
 import type { PortfolioItem, AboutMeData, Skill } from '@/lib/types';
-import { Badge } from '@/components/ui/badge';
 import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wrapper';
 import { lucideIconsMap, defaultAboutMeDataForClient, defaultPortfolioItemsDataForClient, defaultSkillsDataForClient } from '@/lib/data';
 import StarryBackground from '@/components/layout/starry-background';
@@ -34,13 +32,13 @@ export default function Home() {
           getSkillsAction()
         ]);
         setAboutMeData(fetchedAboutMe || defaultAboutMeDataForClient);
-        setAllPortfolioItems(fetchedPortfolioItems || []); // Use empty array if null/undefined
-        setAllSkills(fetchedSkills || []); // Use empty array if null/undefined
+        setAllPortfolioItems(fetchedPortfolioItems || []); 
+        setAllSkills(fetchedSkills || []); 
       } catch (error) {
         console.error("Error fetching data for Home page:", error);
         setAboutMeData(defaultAboutMeDataForClient); 
-        setAllPortfolioItems(defaultPortfolioItemsDataForClient.slice(0,2)); // Fallback with few items
-        setAllSkills(defaultSkillsDataForClient.slice(0,6)); // Fallback with few items
+        setAllPortfolioItems(defaultPortfolioItemsDataForClient.slice(0,2)); 
+        setAllSkills(defaultSkillsDataForClient.slice(0,6)); 
       } finally {
         setIsLoading(false);
       }
@@ -49,10 +47,9 @@ export default function Home() {
   }, []);
   
   const displayedAboutMe = aboutMeData || defaultAboutMeDataForClient;
-  // Ensure featuredProjects is always an array, even if allPortfolioItems is empty
-  const featuredProjects = Array.isArray(allPortfolioItems) ? allPortfolioItems.slice(0, 2) : [];
-  const highlightedSkills = Array.isArray(allSkills) ? allSkills.slice(0, 6) : [];
-  const firstParagraphBio = (displayedAboutMe.bio || '').split('\n\n')[0] || 'A brief introduction about me and my passion for technology.';
+  const featuredProjects = allPortfolioItems.slice(0, 2);
+  const highlightedSkills = allSkills.slice(0, 6);
+  const firstParagraphBio = (displayedAboutMe.bio || '').split('\n\n')[0] || defaultAboutMeDataForClient.bio.split('\n\n')[0];
 
 
   if (isLoading) {
@@ -76,7 +73,7 @@ export default function Home() {
               <span className="block text-primary animate-fadeInUp-2">{displayedAboutMe.title || 'My Awesome Title'}</span>
             </h1>
             <p className="mt-6 max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground animate-fadeInUp-2" style={{ animationDelay: '0.5s' }}>
-              {(displayedAboutMe.bio || 'Welcome to my portfolio. I build amazing things.').substring(0, 150)}...
+              {(displayedAboutMe.bio || defaultAboutMeDataForClient.bio).substring(0, 150)}...
             </p>
             <div className="mt-10 flex flex-col sm:flex-row flex-wrap justify-center items-center gap-4 animate-fadeInUp-2" style={{ animationDelay: '0.7s' }}>
               <Button
@@ -117,7 +114,7 @@ export default function Home() {
               <div className="md:order-2 flex justify-center">
                 <Image
                   src={displayedAboutMe.profileImage || defaultAboutMeDataForClient.profileImage}
-                  alt={`Profile picture of ${(displayedAboutMe.name || 'User').split(' ')[0]}`}
+                  alt={`Profile picture of ${(displayedAboutMe.name || defaultAboutMeDataForClient.name).split(' ')[0]}`}
                   width={320}
                   height={320}
                   className="rounded-full shadow-2xl object-cover aspect-square"
@@ -163,7 +160,7 @@ export default function Home() {
                 <p className="text-muted-foreground">No featured projects to display at the moment. Check back soon!</p>
               </ScrollAnimationWrapper>
             )}
-            {(allPortfolioItems.length > featuredProjects.length || allPortfolioItems.length === 0) && (
+            {(allPortfolioItems.length > featuredProjects.length || allPortfolioItems.length === 0 && featuredProjects.length === 0) && (
                 <ScrollAnimationWrapper className="mt-12 text-center" delay={(featuredProjects.length || 0) * 150}>
                 <Button asChild size="lg" variant="outline" className="text-lg">
                     <Link href="/portfolio">
@@ -208,7 +205,7 @@ export default function Home() {
                </ScrollAnimationWrapper>
             )}
             
-            {(allSkills.length > highlightedSkills.length || allSkills.length === 0) && (
+            {(allSkills.length > highlightedSkills.length || allSkills.length === 0 && highlightedSkills.length === 0) && (
               <ScrollAnimationWrapper className="mt-12 text-center" delay={highlightedSkills.length * 100}>
                 <Button asChild size="lg" variant="outline" className="text-lg">
                   <Link href="/skills">

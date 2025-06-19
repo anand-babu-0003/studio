@@ -18,6 +18,7 @@ export async function generateStaticParams() {
   try {
     const portfolioItems = await getPortfolioItemsAction();
     if (!Array.isArray(portfolioItems) || portfolioItems.length === 0) {
+      console.warn("generateStaticParams: No portfolio items found or an error occurred.");
       return [];
     }
     return portfolioItems
@@ -41,14 +42,17 @@ export default async function PortfolioDetailPage({
     project = await getPortfolioItemBySlugAction(params.slug);
   } catch (error) {
     console.error(`Error fetching portfolio item for slug ${params.slug}:`, error);
+    // project remains null, notFound() will be called below
   }
 
   if (!project) {
     notFound();
   }
   
-  // Ensure project.images is an array, even if empty
-  const projectImages = Array.isArray(project.images) ? project.images : [];
+  const projectImages = Array.isArray(project.images) && project.images.length > 0 
+    ? project.images 
+    : [defaultPortfolioItemsDataForClient[0]?.images[0] || 'https://placehold.co/1200x675.png?text=ProjectImage'];
+  
   const projectTags = Array.isArray(project.tags) ? project.tags : [];
 
 
@@ -69,7 +73,7 @@ export default async function PortfolioDetailPage({
           <Carousel className="w-full max-w-3xl mx-auto shadow-2xl rounded-lg overflow-hidden">
             <CarouselContent>
               {projectImages.map((src, index) => (
-                <CarouselItem key={index}>
+                <CarouselItem key={src || `project-image-${index}`}>
                   <div className="aspect-video relative">
                     <Image
                       src={src || defaultPortfolioItemsDataForClient[0]?.images[0] || 'https://placehold.co/1200x675.png'}
