@@ -15,7 +15,7 @@ export default function NotFound() {
             width={400}
             height={300}
             className="illustration-image-nf"
-            unoptimized={true} // Important for GIFs to animate correctly
+            unoptimized={true} 
             priority
           />
         </div>
