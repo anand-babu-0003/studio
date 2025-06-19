@@ -18,9 +18,10 @@ const IS_SERVER = typeof window === 'undefined';
 const logPrefix = IS_SERVER ? "[SERVER FirebaseConfig]" : "[CLIENT FirebaseConfig]";
 
 if (!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) {
-  console.error(`${logPrefix} CRITICAL_ERROR: NEXT_PUBLIC_FIREBASE_PROJECT_ID is not set in environment variables.`);
+  console.error(`${logPrefix} CRITICAL_ERROR: NEXT_PUBLIC_FIREBASE_PROJECT_ID is not set in environment variables. Firebase will not initialize correctly.`);
+} else {
+  console.log(`${logPrefix} Attempting to use Project ID: ${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}`);
 }
-// Add similar checks for other essential Firebase config variables if desired
 
 const requiredConfigKeys: (keyof FirebaseOptions)[] = ['apiKey', 'authDomain', 'projectId', 'appId'];
 const missingKeys = requiredConfigKeys.filter(key => !firebaseConfig[key]);
@@ -34,23 +35,26 @@ if (missingKeys.length > 0) {
   if (!getApps().length) {
     try {
       app = initializeApp(firebaseConfig);
-      console.log(`${logPrefix} Firebase app initialized successfully (new). Project ID: ${app.options.projectId}`);
+      console.log(`${logPrefix} Firebase app initialized successfully (new instance). Target Project ID from config: ${firebaseConfig.projectId}. Initialized App Project ID: ${app.options.projectId}`);
     } catch (error) {
       console.error(`${logPrefix} FIREBASE CRITICAL ERROR: Failed to initialize Firebase app:`, error);
       app = undefined;
     }
   } else {
     app = getApp();
-    console.log(`${logPrefix} Firebase app retrieved successfully (existing). Project ID: ${app.options.projectId}`);
+    console.log(`${logPrefix} Firebase app retrieved successfully (existing instance). Target Project ID from config: ${firebaseConfig.projectId}. Retrieved App Project ID: ${app.options.projectId}`);
   }
 
   if (app) {
+    if (app.options.projectId !== firebaseConfig.projectId) {
+        console.warn(`${logPrefix} WARNING: Initialized/Retrieved app Project ID (${app.options.projectId}) does not match the one in firebaseConfig (${firebaseConfig.projectId}). This might indicate a configuration issue or multiple initializations.`);
+    }
     try {
       firestoreInstance = getFirestore(app);
-      if (firestoreInstance && typeof firestoreInstance.type === 'string' && firestoreInstance.type === 'firestore') {
+      if (firestoreInstance && typeof (firestoreInstance as any).type === 'string' && (firestoreInstance as any).type === 'firestore') {
          console.log(`${logPrefix} Firestore instance obtained successfully for project: ${firestoreInstance.app.options.projectId}.`);
       } else {
-        console.warn(`${logPrefix} Firestore instance obtained, but it doesn't look like a valid Firestore object. Type:`, typeof firestoreInstance);
+        console.warn(`${logPrefix} Firestore instance obtained, but it doesn't look like a valid Firestore object. Type:`, typeof firestoreInstance, firestoreInstance);
         firestoreInstance = null;
       }
     } catch (error) {
@@ -66,7 +70,8 @@ if (missingKeys.length > 0) {
 if (firestoreInstance) {
     console.log(`${logPrefix} Firestore IS CONFIGURED and available.`);
 } else {
-    console.error(`${logPrefix} Firestore IS NOT CONFIGURED or available. Admin panel and other Firestore-dependent features will fail.`);
+    console.error(`${logPrefix} Firestore IS NOT CONFIGURED or available. Admin panel and other Firestore-dependent features will fail. CHECK YOUR ENVIRONMENT VARIABLES AND FIREBASE CONSOLE!`);
 }
 
 export { firestoreInstance as firestore, firebaseConfig, app as firebaseApp };
+
