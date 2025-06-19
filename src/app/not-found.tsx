@@ -12,13 +12,11 @@ export default function NotFound() {
             <div className="col_sm_12_nf ">
               <div className="col_sm_10_nf col_sm_offset_1_nf  text_center_nf">
                 
-                {/* Container for the GIF background and the "404" text */}
                 <div className="gif-background-container-nf">
                   <h1 className="main-404-text-nf">404</h1>
                 </div>
                 
                 <div className="contant_box_404">
-                  {/* The Dribbble GIF replaces the caveman image */}
                   <div className="dribbble-gif-container-nf">
                      <Image
                         src="https://cdn.dribbble.com/users/285475/screenshots/2083086/dribbble_1.gif"
@@ -29,6 +27,7 @@ export default function NotFound() {
                         unoptimized={true} 
                       />
                   </div>
+                  <h1 className="contextual-404-text-nf">404</h1>
                   <h3 className="h2_nf">
                     Look like you&apos;re lost
                   </h3>
