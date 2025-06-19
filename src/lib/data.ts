@@ -21,13 +21,13 @@ export const defaultSiteSettingsForClient: SiteSettings = {
 };
 
 export const defaultExperienceForClient: Experience[] = [
-  { id: `exp_default_client_${Date.now()}_1`, role: 'Lead Developer', company: 'Innovate Solutions Inc.', period: '2022 - Present', description: 'Spearheading the development of cutting-edge web applications using modern JavaScript frameworks and cloud technologies. Responsible for team leadership, code architecture, and project delivery.' },
-  { id: `exp_default_client_${Date.now()}_2`, role: 'Senior UI/UX Designer', company: 'Creative Designs Co.', period: '2020 - 2022', description: 'Designed intuitive and engaging user interfaces for various digital products. Conducted user research, created wireframes and prototypes, and collaborated closely with development teams.' },
+  { id: 'exp_default_client_1', role: 'Lead Developer', company: 'Innovate Solutions Inc.', period: '2022 - Present', description: 'Spearheading the development of cutting-edge web applications using modern JavaScript frameworks and cloud technologies. Responsible for team leadership, code architecture, and project delivery.' },
+  { id: 'exp_default_client_2', role: 'Senior UI/UX Designer', company: 'Creative Designs Co.', period: '2020 - 2022', description: 'Designed intuitive and engaging user interfaces for various digital products. Conducted user research, created wireframes and prototypes, and collaborated closely with development teams.' },
 ];
 
 export const defaultEducationForClient: Education[] = [
-  { id: `edu_default_client_${Date.now()}_1`, degree: 'Master of Science in Interaction Design', institution: 'Global Design Institute', period: '2018 - 2020' },
-  { id: `edu_default_client_${Date.now()}_2`, degree: 'Bachelor of Technology in Computer Science', institution: 'Tech University', period: '2014 - 2018' },
+  { id: 'edu_default_client_1', degree: 'Master of Science in Interaction Design', institution: 'Global Design Institute', period: '2018 - 2020' },
+  { id: 'edu_default_client_2', degree: 'Bachelor of Technology in Computer Science', institution: 'Tech University', period: '2014 - 2018' },
 ];
 
 export const defaultAboutMeDataForClient: AboutMeData = {
