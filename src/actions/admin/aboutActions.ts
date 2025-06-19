@@ -155,6 +155,7 @@ export async function updateProfileBioDataAction(
     };
     await writeAboutMeDataToFirestore(updatedAboutMeData);
 
+    revalidatePath('/', 'layout'); // Revalidate layout as Footer/Navbar might use this data
     revalidatePath('/about');
     revalidatePath('/'); 
     revalidatePath('/contact'); 
@@ -401,6 +402,7 @@ export async function updateAboutDataAction( // This action name implies updatin
       
     await writeAboutMeDataToFirestore(dataToSave);
 
+    revalidatePath('/', 'layout'); // Revalidate layout as Footer/Navbar might use this data
     revalidatePath('/contact'); 
     revalidatePath('/about'); 
     revalidatePath('/');    
@@ -424,6 +426,5 @@ export async function updateAboutDataAction( // This action name implies updatin
     };
   }
 }
-
 
     
