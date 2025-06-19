@@ -15,7 +15,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { Info, Save, Loader2, Tool, Settings2, ListChecks } from 'lucide-react'; 
+import { Info, Save, Loader2, Wrench, Settings2, ListChecks } from 'lucide-react'; 
 import FullScreenLoader from '@/components/shared/FullScreenLoader';
 
 import { siteSettingsAdminSchema, type SiteSettingsAdminFormData } from '@/lib/adminSchemas';
@@ -186,7 +186,7 @@ export default function AdminSettingsPage() {
                  <FormField control={form.control} name="maintenanceMode" render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                     <div className="space-y-0.5">
-                      <FormLabel className="text-base flex items-center gap-2"><Tool className="h-4 w-4" />Maintenance Mode</FormLabel>
+                      <FormLabel className="text-base flex items-center gap-2"><Wrench className="h-4 w-4" />Maintenance Mode</FormLabel>
                       <p className="text-xs text-muted-foreground pl-6">
                         If enabled, a maintenance banner will be shown to users.
                       </p>
