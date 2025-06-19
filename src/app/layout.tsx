@@ -106,38 +106,39 @@ export default function RootLayout({
     if (typeof document !== 'undefined' && currentSiteSettings && !isLayoutLoading) {
         const pathSegments = pathname.split('/').filter(Boolean);
         let pageTitleSegment = '';
+
         if (pathSegments.length > 0) {
-          // For /admin/something, use "Something"
-          // For /portfolio/my-project, use "My Project"
-          pageTitleSegment = pathSegments[pathSegments.length -1]
+          pageTitleSegment = pathSegments[pathSegments.length - 1]
                               .replace(/-/g, ' ')
                               .split(' ')
                               .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                               .join(' ');
         }
         
+        // Define formattedPageTitle based on the calculated pageTitleSegment
+        const formattedPageTitle = pageTitleSegment; // It's already formatted as desired
+
         const siteNameBase = currentSiteSettings.siteName || defaultSiteSettingsForClient.siteName;
 
         if (pathname === '/') {
             document.title = siteNameBase;
         } else if (formattedPageTitle && !isAdminRoute) {
+            // For public pages with a title segment (e.g., /about -> "About")
             document.title = `${formattedPageTitle} | ${siteNameBase}`;
         } else if (isAdminRoute && pathSegments.length > 1 && pathSegments[0] === 'admin') {
-             const adminPageTitle = pageTitleSegment || 'Dashboard'; // Default to Dashboard for /admin
-             document.title = `Admin: ${adminPageTitle} | ${siteNameBase}`;
-        } else if (isAdminRoute && pathSegments.length <= 1 && pathSegments[0] === 'admin') {
-             document.title = `Admin Dashboard | ${siteNameBase}`;
-        }
-         else {
-             // Fallback or for pages without clear title segments
-            const formattedPageTitle = pageTitleSegment
-              ? pageTitleSegment.charAt(0).toUpperCase() + pageTitleSegment.slice(1)
-              : '';
+            // For admin subpages (e.g., /admin/settings -> "Settings")
+            const adminPageTitle = formattedPageTitle || 'Dashboard'; 
+            document.title = `Admin: ${adminPageTitle} | ${siteNameBase}`;
+        } else if (isAdminRoute && (pathname === '/admin' || pathname === '/admin/')) {
+            // Explicitly for /admin or /admin/ (often the dashboard)
+            document.title = `Admin: Dashboard | ${siteNameBase}`;
+        } else {
+            // Fallback for any other cases
             document.title = formattedPageTitle ? `${formattedPageTitle} | ${siteNameBase}` : siteNameBase;
         }
 
         updateMetaTag('description', currentSiteSettings.defaultMetaDescription || defaultSiteSettingsForClient.defaultMetaDescription);
-        updateMetaTag('og:title', document.title, true);
+        updateMetaTag('og:title', document.title, true); // Use the just-set document.title
         updateMetaTag('og:description', currentSiteSettings.defaultMetaDescription || defaultSiteSettingsForClient.defaultMetaDescription, true);
 
         if (currentSiteSettings.defaultMetaKeywords && currentSiteSettings.defaultMetaKeywords.trim() !== '') {
@@ -221,5 +222,3 @@ export default function RootLayout({
     </html>
   );
 }
-
-    
