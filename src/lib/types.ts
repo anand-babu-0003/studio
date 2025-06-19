@@ -84,3 +84,10 @@ export interface ContactMessage {
   message: string;
   submittedAt: string; // ISO date string
 }
+
+export interface Announcement {
+  id?: string; // Optional on creation, present when fetched
+  message: string;
+  createdAt: any; // Firestore Timestamp on write, Date or string on read
+  isActive?: boolean; // To potentially control visibility
+}

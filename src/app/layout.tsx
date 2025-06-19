@@ -13,6 +13,7 @@ import { getSiteSettingsAction } from '@/actions/admin/settingsActions';
 import { getAboutMeDataAction } from '@/actions/getAboutMeDataAction';
 import { defaultSiteSettingsForClient, defaultAboutMeDataForClient } from '@/lib/data';
 import { Loader2 } from 'lucide-react';
+import LiveAnnouncementBanner from '@/components/announcements/LiveAnnouncementBanner'; // Added
 
 // Helper function to create or update a meta tag
 function updateMetaTag(name: string, content: string, isProperty: boolean = false) {
@@ -115,30 +116,24 @@ export default function RootLayout({
                               .join(' ');
         }
         
-        // Define formattedPageTitle based on the calculated pageTitleSegment
-        const formattedPageTitle = pageTitleSegment; // It's already formatted as desired
-
+        const formattedPageTitle = pageTitleSegment;
         const siteNameBase = currentSiteSettings.siteName || defaultSiteSettingsForClient.siteName;
 
         if (pathname === '/') {
             document.title = siteNameBase;
         } else if (formattedPageTitle && !isAdminRoute) {
-            // For public pages with a title segment (e.g., /about -> "About")
             document.title = `${formattedPageTitle} | ${siteNameBase}`;
         } else if (isAdminRoute && pathSegments.length > 1 && pathSegments[0] === 'admin') {
-            // For admin subpages (e.g., /admin/settings -> "Settings")
             const adminPageTitle = formattedPageTitle || 'Dashboard'; 
             document.title = `Admin: ${adminPageTitle} | ${siteNameBase}`;
         } else if (isAdminRoute && (pathname === '/admin' || pathname === '/admin/')) {
-            // Explicitly for /admin or /admin/ (often the dashboard)
             document.title = `Admin: Dashboard | ${siteNameBase}`;
         } else {
-            // Fallback for any other cases
             document.title = formattedPageTitle ? `${formattedPageTitle} | ${siteNameBase}` : siteNameBase;
         }
 
         updateMetaTag('description', currentSiteSettings.defaultMetaDescription || defaultSiteSettingsForClient.defaultMetaDescription);
-        updateMetaTag('og:title', document.title, true); // Use the just-set document.title
+        updateMetaTag('og:title', document.title, true); 
         updateMetaTag('og:description', currentSiteSettings.defaultMetaDescription || defaultSiteSettingsForClient.defaultMetaDescription, true);
 
         if (currentSiteSettings.defaultMetaKeywords && currentSiteSettings.defaultMetaKeywords.trim() !== '') {
@@ -205,6 +200,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          {!isAdminRoute && <LiveAnnouncementBanner />} {/* Added Banner */}
           {isLayoutLoading && !isAdminRoute ? (
              <div className="flex-grow flex items-center justify-center">
                 <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -212,7 +208,9 @@ export default function RootLayout({
           ) : (
             <>
               {!isAdminRoute && <Navbar />}
-              <div className="flex-grow">{children}</div>
+              <div className="flex-grow pt-10">{/* Added pt-10 to prevent overlap with banner */}
+                {children}
+              </div>
               {!isAdminRoute && <Footer aboutMeData={currentAboutMeData} />}
             </>
           )}

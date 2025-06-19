@@ -3,12 +3,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Briefcase, Sparkles, UserCircle, Settings, Inbox } from 'lucide-react'; // Added Settings, Inbox
+import { LayoutDashboard, Briefcase, Sparkles, UserCircle, Settings, Inbox, Megaphone } from 'lucide-react'; // Added Megaphone
 import { cn } from '@/lib/utils';
 
 const adminNavItems = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/messages', label: 'Messages', icon: Inbox },
+  { href: '/admin/announcements', label: 'Announcements', icon: Megaphone }, // New item
   { href: '/admin/portfolio', label: 'Portfolio', icon: Briefcase },
   { href: '/admin/skills', label: 'Skills', icon: Sparkles },
   { href: '/admin/about', label: 'About Page', icon: UserCircle },

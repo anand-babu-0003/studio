@@ -1,3 +1,4 @@
+
 @import "../styles/github-markdown.css";
 
 @tailwind base;
@@ -328,4 +329,15 @@ body {
 
 .dark .markdown-body hr {
     background-color: hsl(var(--border));
+}
+
+/* Ensure content is not overlapped by fixed announcement banner */
+body {
+  padding-top: 0; /* Reset any previous padding */
+}
+
+body:has(div[role="alert"][aria-live="polite"]:not([style*="opacity: 0"])) {
+  /* This selector targets the body when the announcement banner is visible */
+  /* Adjust this value if your banner height changes */
+  padding-top: 4rem; /* Example: 64px if banner is roughly that height */
 }
