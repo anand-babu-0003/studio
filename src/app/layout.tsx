@@ -11,12 +11,12 @@ import { ThemeProvider } from '@/components/layout/theme-provider';
 import type { SiteSettings, AboutMeData } from '@/lib/types';
 import { getAboutMeDataAction } from '@/actions/getAboutMeDataAction';
 import { defaultSiteSettingsForClient, defaultAboutMeDataForClient } from '@/lib/data';
-import { AlertTriangle } from 'lucide-react'; 
+import { AlertTriangle } from 'lucide-react';
 import LiveAnnouncementBanner from '@/components/announcements/LiveAnnouncementBanner';
-import FullScreenLoader from '@/components/shared/FullScreenLoader'; 
+import FullScreenLoader from '@/components/shared/FullScreenLoader';
 
-import { firestore } from '@/lib/firebaseConfig'; 
-import { doc, onSnapshot } from 'firebase/firestore'; 
+import { firestore } from '@/lib/firebaseConfig';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 
 function updateMetaTag(name: string, content: string, isProperty: boolean = false) {
@@ -50,15 +50,15 @@ export default function RootLayout({
   const pathname = usePathname();
   const isAdminRoute = pathname.startsWith('/admin');
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [isMounted, setIsMounted] = useState(false); 
-  
+  const [isMounted, setIsMounted] = useState(false);
+
   const [currentSiteSettings, setCurrentSiteSettings] = useState<SiteSettings>(defaultSiteSettingsForClient);
   const [currentAboutMeData, setCurrentAboutMeData] = useState<AboutMeData>(defaultAboutMeDataForClient);
   const [isLayoutLoading, setIsLayoutLoading] = useState(true);
 
 
   useEffect(() => {
-    setIsMounted(true); 
+    setIsMounted(true);
     let settingsUnsubscribe: (() => void) | undefined;
 
     const fetchInitialAboutData = async () => {
@@ -73,7 +73,7 @@ export default function RootLayout({
 
     if (firestore) {
       const settingsDocRef = doc(firestore, 'app_config', 'siteSettingsDoc');
-      settingsUnsubscribe = onSnapshot(settingsDocRef, 
+      settingsUnsubscribe = onSnapshot(settingsDocRef,
         (docSnap) => {
           if (docSnap.exists()) {
             const data = docSnap.data() as SiteSettings;
@@ -88,11 +88,11 @@ export default function RootLayout({
             console.warn("Site settings document not found in Firestore for live listener. Using defaults.");
             setCurrentSiteSettings(defaultSiteSettingsForClient);
           }
-          if(isLayoutLoading) setIsLayoutLoading(false); 
+          if(isLayoutLoading) setIsLayoutLoading(false);
         },
         (error) => {
           console.error("Error listening to site settings:", error);
-          setCurrentSiteSettings(defaultSiteSettingsForClient); 
+          setCurrentSiteSettings(defaultSiteSettingsForClient);
            if(isLayoutLoading) setIsLayoutLoading(false);
         }
       );
@@ -102,7 +102,7 @@ export default function RootLayout({
       setIsLayoutLoading(false);
     }
 
-    fetchInitialAboutData(); 
+    fetchInitialAboutData();
 
     const handleMouseMove = (event: MouseEvent) => {
       setMousePosition({ x: event.clientX, y: event.clientY });
@@ -121,7 +121,7 @@ export default function RootLayout({
       }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAdminRoute, isLayoutLoading]); 
+  }, [isAdminRoute, isLayoutLoading]);
 
 
   useEffect(() => {
@@ -138,7 +138,7 @@ export default function RootLayout({
                               .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                               .join(' ');
         }
-        
+
         const siteNameBase = currentSiteSettings.siteName || defaultSiteSettingsForClient.siteName;
         let title = siteNameBase;
 
@@ -147,17 +147,17 @@ export default function RootLayout({
         } else if (formattedPageTitle && !isAdminRoute) {
             title = `${formattedPageTitle} | ${siteNameBase}`;
         } else if (isAdminRoute && pathSegments.length > 1 && pathSegments[0] === 'admin') {
-            const adminPageTitle = formattedPageTitle || 'Dashboard'; 
+            const adminPageTitle = formattedPageTitle || 'Dashboard';
             title = `Admin: ${adminPageTitle} | ${siteNameBase}`;
         } else if (isAdminRoute && (pathname === '/admin' || pathname === '/admin/')) {
             title = `Admin: Dashboard | ${siteNameBase}`;
-        } else if (formattedPageTitle) { 
+        } else if (formattedPageTitle) {
              title = `${formattedPageTitle} | ${siteNameBase}`;
         }
         document.title = title;
 
         updateMetaTag('description', currentSiteSettings.defaultMetaDescription || defaultSiteSettingsForClient.defaultMetaDescription);
-        updateMetaTag('og:title', document.title, true); 
+        updateMetaTag('og:title', document.title, true);
         updateMetaTag('og:description', currentSiteSettings.defaultMetaDescription || defaultSiteSettingsForClient.defaultMetaDescription, true);
 
         if (currentSiteSettings.defaultMetaKeywords && currentSiteSettings.defaultMetaKeywords.trim() !== '') {
@@ -169,7 +169,7 @@ export default function RootLayout({
         if (currentSiteSettings.siteOgImageUrl && currentSiteSettings.siteOgImageUrl.trim() !== '') {
             updateMetaTag('og:image', currentSiteSettings.siteOgImageUrl, true);
         } else {
-            removeMetaTag('og:image', true); 
+            removeMetaTag('og:image', true);
         }
     }
   }, [currentSiteSettings, pathname, isAdminRoute, isLayoutLoading]);
@@ -180,7 +180,7 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        
+
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -235,8 +235,8 @@ export default function RootLayout({
               </p>
             </div>
           )}
-          
-          {isLayoutLoading && !isAdminRoute && pathname !== '/admin/login' ? ( // Added pathname check for login page
+
+          {isLayoutLoading && !isAdminRoute && pathname !== '/admin/login' ? (
              <FullScreenLoader />
           ) : (
             <>
@@ -251,3 +251,5 @@ export default function RootLayout({
         </ThemeProvider>
       </body>
     </html>
+  );
+}
