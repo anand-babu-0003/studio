@@ -3,30 +3,58 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import '../styles/not-found.css'; // Ensure this path is correct
-import { Button } from '@/components/ui/button'; // Import ShadCN Button
+import { useEffect, useState } from 'react';
+import '../styles/not-found.css';
+import { Button } from '@/components/ui/button';
+import type { NotFoundPageData } from '@/lib/types';
+import { getNotFoundPageDataAction } from '@/actions/admin/notFoundActions';
+import { defaultNotFoundPageDataForClient } from '@/lib/data';
+import FullScreenLoader from '@/components/shared/FullScreenLoader'; // Assuming you have this
 
 export default function NotFound() {
+  const [pageData, setPageData] = useState<NotFoundPageData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      setIsLoading(true);
+      try {
+        const data = await getNotFoundPageDataAction();
+        setPageData(data || defaultNotFoundPageDataForClient);
+      } catch (error) {
+        console.error("Error fetching Not Found page data:", error);
+        setPageData(defaultNotFoundPageDataForClient);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  if (isLoading || !pageData) {
+    return <FullScreenLoader />;
+  }
+
   return (
     <div className="fullscreen-nf-wrapper">
       <div className="content-nf">
         <h1 className="text-404-nf">404</h1>
         <div className="illustration-container-nf">
           <Image
-            src="https://placehold.co/400x300.png" 
-            alt="Illustration for Page Not Found"
+            src={pageData.imageSrc || defaultNotFoundPageDataForClient.imageSrc}
+            alt={pageData.heading || defaultNotFoundPageDataForClient.heading}
             width={400}
             height={300}
             className="illustration-image-nf"
-            data-ai-hint="lost map" 
+            data-ai-hint={pageData.dataAiHint || defaultNotFoundPageDataForClient.dataAiHint}
             priority
           />
         </div>
-        <h3 className="heading-nf">Look like you&apos;re lost</h3>
-        <p className="subtext-nf">The page you are looking for is not available!</p>
+        <h3 className="heading-nf">{pageData.heading || defaultNotFoundPageDataForClient.heading}</h3>
+        <p className="subtext-nf">{pageData.message || defaultNotFoundPageDataForClient.message}</p>
         <Button asChild size="lg" className="mt-4">
           <Link href="/">
-            Go to Home
+            {pageData.buttonText || defaultNotFoundPageDataForClient.buttonText}
           </Link>
         </Button>
       </div>

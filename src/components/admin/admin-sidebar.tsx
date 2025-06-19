@@ -3,17 +3,18 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Briefcase, Sparkles, UserCircle, Settings, Inbox, Megaphone } from 'lucide-react'; // Added Megaphone
+import { LayoutDashboard, Briefcase, Sparkles, UserCircle, Settings, Inbox, Megaphone, FileQuestion } from 'lucide-react'; // Added FileQuestion
 import { cn } from '@/lib/utils';
 
 const adminNavItems = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/messages', label: 'Messages', icon: Inbox },
-  { href: '/admin/announcements', label: 'Announcements', icon: Megaphone }, // New item
+  { href: '/admin/announcements', label: 'Announcements', icon: Megaphone },
   { href: '/admin/portfolio', label: 'Portfolio', icon: Briefcase },
   { href: '/admin/skills', label: 'Skills', icon: Sparkles },
   { href: '/admin/about', label: 'About Page', icon: UserCircle },
-  { href: '/admin/settings', label: 'Settings', icon: Settings }, 
+  { href: '/admin/settings', label: 'Site Settings', icon: Settings }, 
+  { href: '/admin/not-found-settings', label: '404 Page', icon: FileQuestion }, // New item
 ];
 
 export function AdminSidebarContent() {

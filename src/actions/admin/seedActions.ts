@@ -16,15 +16,17 @@ import {
   defaultSiteSettingsForClient,
   defaultAboutMeDataForClient,
   defaultSkillsDataForClient,
-  defaultPortfolioItemsDataForClient
+  defaultPortfolioItemsDataForClient,
+  defaultNotFoundPageDataForClient // Added
 } from '@/lib/data'; // Using more comprehensive defaults from data.ts
-import type { SiteSettings, AboutMeData, Skill, PortfolioItem, Experience, Education } from '@/lib/types';
+import type { SiteSettings, AboutMeData, Skill, PortfolioItem, Experience, Education, NotFoundPageData } from '@/lib/types';
 
 export interface SeedDetails {
   siteSettings: { status: 'success' | 'error'; message?: string; count: number };
   aboutMe: { status: 'success' | 'error'; message?: string; count: number };
   skills: { status: 'success' | 'error'; message?: string; deletedCount: number; addedCount: number };
   portfolioItems: { status: 'success' | 'error'; message?: string; deletedCount: number; addedCount: number };
+  notFoundPage: { status: 'success' | 'error'; message?: string; count: number }; // Added
 }
 
 export interface SeedResult {
@@ -56,6 +58,7 @@ export async function seedFirestoreWithMockDataAction(): Promise<SeedResult> {
     aboutMe: { status: 'error', count: 0 },
     skills: { status: 'error', deletedCount: 0, addedCount: 0 },
     portfolioItems: { status: 'error', deletedCount: 0, addedCount: 0 },
+    notFoundPage: { status: 'error', count: 0 }, // Added
   };
 
   if (!firestore) {
@@ -139,6 +142,19 @@ export async function seedFirestoreWithMockDataAction(): Promise<SeedResult> {
       details.portfolioItems = { ...details.portfolioItems, status: 'error', message: (e as Error).message };
       throw e;
     }
+
+    // 5. Seed Not Found Page Data (Added)
+    try {
+      const notFoundPageRef = doc(firestore, 'app_config', 'notFoundPageDoc');
+      const notFoundDataToSeed: NotFoundPageData = defaultNotFoundPageDataForClient;
+      await setDoc(notFoundPageRef, notFoundDataToSeed);
+      details.notFoundPage = { status: 'success', count: 1, message: "404 Page data seeded." };
+    } catch (e) {
+      console.error("Error seeding 404 Page data:", e);
+      details.notFoundPage = { status: 'error', count: 0, message: (e as Error).message };
+      throw e;
+    }
+
 
     return {
       success: true,

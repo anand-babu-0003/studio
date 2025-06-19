@@ -1,6 +1,6 @@
 
 import type React from 'react';
-import type { PortfolioItem, Skill, AboutMeData, SiteSettings, Experience, Education } from '@/lib/types';
+import type { PortfolioItem, Skill, AboutMeData, SiteSettings, Experience, Education, NotFoundPageData } from '@/lib/types';
 import {
   Code, Database, Server, Cloud, PenTool, Terminal, Briefcase, Zap, Brain, MessageSquare,
   Settings, LayoutDashboard, Smartphone, Laptop, GitMerge, Palette, Cog, Lightbulb,
@@ -83,6 +83,14 @@ export const defaultPortfolioItemsDataForClient: PortfolioItem[] = [
     updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
   }
 ];
+
+export const defaultNotFoundPageDataForClient: NotFoundPageData = {
+  imageSrc: 'https://placehold.co/400x300.png',
+  dataAiHint: 'page not found illustration',
+  heading: "Oops! Page Not Found.",
+  message: "The page you're looking for seems to have ventured off the map. Let's get you back on track.",
+  buttonText: "Go to Homepage",
+};
 
 export const skillCategories = SKILL_CATEGORIES;
 

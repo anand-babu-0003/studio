@@ -124,3 +124,12 @@ export const siteSettingsAdminSchema = z.object({
   maintenanceMode: z.boolean().optional(), // Added
 });
 export type SiteSettingsAdminFormData = z.infer<typeof siteSettingsAdminSchema>;
+
+export const notFoundPageAdminSchema = z.object({
+  imageSrc: z.string().url({ message: "Please enter a valid URL for the image." }).or(z.literal("")).optional(),
+  dataAiHint: z.string().max(50, { message: "AI hint must be 50 characters or less." }).or(z.literal("")).optional(),
+  heading: z.string().min(5, "Heading is too short.").max(100, "Heading is too long."),
+  message: z.string().min(10, "Message is too short.").max(200, "Message is too long."),
+  buttonText: z.string().min(3, "Button text is too short.").max(30, "Button text is too long."),
+});
+export type NotFoundPageAdminFormData = z.infer<typeof notFoundPageAdminSchema>;

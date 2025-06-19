@@ -71,11 +71,20 @@ export interface SiteSettings {
   maintenanceMode?: boolean; // Added for live updates
 }
 
+export interface NotFoundPageData {
+  imageSrc: string;
+  dataAiHint: string;
+  heading: string;
+  message: string;
+  buttonText: string;
+}
+
 export interface AppData {
   portfolioItems: PortfolioItem[];
   skills: Skill[];
   aboutMe: AboutMeData;
   siteSettings: SiteSettings;
+  notFoundPage?: NotFoundPageData; // Added
 }
 
 export interface ContactMessage {
@@ -92,3 +101,4 @@ export interface Announcement {
   createdAt: any; // Firestore Timestamp on write, Date or string on read
   isActive?: boolean; // To potentially control visibility
 }
+
