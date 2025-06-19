@@ -117,15 +117,11 @@ export default function Footer({ aboutMeData }: FooterProps) {
           </p>
           <p className="text-sm text-muted-foreground mt-2">
              Built with Next.js, Tailwind CSS, and Firebase by{' '}
-            {displayedAboutMe.name ? (
               <Button asChild variant="link" className="p-0 h-auto text-sm text-primary hover:text-accent focus:outline-none focus:ring-1 focus:ring-ring rounded">
-                <Link href={displayedAboutMe.githubUrl || "/"} target="_blank" rel="noopener noreferrer">
-                 <span>{displayedAboutMe.name}</span>
+                <Link href="/admin/dashboard">
+                 <span>Anand</span>
                 </Link>
               </Button>
-            ) : (
-              defaultAboutMeDataForClient.name 
-            )}
             .
           </p>
         </div>
