@@ -2,30 +2,23 @@
 import { PageHeader } from '@/components/shared/page-header';
 import { PortfolioCard } from '@/components/portfolio/portfolio-card';
 import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wrapper';
-import type { PortfolioItem, AppData } from '@/lib/types';
-import fs from 'fs/promises';
-import path from 'path';
+import type { PortfolioItem } from '@/lib/types'; // Type import is fine
+import { getPortfolioItemsAction } from '@/actions/admin/portfolioActions';
 
 const defaultPortfolioItems: PortfolioItem[] = [];
 
-async function getFreshPortfolioItems(): Promise<PortfolioItem[]> {
-  const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
+async function getPageData(): Promise<PortfolioItem[]> {
   try {
-    const fileContent = await fs.readFile(dataFilePath, 'utf-8');
-    if (!fileContent.trim()) {
-        console.warn("Data file is empty for Portfolio page, returning empty array.");
-        return defaultPortfolioItems;
-    }
-    const appData = JSON.parse(fileContent) as Partial<AppData>;
-    return Array.isArray(appData.portfolioItems) ? appData.portfolioItems : defaultPortfolioItems;
+    const items = await getPortfolioItemsAction();
+    return items || defaultPortfolioItems; // Use default if action returns null/undefined
   } catch (error) {
-    console.error("Error reading or parsing data.json for Portfolio page, returning empty array:", error);
-    return defaultPortfolioItems;
+    console.error("Error fetching portfolio items for page:", error);
+    return defaultPortfolioItems; // Fallback to default on error
   }
 }
 
 export default async function PortfolioPage() {
-  const portfolioItems = await getFreshPortfolioItems();
+  const portfolioItems = await getPageData();
 
   return (
     <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
@@ -47,7 +40,7 @@ export default async function PortfolioPage() {
       ) : (
         <ScrollAnimationWrapper>
           <p className="text-center text-muted-foreground text-lg">
-            No projects to display at the moment. Check back soon!
+            No projects to display at the moment. I&apos;m currently working on new and exciting things. Check back soon!
           </p>
         </ScrollAnimationWrapper>
       )}

@@ -1,72 +1,110 @@
-
 "use server";
 
-import type { PortfolioItem, AppData } from '@/lib/types';
+import { firestore } from '@/lib/firebaseConfig';
+import { collection, getDocs, doc, getDoc, setDoc, addDoc, deleteDoc, query, where, serverTimestamp, orderBy, Timestamp, writeBatch } from 'firebase/firestore';
+import type { PortfolioItem as LibPortfolioItemType } from '@/lib/types';
 import { portfolioItemAdminSchema, type PortfolioAdminFormData } from '@/lib/adminSchemas';
-import fs from 'fs/promises';
-import path from 'path';
 import { revalidatePath } from 'next/cache';
 
-const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
-
-// Standardized default AppData structure
-const defaultAppData: AppData = {
-  portfolioItems: [],
-  skills: [],
-  aboutMe: {
-    name: 'Default Name',
-    title: 'Default Title',
-    bio: 'Default bio.',
-    profileImage: 'https://placehold.co/400x400.png',
-    dataAiHint: 'placeholder image',
-    experience: [],
-    education: [],
-    email: 'default@example.com',
-    linkedinUrl: '',
-    githubUrl: '',
-    twitterUrl: '',
-  },
-  siteSettings: {
-    siteName: 'My Portfolio',
-    defaultMetaDescription: 'A showcase of my projects and skills.',
-    defaultMetaKeywords: '',
-    siteOgImageUrl: '',
-  },
+const defaultPortfolioItem: Omit<LibPortfolioItemType, 'id' | 'createdAt' | 'updatedAt'> = {
+  title: 'Untitled Project',
+  description: 'Default description.',
+  longDescription: 'More detailed default description.',
+  images: ['https://placehold.co/600x400.png'],
+  tags: ['default'],
+  slug: `default-project-${Date.now()}`,
+  dataAiHint: 'project',
+  readmeContent: '# Default README',
+  liveUrl: '',
+  repoUrl: '',
 };
 
-async function readDataFromFile(): Promise<AppData> {
+// Action to get all portfolio items
+export async function getPortfolioItemsAction(): Promise<LibPortfolioItemType[]> {
   try {
-    const fileContent = await fs.readFile(dataFilePath, 'utf-8');
-     if (!fileContent.trim()) {
-        console.warn("Data file is empty in portfolioActions, returning default structure.");
-        return defaultAppData;
+    const portfolioCollection = collection(firestore, 'portfolioItems');
+    // Order by createdAt in descending order to get newest first
+    const q = query(portfolioCollection, orderBy('createdAt', 'desc'));
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) {
+      console.log("No portfolio items found in Firestore.");
+      return [];
     }
-    const parsedData = JSON.parse(fileContent);
-    // Use comprehensive merging strategy
-    return {
-      ...defaultAppData, // Start with full default structure
-      ...parsedData,     // Override with parsed data
-      aboutMe: { ...defaultAppData.aboutMe, ...(parsedData.aboutMe ?? {}) }, // Deep merge for aboutMe
-      skills: Array.isArray(parsedData.skills) ? parsedData.skills : defaultAppData.skills,
-      portfolioItems: Array.isArray(parsedData.portfolioItems) ? parsedData.portfolioItems : defaultAppData.portfolioItems,
-      siteSettings: { ...defaultAppData.siteSettings, ...(parsedData.siteSettings ?? {}) }, // Deep merge for siteSettings
-    };
+
+    return snapshot.docs.map(docSnap => {
+      const data = docSnap.data();
+      const createdAt = data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : new Date().toISOString();
+      const updatedAt = data.updatedAt instanceof Timestamp ? data.updatedAt.toDate().toISOString() : new Date().toISOString();
+      
+      return {
+        id: docSnap.id,
+        title: data.title || defaultPortfolioItem.title,
+        description: data.description || defaultPortfolioItem.description,
+        longDescription: data.longDescription || defaultPortfolioItem.longDescription,
+        images: Array.isArray(data.images) && data.images.length > 0 ? data.images : defaultPortfolioItem.images,
+        tags: Array.isArray(data.tags) ? data.tags : defaultPortfolioItem.tags,
+        liveUrl: data.liveUrl || '',
+        repoUrl: data.repoUrl || '',
+        slug: data.slug || `project-${docSnap.id}`, // Fallback slug
+        dataAiHint: data.dataAiHint || '',
+        readmeContent: data.readmeContent || '',
+        createdAt: createdAt,
+        updatedAt: updatedAt,
+      } as LibPortfolioItemType;
+    });
   } catch (error) {
-     console.error("Error reading or parsing data file in portfolioActions, returning default structure:", error);
-     return defaultAppData;
+    console.error("Error fetching portfolio items from Firestore:", error);
+    return []; 
   }
 }
 
-async function writeDataToFile(data: AppData): Promise<void> {
-  await fs.writeFile(dataFilePath, JSON.stringify(data, null, 2), 'utf-8');
+// Action to get a single portfolio item by its slug
+export async function getPortfolioItemBySlugAction(slug: string): Promise<LibPortfolioItemType | null> {
+  if (!slug) return null;
+  try {
+    const portfolioCollection = collection(firestore, 'portfolioItems');
+    const q = query(portfolioCollection, where("slug", "==", slug));
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) {
+      console.log(`No portfolio item found with slug: ${slug}`);
+      return null;
+    }
+    
+    const docSnap = snapshot.docs[0]; // Assuming slugs are unique
+    const data = docSnap.data();
+    const createdAt = data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : new Date().toISOString();
+    const updatedAt = data.updatedAt instanceof Timestamp ? data.updatedAt.toDate().toISOString() : new Date().toISOString();
+
+    return {
+      id: docSnap.id,
+      title: data.title || defaultPortfolioItem.title,
+      description: data.description || defaultPortfolioItem.description,
+      longDescription: data.longDescription || defaultPortfolioItem.longDescription,
+      images: Array.isArray(data.images) && data.images.length > 0 ? data.images : defaultPortfolioItem.images,
+      tags: Array.isArray(data.tags) ? data.tags : defaultPortfolioItem.tags,
+      liveUrl: data.liveUrl || '',
+      repoUrl: data.repoUrl || '',
+      slug: data.slug, // Should definitely exist if queried by it
+      dataAiHint: data.dataAiHint || '',
+      readmeContent: data.readmeContent || '',
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+    } as LibPortfolioItemType;
+  } catch (error) {
+    console.error(`Error fetching portfolio item by slug ${slug}:`, error);
+    return null;
+  }
 }
+
 
 export type PortfolioFormState = {
   message: string;
   status: 'success' | 'error' | 'idle';
   errors?: Partial<Record<keyof PortfolioAdminFormData, string[]>>;
   formDataOnError?: PortfolioAdminFormData; 
-  savedProject?: PortfolioItem;
+  savedProject?: LibPortfolioItemType;
 };
 
 export async function savePortfolioItemAction(
@@ -107,51 +145,73 @@ export async function savePortfolioItemAction(
 
   const tags: string[] = data.tagsString ? data.tagsString.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
 
-  const projectToSave: PortfolioItem = {
-    id: data.id || `proj_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+  const projectDataForFirestore: Omit<LibPortfolioItemType, 'id' | 'createdAt' | 'updatedAt'> & { updatedAt: any, createdAt?: any } = {
     title: data.title,
     description: data.description,
-    longDescription: data.longDescription,
+    longDescription: data.longDescription || '', // Ensure it's not undefined
     images,
     tags,
-    liveUrl: data.liveUrl,
-    repoUrl: data.repoUrl,
+    liveUrl: data.liveUrl || '',
+    repoUrl: data.repoUrl || '',
     slug: data.slug,
-    dataAiHint: data.dataAiHint,
-    readmeContent: data.readmeContent,
+    dataAiHint: data.dataAiHint || '',
+    readmeContent: data.readmeContent || '',
+    updatedAt: serverTimestamp(),
   };
+  
+  let projectId = data.id;
 
   try {
-    const allData = await readDataFromFile();
-    if (data.id) {
-      const projectIndex = allData.portfolioItems.findIndex(p => p.id === data.id);
-      if (projectIndex > -1) {
-        allData.portfolioItems[projectIndex] = projectToSave;
-      } else {
-        // If ID was provided but project not found, treat as new addition
-        allData.portfolioItems.push(projectToSave); 
-      }
-    } else {
-      allData.portfolioItems.push(projectToSave);
+    if (projectId) { // Existing project
+      const projectRef = doc(firestore, 'portfolioItems', projectId);
+      await setDoc(projectRef, projectDataForFirestore, { merge: true });
+    } else { // New project
+      projectDataForFirestore.createdAt = serverTimestamp(); // Add createdAt for new projects
+      const newProjectRef = await addDoc(collection(firestore, 'portfolioItems'), projectDataForFirestore);
+      projectId = newProjectRef.id;
     }
-    await writeDataToFile(allData);
+    
+    // Fetch the saved/updated project to return its complete data, including resolved timestamps
+    const savedDoc = await getDoc(doc(firestore, 'portfolioItems', projectId));
+    if (!savedDoc.exists()) {
+        throw new Error("Failed to retrieve saved project from Firestore.");
+    }
+    const savedData = savedDoc.data();
+    const createdAt = savedData.createdAt instanceof Timestamp ? savedData.createdAt.toDate().toISOString() : new Date().toISOString();
+    const updatedAt = savedData.updatedAt instanceof Timestamp ? savedData.updatedAt.toDate().toISOString() : new Date().toISOString();
+
+
+    const finalSavedProject: LibPortfolioItemType = {
+      id: projectId,
+      ...projectDataForFirestore, // spread the data we intended to save
+      // Override with actual Firestore data where appropriate, especially timestamps
+      title: savedData.title || projectDataForFirestore.title,
+      description: savedData.description || projectDataForFirestore.description,
+      images: savedData.images || projectDataForFirestore.images,
+      tags: savedData.tags || projectDataForFirestore.tags,
+      slug: savedData.slug || projectDataForFirestore.slug,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+    };
+
 
     revalidatePath('/portfolio');
     revalidatePath('/'); 
-    if (projectToSave.slug) {
-      revalidatePath(`/portfolio/${projectToSave.slug}`);
+    if (finalSavedProject.slug) {
+      revalidatePath(`/portfolio/${finalSavedProject.slug}`);
     }
+    revalidatePath('/admin/portfolio');
 
 
     return {
-      message: `Project "${projectToSave.title}" ${data.id ? 'updated' : 'added'} successfully!`,
+      message: `Project "${finalSavedProject.title}" ${data.id ? 'updated' : 'added'} successfully!`,
       status: 'success',
-      savedProject: projectToSave,
+      savedProject: finalSavedProject,
       errors: {},
     };
 
   } catch (error) {
-    console.error("Error saving portfolio project:", error);
+    console.error("Error saving portfolio project to Firestore:", error);
     return {
       message: "An unexpected server error occurred while saving the project. Please try again.",
       status: 'error',
@@ -171,25 +231,25 @@ export async function deletePortfolioItemAction(itemId: string): Promise<DeleteP
         return { success: false, message: "No item ID provided for deletion." };
     }
     try {
-        const allData = await readDataFromFile();
-        const initialLength = allData.portfolioItems.length;
-        const projectToDelete = allData.portfolioItems.find(p => p.id === itemId);
-        allData.portfolioItems = allData.portfolioItems.filter(p => p.id !== itemId);
-
-        if (allData.portfolioItems.length < initialLength) {
-            await writeDataToFile(allData);
-            revalidatePath('/portfolio');
-            revalidatePath('/'); 
-            if (projectToDelete?.slug) {
-              revalidatePath(`/portfolio/${projectToDelete.slug}`);
-            }
-            return { success: true, message: `Project (ID: ${itemId}) deleted successfully!` };
-        } else {
-            return { success: false, message: `Project (ID: ${itemId}) not found for deletion.` };
+        const projectRef = doc(firestore, 'portfolioItems', itemId);
+        const projectDoc = await getDoc(projectRef);
+        if (!projectDoc.exists()) {
+             return { success: false, message: `Project (ID: ${itemId}) not found for deletion.` };
         }
-    } catch (error) {
-        console.error("Error deleting portfolio item:", error);
+        const projectToDeleteData = projectDoc.data();
+        await deleteDoc(projectRef);
+
+        revalidatePath('/portfolio');
+        revalidatePath('/'); 
+        if (projectToDeleteData?.slug) {
+          revalidatePath(`/portfolio/${projectToDeleteData.slug}`);
+        }
+        revalidatePath('/admin/portfolio');
+        return { success: true, message: `Project (ID: ${itemId}) deleted successfully!` };
+        
+    } catch (error)
+     {
+        console.error("Error deleting portfolio item from Firestore:", error);
         return { success: false, message: "Failed to delete project due to a server error." };
     }
 }
-

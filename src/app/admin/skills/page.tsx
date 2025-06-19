@@ -4,7 +4,7 @@
 import { useEffect, useState, useMemo } from 'react'; 
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom'; 
-import { useForm, type Path, type SubmitHandler } from 'react-hook-form';
+import { useForm, type Path } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusCircle, Edit3, Trash2, Save, Loader2, XCircle } from 'lucide-react';
 
@@ -17,9 +17,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
-import { skills as initialSkillsData, skillCategories, availableIconNames, lucideIconsMap, commonSkillNames } from '@/lib/data';
+import { 
+  skillCategories, 
+  availableIconNames, 
+  lucideIconsMap, 
+  commonSkillNames 
+} from '@/lib/data'; // Static data from lib/data.ts
 import type { Skill } from '@/lib/types';
-import { saveSkillAction, deleteSkillAction, type SkillFormState } from '@/actions/admin/skillsActions';
+import { 
+  getSkillsAction, // Added
+  saveSkillAction, 
+  deleteSkillAction, 
+  type SkillFormState 
+} from '@/actions/admin/skillsActions';
 import { skillAdminSchema, type SkillAdminFormData } from '@/lib/adminSchemas';
 
 const initialFormState: SkillFormState = { message: '', status: 'idle', errors: {}, formDataOnError: undefined, savedSkill: undefined };
@@ -28,7 +38,7 @@ const defaultFormValues: SkillAdminFormData = {
   name: '',
   category: skillCategories[0], 
   proficiency: undefined,
-  iconName: availableIconNames.length > 0 ? availableIconNames[0] : (() => { throw new Error("FATAL: availableIconNames is empty. Check src/lib/data.ts and lucide-react imports for AdminSkillsPage.")})(),
+  iconName: availableIconNames.length > 0 ? availableIconNames[0] : 'Code', // Fallback if availableIconNames is empty
 };
 
 function SubmitButton() {
@@ -51,7 +61,8 @@ function SubmitButton() {
 }
 
 export default function AdminSkillsPage() {
-  const [skills, setSkills] = useState<Skill[]>(initialSkillsData);
+  const [skills, setSkills] = useState<Skill[]>([]);
+  const [isLoadingSkills, setIsLoadingSkills] = useState(true); // Added loading state
   const [currentSkill, setCurrentSkill] = useState<Skill | null>(null);
   const [showForm, setShowForm] = useState(false);
   const { toast } = useToast();
@@ -69,6 +80,28 @@ export default function AdminSkillsPage() {
     return `add-new-skill-form-${new Date().getTime()}`;
   }, [showForm, currentSkill]);
 
+  // Fetch initial skills from Firestore
+  useEffect(() => {
+    async function fetchSkills() {
+      setIsLoadingSkills(true);
+      try {
+        const fetchedSkills = await getSkillsAction();
+        setSkills(fetchedSkills || []);
+      } catch (error) {
+        console.error("Failed to fetch skills for admin:", error);
+        toast({
+          title: "Error Loading Skills",
+          description: "Could not load skills from the database.",
+          variant: "destructive",
+        });
+        setSkills([]);
+      } finally {
+        setIsLoadingSkills(false);
+      }
+    }
+    fetchSkills();
+  }, [toast]);
+
 
   useEffect(() => {
     if (formActionState.status === 'success' && formActionState.savedSkill) {
@@ -83,8 +116,9 @@ export default function AdminSkillsPage() {
           updatedSkills[existingIndex] = savedSkill;
           newSkillsArray = updatedSkills;
         } else {
-          newSkillsArray = [...prevSkills, savedSkill];
+          newSkillsArray = [savedSkill, ...prevSkills]; // Add new skills to the top
         }
+        // You might want to re-sort or re-group if skills are displayed by category
         return newSkillsArray;
       });
       
@@ -148,22 +182,6 @@ export default function AdminSkillsPage() {
     form.reset(defaultFormValues);
   }
 
-  const handleFormSubmit: SubmitHandler<SkillAdminFormData> = async (data) => {
-    const formData = new FormData();
-
-    if (data.id) formData.append('id', data.id);
-    formData.append('name', data.name || ''); 
-    formData.append('category', data.category); 
-    formData.append('iconName', data.iconName); 
-
-    if (data.proficiency !== undefined && data.proficiency !== null) {
-      formData.append('proficiency', String(data.proficiency));
-    }
-    
-    dispatchServerAction(formData);
-  };
-
-
   return (
     <div className="py-6">
       <div className="flex items-center justify-between">
@@ -182,7 +200,7 @@ export default function AdminSkillsPage() {
             <CardDescription>Fill in the details for the skill.</CardDescription>
           </CardHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleFormSubmit)}>
+            <form action={dispatchServerAction}>
               {currentSkill?.id && <input type="hidden" {...form.register('id')} value={currentSkill.id} />}
               
               <CardContent className="space-y-6">
@@ -241,8 +259,11 @@ export default function AdminSkillsPage() {
                         <Input
                           type="number"
                           name={name}
-                          value={value ?? ''} 
-                          onChange={e => onChange(e.target.value === '' ? undefined : Number(e.target.value))}
+                          value={value === null || value === undefined ? '' : String(value)} // Ensure value is string or empty string
+                          onChange={e => {
+                            const val = e.target.value;
+                            onChange(val === '' ? null : Number(val)); // Pass null for empty, number otherwise
+                          }}
                           onBlur={onBlur}
                           ref={ref}
                           min="0"
@@ -265,6 +286,9 @@ export default function AdminSkillsPage() {
         </Card>
       )}
       {!showForm && (
+         isLoadingSkills ? (
+          <div className="text-center p-8"><Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" /> <p className="mt-2 text-muted-foreground">Loading skills...</p></div>
+        ) : (
         <div className="space-y-8">
           {skills.length === 0 && (
             <p className="text-muted-foreground text-center py-4">
@@ -283,13 +307,13 @@ export default function AdminSkillsPage() {
                 </h2>
                 <div className="space-y-4">
                   {categorySkills.map(skill => {
-                    const IconComponent = lucideIconsMap[skill.iconName];
+                    const IconComponent = lucideIconsMap[skill.iconName] || PlusCircle; // Fallback icon
                     return (
                       <Card key={skill.id} className="flex items-center justify-between p-4 hover:shadow-md transition-shadow">
                         <div className="flex items-center gap-3">
                           {IconComponent && <IconComponent className="h-5 w-5 text-primary" />}
                           <span className="font-medium">{skill.name}</span>
-                          {skill.proficiency !== undefined && (
+                          {skill.proficiency !== undefined && skill.proficiency !== null && (
                             <span className="text-sm text-muted-foreground">({skill.proficiency}%)</span>
                           )}
                         </div>
@@ -312,7 +336,7 @@ export default function AdminSkillsPage() {
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDelete(skill.id)}>
+                                <AlertDialogAction onClick={() => handleDelete(skill.id)} className="bg-destructive hover:bg-destructive/80">
                                   Yes, delete skill
                                 </AlertDialogAction>
                               </AlertDialogFooter>
@@ -327,8 +351,8 @@ export default function AdminSkillsPage() {
             );
           })}
         </div>
+        )
       )}
     </div>
   );
 }
-

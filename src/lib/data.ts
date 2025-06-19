@@ -1,16 +1,15 @@
 
 import type React from 'react';
-import type { PortfolioItem, Skill, AboutMeData, AppData, SiteSettings } from '@/lib/types';
-// This imports the content of data.json for initial/client-side use by admin panel.
-import jsonDataFromFile from './data.json'; 
+import type { AppData } from '@/lib/types'; // Ensure AppData is correctly typed for default structure
+// Removed import of jsonDataFromFile: import jsonDataFromFile from './data.json'; 
 import { 
   Code, Database, Server, Cloud, PenTool, Terminal, Briefcase, Zap, Brain, MessageSquare, 
   Settings, LayoutDashboard, Smartphone, Laptop, GitMerge, Palette, Cog, Lightbulb, 
   Network, Puzzle, ShieldCheck, LineChart, Bot, Cpu
 } from 'lucide-react';
-import { SKILL_CATEGORIES } from './constants'; // Import the centralized categories
+import { SKILL_CATEGORIES } from './constants';
 
-// Define a default, well-structured AppData object for fallbacks, aligned with server action defaults
+// Define a default, well-structured AppData object for any fallbacks if needed elsewhere (though primarily pages fetch directly now)
 const defaultAppData: AppData = {
   portfolioItems: [],
   skills: [],
@@ -35,93 +34,36 @@ const defaultAppData: AppData = {
   },
 };
 
-// Ensure jsonDataFromFile is treated as an object, defaulting to an empty one if import yields non-object.
-const importedValidObject = (typeof jsonDataFromFile === 'object' && jsonDataFromFile !== null)
-  ? jsonDataFromFile
-  : {};
-
-// Cast to Partial<AppData> to handle cases where jsonDataFromFile might be empty or missing keys.
-const importedData = importedValidObject as Partial<AppData>;
-
-// Defensively merge imported data with defaults.
-const appDataForClient: AppData = {
-  portfolioItems: Array.isArray(importedData.portfolioItems)
-    ? importedData.portfolioItems
-    : defaultAppData.portfolioItems,
-  skills: Array.isArray(importedData.skills)
-    ? importedData.skills
-    : defaultAppData.skills,
-  aboutMe: {
-    ...defaultAppData.aboutMe, // Start with full default structure
-    ...( (typeof importedData.aboutMe === 'object' && importedData.aboutMe !== null) 
-        ? importedData.aboutMe // Override with parsed data if aboutMe exists and is an object
-        : {} // Otherwise, use an empty object (effectively keeping defaults)
-      ),
-  },
-  siteSettings: {
-    ...defaultAppData.siteSettings, // Start with full default structure
-    ...( (typeof importedData.siteSettings === 'object' && importedData.siteSettings !== null)
-        ? importedData.siteSettings // Override with parsed data if siteSettings exists and is an object
-        : {} // Otherwise, use an empty object (effectively keeping defaults)
-      ),
-  },
-};
-
-export const portfolioItems: PortfolioItem[] = appDataForClient.portfolioItems;
-export const skills: Skill[] = appDataForClient.skills;
-export const aboutMe: AboutMeData = appDataForClient.aboutMe;
-export const siteSettings: SiteSettings = appDataForClient.siteSettings;
-
-
-// --- Static Configs (Client-Safe) ---
-// Use the imported SKILL_CATEGORIES constant
+// These are truly static configurations and are safe to export directly.
+// They are not dependent on data.json anymore.
 export const skillCategories = SKILL_CATEGORIES;
 
-
 export const lucideIconsMap: { [key: string]: React.ElementType } = {
-  Code,
-  Database,
-  Server,
-  Cloud,
-  PenTool,
-  Terminal,
-  Briefcase,
-  Zap,
-  Brain,
-  MessageSquare,
-  Settings,
-  LayoutDashboard,
-  Smartphone,
-  Laptop,
-  GitMerge, Palette, Cog, Lightbulb, 
+  Code, Database, Server, Cloud, PenTool, Terminal, Briefcase, Zap, Brain, MessageSquare, 
+  Settings, LayoutDashboard, Smartphone, Laptop, GitMerge, Palette, Cog, Lightbulb, 
   Network, Puzzle, ShieldCheck, LineChart, Bot, Cpu
 };
 export const availableIconNames = Object.keys(lucideIconsMap);
 
 export const commonSkillNames: string[] = [
-  // Programming Languages
   "JavaScript", "TypeScript", "Python", "Java", "C#", "C++", "Go", "Ruby", "Swift", "Kotlin", "PHP", "Rust", "Scala", "Perl", "Lua",
-  // Frontend Technologies
   "HTML", "CSS", "SCSS/SASS", "React", "Angular", "Vue.js", "Next.js", "Gatsby", "Svelte", "jQuery", "Bootstrap", "Tailwind CSS", "Material UI", "Ember.js", "Backbone.js",
-  // Backend Technologies
   "Node.js", "Express.js", "Django", "Flask", "Spring Boot", "Ruby on Rails", ".NET Core", "Laravel", "FastAPI", "Koa", "NestJS",
-  // Databases
   "SQL", "NoSQL", "MongoDB", "PostgreSQL", "MySQL", "SQLite", "Firebase Realtime Database", "Firestore", "Redis", "Cassandra", "Oracle DB", "Microsoft SQL Server", "DynamoDB",
-  // DevOps & Cloud
   "AWS", "Azure", "Google Cloud Platform (GCP)", "Docker", "Kubernetes", "Jenkins", "Git", "GitHub Actions", "GitLab CI", "Terraform", "Ansible", "Puppet", "Chef", "Prometheus", "Grafana", "ELK Stack", "Serverless Framework",
-  // Mobile Development
   "React Native", "Flutter", "Swift (iOS)", "Kotlin (Android)", "Java (Android)", "Xamarin", "Ionic",
-  // AI/ML
   "Machine Learning", "Deep Learning", "Natural Language Processing (NLP)", "Computer Vision", "TensorFlow", "PyTorch", "scikit-learn", "Keras", "Pandas", "NumPy", "OpenCV",
-  // Data Science & Analytics
   "Data Analysis", "Data Visualization", "R", "Jupyter Notebooks", "Apache Spark", "Hadoop", "Tableau", "Power BI",
-  // Testing
   "Jest", "Mocha", "Chai", "Selenium", "Cypress", "JUnit", "PyTest", "Testing Library",
-  // Tools & Software
   "Figma", "Adobe XD", "Sketch", "Photoshop", "Illustrator", "VS Code", "IntelliJ IDEA", "Eclipse", "Vim", "Emacs", "JIRA", "Confluence", "Slack", "Microsoft Teams",
-  // Methodologies & Practices
   "Agile", "Scrum", "Kanban", "Waterfall", "CI/CD", "Test-Driven Development (TDD)", "Behavior-Driven Development (BDD)", "Microservices", "REST APIs", "GraphQL", "Object-Oriented Programming (OOP)", "Functional Programming", "DevSecOps",
-  // Soft Skills (Examples)
   "Problem Solving", "Communication", "Teamwork", "Leadership", "Time Management", "Critical Thinking", "Adaptability", "Creativity", "Project Management"
 ];
-    
+
+// The following exports are for client-side defaults in admin forms if needed,
+// but they should NOT be the source of truth for displayed data on public pages.
+// Public pages must fetch live data.
+export const initialAboutMeDataForClient: AppData['aboutMe'] = { ...defaultAppData.aboutMe };
+export const initialPortfolioItemsDataForClient: AppData['portfolioItems'] = [...defaultAppData.portfolioItems];
+export const initialSkillsDataForClient: AppData['skills'] = [...defaultAppData.skills];
+export const initialSiteSettingsForClient: AppData['siteSettings'] = { ...defaultAppData.siteSettings };

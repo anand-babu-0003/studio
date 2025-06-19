@@ -1,86 +1,80 @@
+"use client";
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { ArrowRight, Eye, Code2, Package, Mail } from 'lucide-react';
-import type { PortfolioItem, AboutMeData, AppData, Skill } from '@/lib/types';
+import { ArrowRight, Eye, Code2, Package, Mail, Loader2 } from 'lucide-react';
+import type { PortfolioItem, AboutMeData, Skill } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wrapper';
-import fs from 'fs/promises';
-import path from 'path';
-import { lucideIconsMap } from '@/lib/data';
+import { lucideIconsMap, skillCategories as SKILL_CATEGORIES_STATIC } from '@/lib/data';
 import StarryBackground from '@/components/layout/starry-background';
 import { PortfolioCard } from '@/components/portfolio/portfolio-card';
 
-const defaultAppData: AppData = {
-  portfolioItems: [],
-  skills: [],
-  aboutMe: {
-    name: 'B.Anand',
+import { getAboutMeDataAction } from '@/actions/getAboutMeDataAction';
+import { getPortfolioItemsAction } from '@/actions/admin/portfolioActions';
+import { getSkillsAction } from '@/actions/admin/skillsActions';
+
+const defaultAboutMeData: AboutMeData = {
+    name: 'User Name',
     title: 'Welcome to my universe',
-    bio: 'Default bio.',
+    bio: 'Passionate about crafting digital experiences. Details loading...',
     profileImage: 'https://placehold.co/320x320.png',
-    dataAiHint: 'placeholder image',
+    dataAiHint: 'profile picture',
     experience: [],
     education: [],
-    email: 'default@example.com',
+    email: 'user@example.com',
     linkedinUrl: '',
     githubUrl: '',
     twitterUrl: '',
-  },
-  siteSettings: {
-    siteName: 'AnandVerse',
-    defaultMetaDescription: 'A showcase of my projects and skills.',
-    defaultMetaKeywords: 'webdeveloper,portfolio',
-    siteOgImageUrl: 'https://github.com/anand-babu-0003/TrueValidator2/blob/main/Screenshot%202025-06-17%20154532.png?raw=true',
-  },
 };
 
-async function getFreshAppData(): Promise<AppData> {
-  const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
-  try {
-    const fileContent = await fs.readFile(dataFilePath, 'utf-8');
-    if (!fileContent.trim()) {
-        console.warn("Data file is empty for Home page, returning default structure.");
-        return defaultAppData;
+export default function Home() {
+  const [aboutMeData, setAboutMeData] = useState<AboutMeData | null>(null);
+  const [allPortfolioItems, setAllPortfolioItems] = useState<PortfolioItem[]>([]);
+  const [allSkills, setAllSkills] = useState<Skill[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadPageData() {
+      setIsLoading(true);
+      try {
+        const [fetchedAboutMe, fetchedPortfolioItems, fetchedSkills] = await Promise.all([
+          getAboutMeDataAction(),
+          getPortfolioItemsAction(),
+          getSkillsAction()
+        ]);
+        setAboutMeData(fetchedAboutMe || defaultAboutMeData);
+        setAllPortfolioItems(fetchedPortfolioItems || []);
+        setAllSkills(fetchedSkills || []);
+      } catch (error) {
+        console.error("Error fetching data for Home page:", error);
+        setAboutMeData(defaultAboutMeData); // Fallback to default
+        setAllPortfolioItems([]);
+        setAllSkills([]);
+      } finally {
+        setIsLoading(false);
+      }
     }
-    const parsedData = JSON.parse(fileContent) as Partial<AppData>;
-
-    const portfolioItems = Array.isArray(parsedData.portfolioItems) ? parsedData.portfolioItems : defaultAppData.portfolioItems;
-    const skills = Array.isArray(parsedData.skills) ? parsedData.skills : defaultAppData.skills;
-
-    const validAboutMe = (typeof parsedData.aboutMe === 'object' && parsedData.aboutMe !== null)
-                         ? parsedData.aboutMe
-                         : {};
-    const aboutMe = { ...defaultAppData.aboutMe, ...validAboutMe };
-
-    const validSiteSettings = (typeof parsedData.siteSettings === 'object' && parsedData.siteSettings !== null)
-                              ? parsedData.siteSettings
-                              : {};
-    const siteSettings = { ...defaultAppData.siteSettings, ...validSiteSettings };
-
-    return {
-      portfolioItems,
-      skills,
-      aboutMe,
-      siteSettings,
-    };
-
-  } catch (error) {
-    console.error("Error reading or parsing data.json for Home page, returning default structure:", error);
-    return defaultAppData;
-  }
-}
-
-export default async function Home() {
-  const appData = await getFreshAppData();
-  const aboutMeData = appData.aboutMe;
-  const allPortfolioItems = appData.portfolioItems;
+    loadPageData();
+  }, []);
+  
+  const displayedAboutMe = aboutMeData || defaultAboutMeData;
   const featuredProjects = allPortfolioItems.slice(0, 2);
-  const highlightedSkills = appData.skills.slice(0, 6);
+  const highlightedSkills = allSkills.slice(0, 6);
+  const firstParagraphBio = (displayedAboutMe.bio || '').split('\n\n')[0] || 'A brief introduction about me and my passion for technology.';
 
-  const firstParagraphBio = (aboutMeData.bio || '').split('\n\n')[0];
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col min-h-screen items-center justify-center">
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
+        <p className="mt-4 text-muted-foreground">Loading my universe...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col">
@@ -90,11 +84,11 @@ export default async function Home() {
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col justify-center items-center flex-grow">
           <div>
             <h1 className="font-headline text-5xl md:text-7xl font-bold tracking-tight text-foreground">
-              <span className="block animate-fadeInUp-1">Hi, I&apos;m <span className="text-foreground">{aboutMeData.name.split(' ')[0]}</span></span>
-              <span className="block text-primary animate-fadeInUp-2">{aboutMeData.title}</span>
+              <span className="block animate-fadeInUp-1">Hi, I&apos;m <span className="text-foreground">{(displayedAboutMe.name || 'User').split(' ')[0]}</span></span>
+              <span className="block text-primary animate-fadeInUp-2">{displayedAboutMe.title || 'My Awesome Title'}</span>
             </h1>
             <p className="mt-6 max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground animate-fadeInUp-2" style={{ animationDelay: '0.5s' }}>
-              {(aboutMeData.bio || '').substring(0, 150)}...
+              {(displayedAboutMe.bio || 'Welcome to my portfolio. I build amazing things.').substring(0, 150)}...
             </p>
             <div className="mt-10 flex flex-col sm:flex-row flex-wrap justify-center items-center gap-4 animate-fadeInUp-2" style={{ animationDelay: '0.7s' }}>
               <Button
@@ -134,12 +128,12 @@ export default async function Home() {
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div className="md:order-2 flex justify-center">
                 <Image
-                  src={aboutMeData.profileImage || 'https://placehold.co/320x320.png'}
-                  alt={`Profile picture of ${aboutMeData.name.split(' ')[0]}`}
+                  src={displayedAboutMe.profileImage || defaultAboutMeData.profileImage}
+                  alt={`Profile picture of ${(displayedAboutMe.name || 'User').split(' ')[0]}`}
                   width={320}
                   height={320}
                   className="rounded-full shadow-2xl object-cover aspect-square"
-                  data-ai-hint={aboutMeData.dataAiHint}
+                  data-ai-hint={displayedAboutMe.dataAiHint || defaultAboutMeData.dataAiHint}
                   priority
                 />
               </div>
@@ -168,15 +162,21 @@ export default async function Home() {
             <h2 className="font-headline text-3xl md:text-4xl font-bold text-center text-primary mb-12">
               Featured Projects
             </h2>
-            <div className="grid md:grid-cols-1 lg:grid-cols-2 gap-8">
-              {featuredProjects.map((project: PortfolioItem, index: number) => (
-                <ScrollAnimationWrapper key={project.id} delay={index * 150}>
-                  <PortfolioCard project={project} />
-                </ScrollAnimationWrapper>
-              ))}
-            </div>
-            {allPortfolioItems.length > featuredProjects.length && (
-                <ScrollAnimationWrapper className="mt-12 text-center" delay={featuredProjects.length * 150}>
+            {featuredProjects.length > 0 ? (
+              <div className="grid md:grid-cols-1 lg:grid-cols-2 gap-8">
+                {featuredProjects.map((project: PortfolioItem, index: number) => (
+                  <ScrollAnimationWrapper key={project.id} delay={index * 150}>
+                    <PortfolioCard project={project} />
+                  </ScrollAnimationWrapper>
+                ))}
+              </div>
+            ) : (
+              <ScrollAnimationWrapper className="text-center">
+                <p className="text-muted-foreground">No featured projects to display at the moment. Check back soon!</p>
+              </ScrollAnimationWrapper>
+            )}
+            {(allPortfolioItems.length > featuredProjects.length || allPortfolioItems.length === 0) && (
+                <ScrollAnimationWrapper className="mt-12 text-center" delay={(featuredProjects.length || 0) * 150}>
                 <Button asChild size="lg" variant="outline" className="text-lg">
                     <Link href="/portfolio">
                       <span>
@@ -191,16 +191,16 @@ export default async function Home() {
       </ScrollAnimationWrapper>
 
       {/* Core Skills Section */}
-      {highlightedSkills.length > 0 && (
-        <ScrollAnimationWrapper className="w-full py-16 md:py-24">
-          <section>
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-              <ScrollAnimationWrapper>
-                <h2 className="font-headline text-3xl md:text-4xl font-bold text-center text-primary mb-12">
-                  My Core Skills
-                </h2>
-              </ScrollAnimationWrapper>
+      <ScrollAnimationWrapper className="w-full py-16 md:py-24">
+        <section>
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <ScrollAnimationWrapper>
+              <h2 className="font-headline text-3xl md:text-4xl font-bold text-center text-primary mb-12">
+                My Core Skills
+              </h2>
+            </ScrollAnimationWrapper>
 
+            {highlightedSkills.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 md:gap-8">
                 {highlightedSkills.map((skill, index) => {
                   const IconComponent = lucideIconsMap[skill.iconName] || Package;
@@ -214,22 +214,26 @@ export default async function Home() {
                   );
                 })}
               </div>
-
-              {appData.skills.length > highlightedSkills.length && (
-                <ScrollAnimationWrapper className="mt-12 text-center" delay={highlightedSkills.length * 100}>
-                  <Button asChild size="lg" variant="outline" className="text-lg">
-                    <Link href="/skills">
-                      <span>
-                        Explore All My Skills <ArrowRight className="ml-2 h-5 w-5" />
-                      </span>
-                    </Link>
-                  </Button>
-                </ScrollAnimationWrapper>
-              )}
-            </div>
-          </section>
-        </ScrollAnimationWrapper>
-      )}
+            ) : (
+               <ScrollAnimationWrapper className="text-center">
+                <p className="text-muted-foreground mb-8">Skills section is currently being updated. Check back soon!</p>
+               </ScrollAnimationWrapper>
+            )}
+            
+            {(allSkills.length > highlightedSkills.length || allSkills.length === 0) && (
+              <ScrollAnimationWrapper className="mt-12 text-center" delay={highlightedSkills.length * 100}>
+                <Button asChild size="lg" variant="outline" className="text-lg">
+                  <Link href="/skills">
+                    <span>
+                      Explore All My Skills <ArrowRight className="ml-2 h-5 w-5" />
+                    </span>
+                  </Link>
+                </Button>
+              </ScrollAnimationWrapper>
+            )}
+          </div>
+        </section>
+      </ScrollAnimationWrapper>
     </div>
   );
 }

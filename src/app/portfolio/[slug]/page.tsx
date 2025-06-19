@@ -10,39 +10,25 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { PortfolioItem, AppData } from '@/lib/types';
-import fs from 'fs/promises';
-import path from 'path';
+import type { PortfolioItem } from '@/lib/types'; // Type import is fine
+import { getPortfolioItemsAction, getPortfolioItemBySlugAction } from '@/actions/admin/portfolioActions';
 
-const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
-
-async function getPortfolioItems(): Promise<PortfolioItem[]> {
-  try {
-    const fileContent = await fs.readFile(dataFilePath, 'utf-8');
-    if (!fileContent.trim()) {
-      return [];
-    }
-    const appData = JSON.parse(fileContent) as Partial<AppData>;
-    if (appData && Array.isArray(appData.portfolioItems)) {
-      return appData.portfolioItems.filter(
-        item => typeof item.slug === 'string' && item.slug.trim() !== ''
-      );
-    }
-    return [];
-  } catch (error) {
-    console.error("Error reading portfolio items in [slug]/page.tsx:", error);
-    return [];
-  }
-}
 
 export async function generateStaticParams() {
-  const portfolioItems = await getPortfolioItems();
-  if (!portfolioItems || portfolioItems.length === 0) {
-    return [];
+  try {
+    const portfolioItems = await getPortfolioItemsAction();
+    if (!portfolioItems || portfolioItems.length === 0) {
+      return [];
+    }
+    return portfolioItems
+      .filter(item => typeof item.slug === 'string' && item.slug.trim() !== '')
+      .map((project) => ({
+        slug: project.slug,
+      }));
+  } catch (error) {
+    console.error("Error generating static params for portfolio slugs:", error);
+    return []; // Return empty array on error to prevent build failure
   }
-  return portfolioItems.map((project) => ({
-    slug: project.slug,
-  }));
 }
 
 export default async function PortfolioDetailPage({
@@ -50,8 +36,13 @@ export default async function PortfolioDetailPage({
 }: {
   params: { slug: string };
 }) {
-  const portfolioItems = await getPortfolioItems();
-  const project = portfolioItems.find((p) => p.slug === params.slug);
+  let project: PortfolioItem | null = null;
+  try {
+    project = await getPortfolioItemBySlugAction(params.slug);
+  } catch (error) {
+    console.error(`Error fetching portfolio item for slug ${params.slug}:`, error);
+    // project remains null, will trigger notFound()
+  }
 
   if (!project) {
     notFound();
@@ -67,7 +58,7 @@ export default async function PortfolioDetailPage({
         </Link>
       </Button>
 
-      <PageHeader title={project.title} />
+      <PageHeader title={project.title || 'Project Details'} />
 
       {project.images && project.images.length > 0 && (
         <div className="mb-16">
@@ -77,8 +68,8 @@ export default async function PortfolioDetailPage({
                 <CarouselItem key={index}>
                   <div className="aspect-video relative">
                     <Image
-                      src={src || 'https://placehold.co/600x400.png'}
-                      alt={`${project.title} - Screenshot ${index + 1}`}
+                      src={src || 'https://placehold.co/1200x675.png'}
+                      alt={`${project.title || 'Project'} - Screenshot ${index + 1}`}
                       fill
                       className="object-cover"
                       data-ai-hint={project.dataAiHint || 'project detail'}
@@ -105,23 +96,25 @@ export default async function PortfolioDetailPage({
           </CardHeader>
           <CardContent>
             <p className="text-lg text-foreground/80 leading-relaxed">
-              {project.longDescription || project.description}
+              {project.longDescription || project.description || 'Detailed project description coming soon.'}
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-headline text-2xl text-primary">Technologies Used</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {(project.tags || []).map((tag) => (
-                <Badge key={tag} variant="default" className="text-sm px-3 py-1">{tag}</Badge>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        {(project.tags && project.tags.length > 0) && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-headline text-2xl text-primary">Technologies Used</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {(project.tags || []).map((tag) => (
+                  <Badge key={tag} variant="default" className="text-sm px-3 py-1">{tag}</Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {(project.liveUrl || project.repoUrl) && (
           <Card>

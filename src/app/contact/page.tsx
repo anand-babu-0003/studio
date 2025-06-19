@@ -4,50 +4,36 @@ import { ContactForm } from '@/components/contact/contact-form';
 import { ContactInfo } from '@/components/contact/contact-info';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wrapper';
-import type { AboutMeData, AppData } from '@/lib/types';
-import fs from 'fs/promises';
-import path from 'path';
+import type { AboutMeData } from '@/lib/types'; // Type import is fine
+import { getAboutMeDataAction } from '@/actions/getAboutMeDataAction';
 
-// Ensure this default is complete according to the AboutMeData type
+// Default data remains useful for fallbacks
 const defaultAboutMeData: AboutMeData = { 
-  name: 'Default Name', 
-  title: 'Default Title', 
+  name: 'User Name', 
+  title: 'User Title', 
   bio: 'Default bio.', 
   profileImage: 'https://placehold.co/400x400.png', 
   dataAiHint: 'placeholder image',
   experience: [], 
   education: [],
-  email: 'default@example.com',
+  email: 'user@example.com',
   linkedinUrl: '',
   githubUrl: '',
   twitterUrl: '',
 };
 
-async function getFreshAboutMeData(): Promise<AboutMeData> {
-  const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
+async function getPageData(): Promise<AboutMeData> {
   try {
-    const fileContent = await fs.readFile(dataFilePath, 'utf-8');
-    if (!fileContent.trim()) {
-        console.warn("Data file is empty for Contact page, returning default structure.");
-        return defaultAboutMeData;
-    }
-    const appData = JSON.parse(fileContent) as Partial<AppData>;
-    // Robust merge: ensure appData.aboutMe is an object before spreading
-    const validAboutMeFromData = (typeof appData.aboutMe === 'object' && appData.aboutMe !== null)
-                                 ? appData.aboutMe
-                                 : {};
-    return {
-      ...defaultAboutMeData, 
-      ...validAboutMeFromData, 
-    };
+    const data = await getAboutMeDataAction();
+    return data || defaultAboutMeData; // Use default if action returns null/undefined
   } catch (error) {
-    console.error("Error reading or parsing data.json for Contact page, returning default structure:", error);
-    return defaultAboutMeData;
+    console.error("Error fetching About Me data for Contact page:", error);
+    return defaultAboutMeData; // Fallback to default on error
   }
 }
 
 export default async function ContactPage() {
-  const aboutMeData = await getFreshAboutMeData();
+  const aboutMeData = await getPageData();
 
   return (
     <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">

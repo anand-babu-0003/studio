@@ -17,9 +17,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
-import { portfolioItems as initialPortfolioItemsData } from '@/lib/data';
+// Removed: import { portfolioItems as initialPortfolioItemsData } from '@/lib/data'; // No longer using this for initial data
 import type { PortfolioItem } from '@/lib/types';
 import {
+  getPortfolioItemsAction, // Added
   savePortfolioItemAction,
   deletePortfolioItemAction,
   type PortfolioFormState,
@@ -62,7 +63,8 @@ function SubmitButton() {
 }
 
 export default function AdminPortfolioPage() {
-  const [projects, setProjects] = useState<PortfolioItem[]>(initialPortfolioItemsData);
+  const [projects, setProjects] = useState<PortfolioItem[]>([]);
+  const [isLoadingProjects, setIsLoadingProjects] = useState(true); // Added loading state
   const [currentProject, setCurrentProject] = useState<PortfolioItem | null>(null);
   const [showForm, setShowForm] = useState(false);
   const { toast } = useToast();
@@ -80,6 +82,28 @@ export default function AdminPortfolioPage() {
     return `add-new-project-form-${new Date().getTime()}`;
   }, [showForm, currentProject]);
   
+  // Fetch initial projects from Firestore
+  useEffect(() => {
+    async function fetchProjects() {
+      setIsLoadingProjects(true);
+      try {
+        const fetchedProjects = await getPortfolioItemsAction();
+        setProjects(fetchedProjects || []);
+      } catch (error) {
+        console.error("Failed to fetch portfolio items for admin:", error);
+        toast({
+          title: "Error Loading Projects",
+          description: "Could not load projects from the database.",
+          variant: "destructive",
+        });
+        setProjects([]);
+      } finally {
+        setIsLoadingProjects(false);
+      }
+    }
+    fetchProjects();
+  }, [toast]);
+
 
   useEffect(() => {
     if (formActionState.status === 'success' && formActionState.savedProject) {
@@ -94,9 +118,9 @@ export default function AdminPortfolioPage() {
           updatedProjects[existingIndex] = savedProject;
           newProjectsArray = updatedProjects;
         } else {
-          newProjectsArray = [...prevProjects, savedProject];
+          newProjectsArray = [savedProject, ...prevProjects]; // Add new projects to the top
         }
-        return newProjectsArray;
+        return newProjectsArray.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)); // Sort by creation time
       });
       
       setShowForm(false);
@@ -104,8 +128,6 @@ export default function AdminPortfolioPage() {
       form.reset(defaultFormValues); 
 
     } else if (formActionState.status === 'error') {
-      // console.error("AdminPortfolioPage: Error from server action (JSON.stringify):", JSON.stringify(formActionState));
-      
       const errorMessage = typeof formActionState.message === 'string' && formActionState.message.trim() !== ''
         ? formActionState.message
         : "An unspecified error occurred. Please check server logs for more details.";
@@ -113,9 +135,9 @@ export default function AdminPortfolioPage() {
       toast({ title: "Error Saving", description: errorMessage, variant: "destructive" });
       
       if (formActionState.formDataOnError) {
-        form.reset(formActionState.formDataOnError); // Repopulate form with attempted data
+        form.reset(formActionState.formDataOnError); 
       } else {
-        form.reset(form.getValues()); // Keep current values if no specific error data from server
+        form.reset(form.getValues()); 
       }
 
       if (formActionState.errors) {
@@ -143,7 +165,7 @@ export default function AdminPortfolioPage() {
       ...project,
       image1: project.images[0] || '',
       image2: project.images[1] || '',
-      tagsString: project.tags.join(', '),
+      tagsString: (project.tags || []).join(', '),
       readmeContent: project.readmeContent || '',
     });
     setShowForm(true);
@@ -159,7 +181,6 @@ export default function AdminPortfolioPage() {
       });
     } else {
       toast({ title: "Error Deleting", description: result.message, variant: "destructive" });
-      // console.error("AdminPortfolioPage: handleDelete - error:", result.message);
     }
   };
 
@@ -279,42 +300,45 @@ export default function AdminPortfolioPage() {
         </Card>
       )}
       {!showForm && (
-        <div className="space-y-4">
-          {projects.length === 0 && <p className="text-muted-foreground">No projects yet. Click "Add New Project" to start.</p>}
-          {projects.map(project => (
-            <Card key={project.id} className="flex items-center justify-between p-4">
-              <span className="font-medium">{project.title}</span>
-              <div className="space-x-2">
-                <Button variant="outline" size="sm" onClick={() => handleEdit(project)}>
-                  <Edit3 className="mr-1 h-4 w-4" /> Edit
-                </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive" size="sm">
-                      <Trash2 className="mr-1 h-4 w-4" /> Delete
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete the project "{project.title}".
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => handleDelete(project.id)}>
-                        Yes, delete project
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </Card>
-          ))}
-        </div>
+        isLoadingProjects ? (
+          <div className="text-center p-8"><Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" /> <p className="mt-2 text-muted-foreground">Loading projects...</p></div>
+        ) : (
+          <div className="space-y-4">
+            {projects.length === 0 && <p className="text-muted-foreground text-center py-4">No projects yet. Click "Add New Project" to start.</p>}
+            {projects.map(project => (
+              <Card key={project.id} className="flex items-center justify-between p-4">
+                <span className="font-medium">{project.title}</span>
+                <div className="space-x-2">
+                  <Button variant="outline" size="sm" onClick={() => handleEdit(project)}>
+                    <Edit3 className="mr-1 h-4 w-4" /> Edit
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" size="sm">
+                        <Trash2 className="mr-1 h-4 w-4" /> Delete
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently delete the project "{project.title}".
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDelete(project.id)} className="bg-destructive hover:bg-destructive/80">
+                          Yes, delete project
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )
       )}
     </div>
   );
 }
-
