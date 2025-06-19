@@ -3,10 +3,10 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   typescript: {
-    ignoreBuildErrors: false, // Changed to false for production
+    ignoreBuildErrors: false, // Ensures TypeScript errors fail the build
   },
   eslint: {
-    ignoreDuringBuilds: false, // Keep ESLint checks active unless they also cause issues
+    ignoreDuringBuilds: false, // Ensures ESLint errors fail the build
   },
   images: {
     remotePatterns: [
@@ -34,7 +34,7 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
-      { // Added for Dribbble GIF
+      { 
         protocol: 'https',
         hostname: 'cdn.dribbble.com',
         port: '',
