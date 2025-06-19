@@ -16,7 +16,7 @@
   text-align: center;
   padding: 20px;
   box-sizing: border-box;
-  z-index: 9999; /* Ensure it's on top of everything */
+  z-index: 9999; /* Ensure it's on top */
   overflow: auto;
 }
 
@@ -24,44 +24,63 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  max-width: 600px; /* Max width for content */
+  max-width: 600px; 
 }
 
-.top-404-nf {
-  font-size: 6rem; /* Large 404 text */
+/* Container for the GIF background and the "404" text */
+.gif-background-container-nf {
+  background-image: url(https://cdn.dribbble.com/users/285475/screenshots/2083086/dribbble_1.gif);
+  height: 400px; /* As per original CSS */
+  width: 100%; 
+  max-width: 500px; /* Or adjust as needed for GIF aspect ratio */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain; /* Ensures the whole GIF is visible */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px; /* Space before the caveman image */
+  position: relative; /* For potential absolute positioning of text if needed, though flex handles it well */
+}
+
+.main-404-text-nf {
+  font-size: 80px; /* From original .four_zero_four_bg h1 */
   font-weight: bold;
-  color: #333; /* Dark gray, not quite black */
-  margin-bottom: 10px;
+  color: #000000; /* Black text on top of GIF, can be adjusted */
+  text-align: center; 
   line-height: 1;
+  /* Consider adding a text-shadow if readability over the GIF is an issue: */
+  /* text-shadow: 0 0 5px rgba(255, 255, 255, 0.7), 0 0 10px rgba(255, 255, 255, 0.5); */
 }
 
 .caveman-image-container-nf {
-  margin-top: 10px;
+  /* margin-top: 0; Replaced by margin-bottom on gif-background-container-nf */
   margin-bottom: 30px;
 }
 
 .caveman-image-nf {
   max-width: 100%;
   height: auto;
+  display: block; /* Good practice for images */
 }
 
 .lost-heading-nf {
-  font-size: 2rem; /* "Look like you're lost" */
+  font-size: 2rem; 
   font-weight: bold;
   color: #333;
   margin-bottom: 8px;
 }
 
 .lost-subtext-nf {
-  font-size: 1rem; /* "the page you are looking for not avaible!" */
-  color: #777; /* Lighter gray */
+  font-size: 1rem; 
+  color: #777; 
   margin-bottom: 30px;
 }
 
 .go-home-btn-nf {
   color: #fff !important;
   padding: 10px 25px;
-  background: #39ac31; /* Green background */
+  background: #39ac31;
   margin: 20px 0;
   display: inline-block;
   text-decoration: none;
@@ -72,24 +91,24 @@
 }
 
 .go-home-btn-nf:hover {
-  background: #2b8a24; /* Darker green on hover */
+  background: #2b8a24; 
   text-decoration: none;
 }
 
-/* Remove old styles that are no longer needed due to simplified structure */
+/* Deprecated/unused classes from previous attempts or very specific original HTML */
 .page_404, 
 .container_nf, 
 .row_nf, 
 .col_sm_12_nf, 
 .col_sm_10_nf, 
-.col_sm_offset_1_nf, 
-.four_zero_four_bg, 
-.four_zero_four_bg h1, /* Conflicts with .top-404-nf */
+.col_sm_offset_1_nf,
+.four_zero_four_bg,
+.four_zero_four_bg h1,
 .four_zero_four_bg h3,
-.link_404, /* Replaced by .go-home-btn-nf */
+.link_404, 
 .contant_box_404,
-.contant_box_404 .h2_nf, /* Replaced by .lost-heading-nf */
-.contant_box_404 .internal_404_text_nf { /* No longer needed for this layout */
-  /* These styles are intentionally left empty or can be removed */
-  /* as they are superseded by the new .content-nf and its children's styles */
+.contant_box_404 .h2_nf,
+.contant_box_404 .internal_404_text_nf,
+.top-404-on-gif-nf {
+  /* Styles for these are effectively handled by the new structure or are no longer relevant */
 }

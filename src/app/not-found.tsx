@@ -1,22 +1,26 @@
 
-// src/app/not-found.tsx
 import Link from 'next/link';
 import Image from 'next/image';
-import '../styles/not-found.css'; // Import the custom CSS
+import '../styles/not-found.css'; 
 
 export default function NotFound() {
   return (
     <div className="fullscreen-nf-wrapper">
       <div className="content-nf">
-        <h1 className="top-404-nf">404</h1>
+        {/* Container for the GIF and the "404" text on top of it */}
+        <div className="gif-background-container-nf">
+          <h1 className="main-404-text-nf">404</h1>
+        </div>
+
+        {/* Content below the GIF section */}
         <div className="caveman-image-container-nf">
           <Image
-            src="https://placehold.co/350x250.png" 
+            src="https://placehold.co/300x200.png" 
             alt="Caveman illustration indicating a lost page"
-            width={350} 
-            height={250}
+            width={300} 
+            height={200}
             className="caveman-image-nf"
-            data-ai-hint="caveman confused lost"
+            data-ai-hint="caveman confused"
           />
         </div>
         <h3 className="lost-heading-nf">Look like you&apos;re lost</h3>
