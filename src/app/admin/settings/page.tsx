@@ -223,7 +223,7 @@ export default function AdminSettingsPage() {
                   <li>Place both files in your project's `public/` directory, replacing any existing ones.</li>
                   <li>Next.js automatically serves these. Clear browser cache and restart your development server to see changes.</li>
                 </ol>
-                Direct favicon upload via this admin panel is not currently supported.
+                <p className="mt-2 text-xs">direct uploade is not available now.</p>
               </AlertDescription>
             </Alert>
           </CardContent>
