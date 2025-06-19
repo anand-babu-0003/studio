@@ -13,33 +13,43 @@ const firebaseConfig: FirebaseOptions = {
 
 // Initialize Firebase
 let app;
-if (!getApps().length) {
-  if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
-    console.warn(
-      "Firebase config is missing or incomplete. " +
-      "Ensure NEXT_PUBLIC_FIREBASE_API_KEY and NEXT_PUBLIC_FIREBASE_PROJECT_ID (and others) are set in your .env file. " +
-      "Firebase will not be initialized."
-    );
-    // app will remain undefined, and firestore will be null
-  } else {
+
+if (!firebaseConfig.apiKey ||
+    !firebaseConfig.projectId ||
+    !firebaseConfig.authDomain ||
+    !firebaseConfig.storageBucket ||
+    !firebaseConfig.messagingSenderId ||
+    !firebaseConfig.appId) {
+      console.warn(
+        "Firebase config is missing or incomplete. " +
+        "Please ensure all NEXT_PUBLIC_FIREBASE_ prefixed environment variables are set in your .env file or hosting provider. " +
+        "Firebase will NOT be initialized. Some features may not work."
+      );
+      // app will remain undefined, and firestore will be null
+} else {
+  if (!getApps().length) {
     try {
       app = initializeApp(firebaseConfig);
     } catch (error) {
       console.error("Failed to initialize Firebase app:", error);
       // app will remain undefined or be whatever initializeApp returns on error
     }
+  } else {
+    app = getApp(); // Get the default app if already initialized
   }
-} else {
-  app = getApp(); // Get the default app if already initialized
 }
+
 
 // Get Firestore instance
 // Ensure app is defined and initialized before calling getFirestore
 const firestore = app ? getFirestore(app) : null;
 
-if (!firestore) {
-  // This warning will appear if app initialization failed or if app is undefined
-  console.warn("Firestore could not be initialized. Ensure Firebase app was initialized successfully and all environment variables are correctly set.");
+if (app && !firestore) {
+  // This warning will appear if app initialization succeeded but getFirestore failed for some reason
+  console.warn("Firebase app initialized, but Firestore could not be obtained. Please check Firestore service status and configuration.");
+} else if (!app && firebaseConfig.apiKey) { // Only show this if config was present but app init failed
+  console.warn("Firestore could not be initialized because the Firebase app was not initialized successfully, despite config being present.");
 }
+
 
 export { firestore, firebaseConfig, app as firebaseApp };

@@ -1,3 +1,4 @@
+
 "use client";
 
 import Image from 'next/image';
@@ -9,27 +10,13 @@ import { ArrowRight, Eye, Code2, Package, Mail, Loader2 } from 'lucide-react';
 import type { PortfolioItem, AboutMeData, Skill } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wrapper';
-import { lucideIconsMap, skillCategories as SKILL_CATEGORIES_STATIC } from '@/lib/data';
+import { lucideIconsMap, defaultAboutMeDataForClient, defaultPortfolioItemsDataForClient, defaultSkillsDataForClient } from '@/lib/data';
 import StarryBackground from '@/components/layout/starry-background';
 import { PortfolioCard } from '@/components/portfolio/portfolio-card';
 
 import { getAboutMeDataAction } from '@/actions/getAboutMeDataAction';
 import { getPortfolioItemsAction } from '@/actions/admin/portfolioActions';
 import { getSkillsAction } from '@/actions/admin/skillsActions';
-
-const defaultAboutMeData: AboutMeData = {
-    name: 'User Name',
-    title: 'Welcome to my universe',
-    bio: 'Passionate about crafting digital experiences. Details loading...',
-    profileImage: 'https://placehold.co/320x320.png',
-    dataAiHint: 'profile picture',
-    experience: [],
-    education: [],
-    email: 'user@example.com',
-    linkedinUrl: '',
-    githubUrl: '',
-    twitterUrl: '',
-};
 
 export default function Home() {
   const [aboutMeData, setAboutMeData] = useState<AboutMeData | null>(null);
@@ -46,14 +33,14 @@ export default function Home() {
           getPortfolioItemsAction(),
           getSkillsAction()
         ]);
-        setAboutMeData(fetchedAboutMe || defaultAboutMeData);
-        setAllPortfolioItems(fetchedPortfolioItems || []);
-        setAllSkills(fetchedSkills || []);
+        setAboutMeData(fetchedAboutMe || defaultAboutMeDataForClient);
+        setAllPortfolioItems(fetchedPortfolioItems || []); // Use empty array if null/undefined
+        setAllSkills(fetchedSkills || []); // Use empty array if null/undefined
       } catch (error) {
         console.error("Error fetching data for Home page:", error);
-        setAboutMeData(defaultAboutMeData); // Fallback to default
-        setAllPortfolioItems([]);
-        setAllSkills([]);
+        setAboutMeData(defaultAboutMeDataForClient); 
+        setAllPortfolioItems(defaultPortfolioItemsDataForClient.slice(0,2)); // Fallback with few items
+        setAllSkills(defaultSkillsDataForClient.slice(0,6)); // Fallback with few items
       } finally {
         setIsLoading(false);
       }
@@ -61,9 +48,10 @@ export default function Home() {
     loadPageData();
   }, []);
   
-  const displayedAboutMe = aboutMeData || defaultAboutMeData;
-  const featuredProjects = allPortfolioItems.slice(0, 2);
-  const highlightedSkills = allSkills.slice(0, 6);
+  const displayedAboutMe = aboutMeData || defaultAboutMeDataForClient;
+  // Ensure featuredProjects is always an array, even if allPortfolioItems is empty
+  const featuredProjects = Array.isArray(allPortfolioItems) ? allPortfolioItems.slice(0, 2) : [];
+  const highlightedSkills = Array.isArray(allSkills) ? allSkills.slice(0, 6) : [];
   const firstParagraphBio = (displayedAboutMe.bio || '').split('\n\n')[0] || 'A brief introduction about me and my passion for technology.';
 
 
@@ -128,12 +116,12 @@ export default function Home() {
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div className="md:order-2 flex justify-center">
                 <Image
-                  src={displayedAboutMe.profileImage || defaultAboutMeData.profileImage}
+                  src={displayedAboutMe.profileImage || defaultAboutMeDataForClient.profileImage}
                   alt={`Profile picture of ${(displayedAboutMe.name || 'User').split(' ')[0]}`}
                   width={320}
                   height={320}
                   className="rounded-full shadow-2xl object-cover aspect-square"
-                  data-ai-hint={displayedAboutMe.dataAiHint || defaultAboutMeData.dataAiHint}
+                  data-ai-hint={displayedAboutMe.dataAiHint || defaultAboutMeDataForClient.dataAiHint}
                   priority
                 />
               </div>
@@ -165,7 +153,7 @@ export default function Home() {
             {featuredProjects.length > 0 ? (
               <div className="grid md:grid-cols-1 lg:grid-cols-2 gap-8">
                 {featuredProjects.map((project: PortfolioItem, index: number) => (
-                  <ScrollAnimationWrapper key={project.id} delay={index * 150}>
+                  <ScrollAnimationWrapper key={project.id || `featured-${index}`} delay={index * 150}>
                     <PortfolioCard project={project} />
                   </ScrollAnimationWrapper>
                 ))}
@@ -205,7 +193,7 @@ export default function Home() {
                 {highlightedSkills.map((skill, index) => {
                   const IconComponent = lucideIconsMap[skill.iconName] || Package;
                   return (
-                    <ScrollAnimationWrapper key={skill.id} delay={index * 100} threshold={0.05}>
+                    <ScrollAnimationWrapper key={skill.id || `skill-${index}`} delay={index * 100} threshold={0.05}>
                       <div className="flex flex-col items-center text-center p-4 md:p-6 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-[1.03] bg-card h-full">
                         <IconComponent className="h-10 w-10 md:h-12 md:w-12 text-primary mb-3" />
                         <h3 className="text-sm md:text-base font-semibold text-card-foreground">{skill.name}</h3>

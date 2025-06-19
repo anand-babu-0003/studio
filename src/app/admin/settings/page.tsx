@@ -1,34 +1,34 @@
 
 "use client";
 
-import { useEffect } from 'react';
-import { useActionState, useFormState as useActionStateReactDom } from 'react'; // useActionState is preferred from React for newer versions
+import { useEffect, useState } from 'react'; // Added useState
+import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { useForm, type Path, type SubmitHandler } from 'react-hook-form';
+import { useForm, type Path } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { z } from 'zod';
 
 import { PageHeader } from '@/components/shared/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { Info, Search, Save, Loader2 } from 'lucide-react'; // Changed UploadCloud to Info
+import { Info, Save, Loader2 } from 'lucide-react';
 
 import type { SiteSettings } from '@/lib/types';
 import { siteSettingsAdminSchema, type SiteSettingsAdminFormData } from '@/lib/adminSchemas';
 import { getSiteSettingsAction, updateSiteSettingsAction, type UpdateSiteSettingsFormState } from '@/actions/admin/settingsActions';
+import { defaultSiteSettingsForClient } from '@/lib/data'; // For initial form values
 
 const initialFormState: UpdateSiteSettingsFormState = { message: '', status: 'idle', errors: {}, data: undefined };
 
 const defaultFormValues: SiteSettingsAdminFormData = {
-  siteName: '',
-  defaultMetaDescription: '',
-  defaultMetaKeywords: '',
-  siteOgImageUrl: '',
+  siteName: defaultSiteSettingsForClient.siteName,
+  defaultMetaDescription: defaultSiteSettingsForClient.defaultMetaDescription,
+  defaultMetaKeywords: defaultSiteSettingsForClient.defaultMetaKeywords || '',
+  siteOgImageUrl: defaultSiteSettingsForClient.siteOgImageUrl || '',
 };
 
 function SubmitButton() {
@@ -53,6 +53,7 @@ function SubmitButton() {
 export default function AdminSettingsPage() {
   const { toast } = useToast();
   const [settingsState, settingsFormAction] = useActionState(updateSiteSettingsAction, initialFormState);
+  const [isLoadingInitialData, setIsLoadingInitialData] = useState(true);
 
   const form = useForm<SiteSettingsAdminFormData>({
     resolver: zodResolver(siteSettingsAdminSchema),
@@ -61,12 +62,13 @@ export default function AdminSettingsPage() {
 
   useEffect(() => {
     async function fetchInitialSettings() {
+      setIsLoadingInitialData(true);
       try {
         const currentSettings = await getSiteSettingsAction();
         if (currentSettings) {
           form.reset({
-            siteName: currentSettings.siteName || '',
-            defaultMetaDescription: currentSettings.defaultMetaDescription || '',
+            siteName: currentSettings.siteName || defaultSiteSettingsForClient.siteName,
+            defaultMetaDescription: currentSettings.defaultMetaDescription || defaultSiteSettingsForClient.defaultMetaDescription,
             defaultMetaKeywords: currentSettings.defaultMetaKeywords || '',
             siteOgImageUrl: currentSettings.siteOgImageUrl || '',
           });
@@ -78,6 +80,8 @@ export default function AdminSettingsPage() {
           description: "Could not load current site settings.",
           variant: "destructive",
         });
+      } finally {
+        setIsLoadingInitialData(false);
       }
     }
     fetchInitialSettings();
@@ -87,7 +91,7 @@ export default function AdminSettingsPage() {
     if (settingsState.status === 'success' && settingsState.message) {
       toast({ title: "Success!", description: settingsState.message });
       if (settingsState.data) {
-        form.reset(settingsState.data);
+        form.reset(settingsState.data); // Reset with successfully saved data
       }
     } else if (settingsState.status === 'error') {
       const errorMessage = (typeof settingsState.message === 'string' && settingsState.message.trim() !== '')
@@ -95,7 +99,7 @@ export default function AdminSettingsPage() {
       toast({ title: "Error Saving Settings", description: errorMessage, variant: "destructive" });
       
       const dataToResetWith = settingsState.data ? settingsState.data : form.getValues();
-      form.reset(dataToResetWith);
+      form.reset(dataToResetWith); // Reset with data from state or current form values
       
       if (settingsState.errors && typeof settingsState.errors === 'object') {
         Object.entries(settingsState.errors).forEach(([fieldName, fieldErrorMessages]) => {
@@ -107,6 +111,9 @@ export default function AdminSettingsPage() {
     }
   }, [settingsState, toast, form]);
   
+  if (isLoadingInitialData) {
+    return <div className="flex justify-center items-center h-64"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+  }
 
   return (
     <div className="space-y-8">
@@ -116,7 +123,7 @@ export default function AdminSettingsPage() {
         className="py-0 text-left"
       />
 
-      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-1"> {/* Changed to 1 column for better layout */}
+      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-1">
         <Form {...form}>
           <form action={settingsFormAction} className="space-y-8">
             <Card>
@@ -133,7 +140,7 @@ export default function AdminSettingsPage() {
                     <FormControl><Input {...field} placeholder="Your Awesome Portfolio" /></FormControl>
                     <FormMessage />
                     <p className="text-xs text-muted-foreground">
-                      Used in browser tab titles (e.g., Site Name | Page Title) and default Open Graph title.
+                      Used in browser tab titles and default Open Graph title.
                     </p>
                   </FormItem>
                 )} />
@@ -153,7 +160,7 @@ export default function AdminSettingsPage() {
                     <FormControl><Input {...field} placeholder="e.g., web developer, portfolio, react" /></FormControl>
                     <FormMessage />
                     <p className="text-xs text-muted-foreground">
-                        Comma-separated keywords. Modern SEO largely ignores this, but can be included.
+                        Comma-separated keywords. Modern SEO largely ignores this.
                     </p>
                   </FormItem>
                 )} />
@@ -163,7 +170,7 @@ export default function AdminSettingsPage() {
                     <FormControl><Input {...field} placeholder="https://example.com/default-og-image.png" /></FormControl>
                     <FormMessage />
                     <p className="text-xs text-muted-foreground">
-                        URL for a default image (e.g., 1200x630px) used when sharing your site on social media.
+                        URL for a default image (e.g., 1200x630px) used when sharing on social media.
                     </p>
                   </FormItem>
                 )} />
@@ -184,14 +191,15 @@ export default function AdminSettingsPage() {
           </CardHeader>
           <CardContent>
             <Alert variant="default" className="mt-0">
-              <Info className="h-4 w-4" /> {/* Changed icon here */}
+              <Info className="h-4 w-4" />
               <AlertTitle>Favicon Management</AlertTitle>
               <AlertDescription>
                 To change your site's favicon:
                 <ol className="list-decimal list-inside mt-1 text-xs space-y-1">
-                  <li>Create your desired favicon image (usually `favicon.ico`, but other formats like `.png` or `.svg` are also supported).</li>
-                  <li>Replace the existing `public/favicon.ico` file (or other relevant icon files in `public/`) with your new icon.</li>
-                  <li>Next.js automatically serves files from the `public` directory. You may need to clear your browser cache to see the changes.</li>
+                  <li>Create `favicon.ico` (typically 32x32 or 16x16).</li>
+                  <li>Create `apple-touch-icon.png` (typically 180x180).</li>
+                  <li>Place both files in your project's `public/` directory, replacing any existing ones.</li>
+                  <li>Next.js automatically serves these. Clear browser cache to see changes.</li>
                 </ol>
                 Direct favicon upload via this admin panel is not currently supported.
               </AlertDescription>

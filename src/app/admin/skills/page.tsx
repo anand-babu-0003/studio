@@ -21,11 +21,12 @@ import {
   skillCategories, 
   availableIconNames, 
   lucideIconsMap, 
-  commonSkillNames 
-} from '@/lib/data'; // Static data from lib/data.ts
+  commonSkillNames,
+  defaultSkillsDataForClient
+} from '@/lib/data';
 import type { Skill } from '@/lib/types';
 import { 
-  getSkillsAction, // Added
+  getSkillsAction, 
   saveSkillAction, 
   deleteSkillAction, 
   type SkillFormState 
@@ -38,7 +39,7 @@ const defaultFormValues: SkillAdminFormData = {
   name: '',
   category: skillCategories[0], 
   proficiency: undefined,
-  iconName: availableIconNames.length > 0 ? availableIconNames[0] : 'Code', // Fallback if availableIconNames is empty
+  iconName: availableIconNames.length > 0 ? availableIconNames[0] : 'Package', 
 };
 
 function SubmitButton() {
@@ -62,7 +63,7 @@ function SubmitButton() {
 
 export default function AdminSkillsPage() {
   const [skills, setSkills] = useState<Skill[]>([]);
-  const [isLoadingSkills, setIsLoadingSkills] = useState(true); // Added loading state
+  const [isLoadingSkills, setIsLoadingSkills] = useState(true);
   const [currentSkill, setCurrentSkill] = useState<Skill | null>(null);
   const [showForm, setShowForm] = useState(false);
   const { toast } = useToast();
@@ -80,7 +81,6 @@ export default function AdminSkillsPage() {
     return `add-new-skill-form-${new Date().getTime()}`;
   }, [showForm, currentSkill]);
 
-  // Fetch initial skills from Firestore
   useEffect(() => {
     async function fetchSkills() {
       setIsLoadingSkills(true);
@@ -94,7 +94,7 @@ export default function AdminSkillsPage() {
           description: "Could not load skills from the database.",
           variant: "destructive",
         });
-        setSkills([]);
+        setSkills([]); // Fallback to empty array
       } finally {
         setIsLoadingSkills(false);
       }
@@ -110,16 +110,12 @@ export default function AdminSkillsPage() {
 
       setSkills(prevSkills => {
         const existingIndex = prevSkills.findIndex(s => s.id === savedSkill.id);
-        let newSkillsArray;
         if (existingIndex > -1) {
           const updatedSkills = [...prevSkills];
           updatedSkills[existingIndex] = savedSkill;
-          newSkillsArray = updatedSkills;
-        } else {
-          newSkillsArray = [savedSkill, ...prevSkills]; // Add new skills to the top
+          return updatedSkills;
         }
-        // You might want to re-sort or re-group if skills are displayed by category
-        return newSkillsArray;
+        return [savedSkill, ...prevSkills];
       });
       
       setShowForm(false);
@@ -129,7 +125,7 @@ export default function AdminSkillsPage() {
     } else if (formActionState.status === 'error') {
       const errorMessage = typeof formActionState.message === 'string' && formActionState.message.trim() !== ''
         ? formActionState.message
-        : "An unspecified error occurred. Please check server logs for more details.";
+        : "An unspecified error occurred.";
       toast({ title: "Error Saving", description: errorMessage, variant: "destructive" });
       
       if (formActionState.formDataOnError) {
@@ -161,7 +157,7 @@ export default function AdminSkillsPage() {
     setCurrentSkill(skill);
     form.reset({ 
       ...skill,
-      proficiency: skill.proficiency ?? undefined, 
+      proficiency: skill.proficiency ?? undefined, // Ensure undefined if null/missing
     });
     setShowForm(true);
   };
@@ -237,7 +233,7 @@ export default function AdminSkillsPage() {
                 <FormField control={form.control} name="iconName" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Icon</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value || 'Package'}>
                       <FormControl>
                         <SelectTrigger><SelectValue placeholder="Select an icon" /></SelectTrigger>
                       </FormControl>
@@ -259,10 +255,10 @@ export default function AdminSkillsPage() {
                         <Input
                           type="number"
                           name={name}
-                          value={value === null || value === undefined ? '' : String(value)} // Ensure value is string or empty string
+                          value={value === null || value === undefined ? '' : String(value)} 
                           onChange={e => {
                             const val = e.target.value;
-                            onChange(val === '' ? null : Number(val)); // Pass null for empty, number otherwise
+                            onChange(val === '' ? undefined : Number(val)); // Pass undefined for empty
                           }}
                           onBlur={onBlur}
                           ref={ref}
@@ -307,7 +303,7 @@ export default function AdminSkillsPage() {
                 </h2>
                 <div className="space-y-4">
                   {categorySkills.map(skill => {
-                    const IconComponent = lucideIconsMap[skill.iconName] || PlusCircle; // Fallback icon
+                    const IconComponent = lucideIconsMap[skill.iconName] || PlusCircle;
                     return (
                       <Card key={skill.id} className="flex items-center justify-between p-4 hover:shadow-md transition-shadow">
                         <div className="flex items-center gap-3">

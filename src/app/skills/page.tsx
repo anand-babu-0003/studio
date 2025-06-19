@@ -1,28 +1,44 @@
 
+"use client"; // Needs to be client for useState and useEffect for loading state
+
 import { PageHeader } from '@/components/shared/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { lucideIconsMap, skillCategories as SKILL_CATEGORIES_STATIC } from '@/lib/data'; // Use static categories from data
-import type { Skill } from '@/lib/types'; // Type import is fine
+import { lucideIconsMap, skillCategories as SKILL_CATEGORIES_STATIC, defaultSkillsDataForClient } from '@/lib/data';
+import type { Skill } from '@/lib/types';
 import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wrapper';
-import { Package } from 'lucide-react'; 
+import { Package, Loader2 } from 'lucide-react'; 
 import { Badge } from '@/components/ui/badge';
 import { getSkillsAction } from '@/actions/admin/skillsActions';
+import { useEffect, useState } from 'react';
 
-const defaultSkillsData: Skill[] = [];
+export default function SkillsPage() { 
+  const [skillsData, setSkillsData] = useState<Skill[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-async function getPageData(): Promise<Skill[]> {
-  try {
-    const skills = await getSkillsAction();
-    return skills || defaultSkillsData; // Use default if action returns null/undefined
-  } catch (error) {
-    console.error("Error fetching skills data for page:", error);
-    return defaultSkillsData; // Fallback to default on error
+  useEffect(() => {
+    async function fetchPageData() {
+      setIsLoading(true);
+      try {
+        const skills = await getSkillsAction();
+        setSkillsData(skills || []); // Use empty array if null/undefined
+      } catch (error) {
+        console.error("Error fetching skills data for page:", error);
+        setSkillsData(defaultSkillsDataForClient); // Fallback to default on error
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchPageData();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8 flex justify-center items-center min-h-[calc(100vh-200px)]">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
   }
-}
-
-export default async function SkillsPage() { 
-  const skillsData = await getPageData();
 
   return (
     <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
@@ -37,9 +53,8 @@ export default async function SkillsPage() {
         {SKILL_CATEGORIES_STATIC.map((category, categoryIndex) => {
           const categorySkills = (skillsData || []).filter((skill) => skill.category === category);
           
-          // Only render the category card if there are skills in it
-          if (categorySkills.length === 0 && skillsData.length > 0) { // If all skills loaded but none for this category
-             return null; // Skip rendering this category card
+          if (skillsData.length > 0 && categorySkills.length === 0) {
+             return null; 
           }
 
           return (
@@ -56,7 +71,7 @@ export default async function SkillsPage() {
                       {categorySkills.map((skill: Skill, skillIndex: number) => {
                         const IconComponent = lucideIconsMap[skill.iconName] || Package;
                         return (
-                          <ScrollAnimationWrapper key={skill.id} delay={skillIndex * 50} threshold={0.05}>
+                          <ScrollAnimationWrapper key={skill.id || `skill-${category}-${skillIndex}`} delay={skillIndex * 50} threshold={0.05}>
                             <Card className="shadow-lg hover:shadow-xl transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-[1.03] h-full flex flex-col rounded-lg overflow-hidden border border-border/70">
                               <CardContent className="p-6 flex flex-col items-center text-center flex-grow">
                                 <IconComponent className="h-12 w-12 text-primary mb-4" aria-hidden="true" />
@@ -97,10 +112,10 @@ export default async function SkillsPage() {
             </ScrollAnimationWrapper>
           );
         })}
-        {skillsData.length === 0 && (
+        {skillsData.length === 0 && !isLoading && ( // Show only if not loading and no skills
             <ScrollAnimationWrapper className="text-center">
                 <p className="text-muted-foreground text-lg">
-                Skills are being updated. Please check back soon to see my expertise!
+                Skills are being updated or none are currently listed. Please check back soon!
                 </p>
             </ScrollAnimationWrapper>
         )}

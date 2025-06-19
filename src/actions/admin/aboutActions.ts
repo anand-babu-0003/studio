@@ -1,7 +1,9 @@
 
 "use server";
 
-import type { AboutMeData, Experience, Education, AppData } from '@/lib/types';
+import { firestore } from '@/lib/firebaseConfig';
+import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
+import type { AboutMeData, Experience as LibExperienceType, Education as LibEducationType } from '@/lib/types';
 import { 
   aboutMeSchema, 
   profileBioSchema, type ProfileBioData,
@@ -11,65 +13,43 @@ import {
   type Education as ZodEducationType 
 } from '@/lib/adminSchemas';
 import type { z } from 'zod';
-import fs from 'fs/promises';
-import path from 'path';
 import { revalidatePath } from 'next/cache';
+import { defaultAboutMeDataForClient } from '@/lib/data'; // For fallbacks
 
-const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
+const aboutMeDocRef = () => {
+  if (!firestore) throw new Error("Firestore not initialized");
+  return doc(firestore, 'app_config', 'aboutMeDoc');
+}
 
-// Standardized default AppData structure
-const defaultAppData: AppData = {
-  portfolioItems: [],
-  skills: [],
-  aboutMe: {
-    name: 'Default Name',
-    title: 'Default Title',
-    bio: 'Default bio.',
-    profileImage: 'https://placehold.co/400x400.png',
-    dataAiHint: 'placeholder image',
-    experience: [],
-    education: [],
-    email: 'default@example.com',
-    linkedinUrl: '',
-    githubUrl: '',
-    twitterUrl: '',
-  },
-  siteSettings: { // Added to ensure completeness
-    siteName: 'My Portfolio',
-    defaultMetaDescription: 'A showcase of my projects and skills.',
-    defaultMetaKeywords: '',
-    siteOgImageUrl: '',
-  },
-};
-
-async function readDataFromFile(): Promise<AppData> {
+async function readAboutMeDataFromFirestore(): Promise<AboutMeData> {
+  if (!firestore) {
+    console.warn("Firestore not initialized in readAboutMeDataFromFirestore. Returning default data.");
+    return defaultAboutMeDataForClient;
+  }
   try {
-    const fileContent = await fs.readFile(dataFilePath, 'utf-8');
-    if (!fileContent.trim()) {
-        console.warn("Data file is empty in aboutActions, returning default structure.");
-        return defaultAppData;
+    const docSnap = await getDoc(aboutMeDocRef());
+    if (docSnap.exists()) {
+      const data = docSnap.data() as AboutMeData;
+      return {
+        ...defaultAboutMeDataForClient,
+        ...data,
+        experience: (data.experience || []).map(exp => ({ ...exp, id: exp.id || `exp_fb_${Date.now()}_${Math.random().toString(36).substring(2, 7)}` })),
+        education: (data.education || []).map(edu => ({ ...edu, id: edu.id || `edu_fb_${Date.now()}_${Math.random().toString(36).substring(2, 7)}` })),
+      };
     }
-    const parsedData = JSON.parse(fileContent);
-    // Use comprehensive merging strategy
-    return {
-      ...defaultAppData, // Start with full default structure
-      ...parsedData,     // Override with parsed data
-      aboutMe: { ...defaultAppData.aboutMe, ...(parsedData.aboutMe ?? {}) }, // Deep merge for aboutMe
-      skills: Array.isArray(parsedData.skills) ? parsedData.skills : defaultAppData.skills,
-      portfolioItems: Array.isArray(parsedData.portfolioItems) ? parsedData.portfolioItems : defaultAppData.portfolioItems,
-      siteSettings: { ...defaultAppData.siteSettings, ...(parsedData.siteSettings ?? {}) }, // Deep merge for siteSettings
-    };
+    return defaultAboutMeDataForClient; // Return default if doc doesn't exist
   } catch (error) {
-    console.error("Error reading or parsing data file in aboutActions, returning default structure:", error);
-    return defaultAppData;
+    console.error("Error reading AboutMeData from Firestore:", error);
+    return defaultAboutMeDataForClient; // Fallback on error
   }
 }
 
-async function writeDataToFile(data: AppData): Promise<void> {
-  await fs.writeFile(dataFilePath, JSON.stringify(data, null, 2), 'utf-8');
+async function writeAboutMeDataToFirestore(data: AboutMeData): Promise<void> {
+  if (!firestore) throw new Error("Firestore not initialized. Cannot write AboutMeData.");
+  await setDoc(aboutMeDocRef(), data, { merge: true });
 }
 
-// State type for the original full About Me form (now only for Contact)
+
 export type UpdateAboutDataFormState = {
   message: string;
   status: 'success' | 'error' | 'idle';
@@ -77,7 +57,6 @@ export type UpdateAboutDataFormState = {
   data?: AboutMeData; 
 };
 
-// State type for the Profile & Bio form
 export type UpdateProfileBioDataFormState = {
   message: string;
   status: 'success' | 'error' | 'idle';
@@ -85,7 +64,6 @@ export type UpdateProfileBioDataFormState = {
   data?: ProfileBioData; 
 };
 
-// State type for the Experience section form
 export type UpdateExperienceDataFormState = {
   message: string;
   status: 'success' | 'error' | 'idle';
@@ -93,7 +71,6 @@ export type UpdateExperienceDataFormState = {
   data?: ExperienceSectionData; 
 };
 
-// State type for the Education section form
 export type UpdateEducationDataFormState = {
   message: string;
   status: 'success' | 'error' | 'idle';
@@ -107,6 +84,9 @@ export async function updateProfileBioDataAction(
   prevState: UpdateProfileBioDataFormState,
   formData: FormData
 ): Promise<UpdateProfileBioDataFormState> {
+  if (!firestore) {
+    return { message: "Firestore not initialized.", status: 'error', data: Object.fromEntries(formData.entries()) as ProfileBioData };
+  }
   let rawData: ProfileBioData | undefined = undefined;
   try {
     rawData = {
@@ -121,7 +101,6 @@ export async function updateProfileBioDataAction(
 
     if (!validatedFields.success) {
       const fieldErrors = validatedFields.error.flatten().fieldErrors;
-      console.warn("Admin ProfileBio Action: Zod validation failed. Errors:", JSON.stringify(fieldErrors));
       return {
         message: "Failed to update profile & bio. Please check errors.",
         status: 'error',
@@ -131,17 +110,17 @@ export async function updateProfileBioDataAction(
     }
 
     const dataToSave = validatedFields.data;
-
-    const allData = await readDataFromFile();
-    allData.aboutMe = {
-      ...allData.aboutMe, // Preserve existing fields in aboutMe
-      ...dataToSave,     // Overwrite with new profile/bio data
+    const currentAboutMeData = await readAboutMeDataFromFirestore();
+    const updatedAboutMeData: AboutMeData = {
+      ...currentAboutMeData,
+      ...dataToSave,
     };
-    await writeDataToFile(allData);
+    await writeAboutMeDataToFirestore(updatedAboutMeData);
 
     revalidatePath('/about');
     revalidatePath('/'); 
     revalidatePath('/contact'); 
+    revalidatePath('/admin/about');
 
     return {
       message: "Profile & Bio data updated successfully!",
@@ -152,7 +131,7 @@ export async function updateProfileBioDataAction(
 
   } catch (error) {
     console.error("Admin ProfileBio Action: An unexpected error occurred:", error);
-    const currentAboutMe = (await readDataFromFile()).aboutMe;
+    const currentAboutMe = await readAboutMeDataFromFirestore();
     const errorResponseData: ProfileBioData = rawData || {
       name: String(formData.get('name') || currentAboutMe.name),
       title: String(formData.get('title') || currentAboutMe.title),
@@ -174,6 +153,9 @@ export async function updateExperienceDataAction(
   prevState: UpdateExperienceDataFormState,
   formData: FormData
 ): Promise<UpdateExperienceDataFormState> {
+  if (!firestore) {
+    return { message: "Firestore not initialized.", status: 'error', data: { experience: [] } };
+  }
   let rawDataForZod: ExperienceSectionData | undefined = undefined;
   try {
     const experienceEntries: ZodExperienceType[] = [];
@@ -188,7 +170,7 @@ export async function updateExperienceDataAction(
     const sortedIndices = Array.from(experienceIndices).sort((a,b) => parseInt(a) - parseInt(b));
 
     for (const index of sortedIndices) {
-      const id = String(formData.get(`experience.${index}.id`) || `exp_fallback_${Date.now()}_${index}`);
+      const id = String(formData.get(`experience.${index}.id`) || `exp_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`);
       const role = String(formData.get(`experience.${index}.role`) || '');
       const company = String(formData.get(`experience.${index}.company`) || '');
       const period = String(formData.get(`experience.${index}.period`) || '');
@@ -196,8 +178,6 @@ export async function updateExperienceDataAction(
       
       if (role.trim() !== '' || company.trim() !== '' || period.trim() !== '' || description.trim() !== '' || (id && !id.startsWith('new_exp_')) ) {
           experienceEntries.push({ id, role, company, period, description });
-      } else {
-         console.warn(`Admin Experience Action: Skipping entirely empty new experience entry at form index ${index}.`);
       }
     }
     
@@ -207,7 +187,6 @@ export async function updateExperienceDataAction(
 
     if (!validatedFields.success) {
       const fieldErrors = validatedFields.error.flatten().fieldErrors;
-      console.warn("Admin Experience Action: Zod validation failed. Errors:", JSON.stringify(fieldErrors));
       return {
         message: "Failed to update experience. Please check the errors below.",
         status: 'error',
@@ -217,12 +196,15 @@ export async function updateExperienceDataAction(
     }
 
     const dataToSave = validatedFields.data;
-
-    const allData = await readDataFromFile();
-    allData.aboutMe.experience = dataToSave.experience; 
-    await writeDataToFile(allData);
+    const currentAboutMeData = await readAboutMeDataFromFirestore();
+    const updatedAboutMeData: AboutMeData = {
+      ...currentAboutMeData,
+      experience: dataToSave.experience,
+    };
+    await writeAboutMeDataToFirestore(updatedAboutMeData);
 
     revalidatePath('/about');
+    revalidatePath('/admin/about');
 
     return {
       message: "Experience data updated successfully!",
@@ -233,9 +215,7 @@ export async function updateExperienceDataAction(
 
   } catch (error) {
     console.error("Admin Experience Action: An unexpected error occurred:", error);
-     const errorResponseData: ExperienceSectionData = rawDataForZod || {
-        experience: [], 
-    };
+     const errorResponseData: ExperienceSectionData = rawDataForZod || { experience: [] };
     return {
       message: "An unexpected server error occurred while updating experience.",
       status: 'error',
@@ -250,6 +230,9 @@ export async function updateEducationDataAction(
   prevState: UpdateEducationDataFormState,
   formData: FormData
 ): Promise<UpdateEducationDataFormState> {
+  if (!firestore) {
+    return { message: "Firestore not initialized.", status: 'error', data: { education: [] } };
+  }
   let rawDataForZod: EducationSectionData | undefined = undefined;
   try {
     const educationEntries: ZodEducationType[] = [];
@@ -264,25 +247,21 @@ export async function updateEducationDataAction(
     const sortedIndices = Array.from(educationIndices).sort((a,b) => parseInt(a) - parseInt(b));
 
     for (const index of sortedIndices) {
-      const id = String(formData.get(`education.${index}.id`) || `edu_fallback_${Date.now()}_${index}`);
+      const id = String(formData.get(`education.${index}.id`) || `edu_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`);
       const degree = String(formData.get(`education.${index}.degree`) || '');
       const institution = String(formData.get(`education.${index}.institution`) || '');
       const period = String(formData.get(`education.${index}.period`) || '');
 
       if (degree.trim() !== '' || institution.trim() !== '' || period.trim() !== '' || (id && !id.startsWith('new_edu_'))) {
         educationEntries.push({ id, degree, institution, period });
-      } else {
-        console.warn(`Admin Education Action: Skipping entirely empty new education entry at form index ${index}.`);
       }
     }
 
     rawDataForZod = { education: educationEntries };
-
     const validatedFields = educationSectionSchema.safeParse(rawDataForZod);
 
     if (!validatedFields.success) {
       const fieldErrors = validatedFields.error.flatten().fieldErrors;
-      console.warn("Admin Education Action: Zod validation failed. Errors:", JSON.stringify(fieldErrors));
       return {
         message: "Failed to update education. Please check the errors below.",
         status: 'error',
@@ -292,12 +271,15 @@ export async function updateEducationDataAction(
     }
 
     const dataToSave = validatedFields.data;
-
-    const allData = await readDataFromFile();
-    allData.aboutMe.education = dataToSave.education; 
-    await writeDataToFile(allData);
+    const currentAboutMeData = await readAboutMeDataFromFirestore();
+    const updatedAboutMeData: AboutMeData = {
+      ...currentAboutMeData,
+      education: dataToSave.education,
+    };
+    await writeAboutMeDataToFirestore(updatedAboutMeData);
 
     revalidatePath('/about');
+    revalidatePath('/admin/about');
 
     return {
       message: "Education data updated successfully!",
@@ -308,9 +290,7 @@ export async function updateEducationDataAction(
 
   } catch (error) {
     console.error("Admin Education Action: An unexpected error occurred:", error);
-    const errorResponseData: EducationSectionData = rawDataForZod || {
-      education: [],
-    };
+    const errorResponseData: EducationSectionData = rawDataForZod || { education: [] };
     return {
       message: "An unexpected server error occurred while updating education.",
       status: 'error',
@@ -320,21 +300,23 @@ export async function updateEducationDataAction(
   }
 }
 
-
 // Server Action for Contact & Socials
 export async function updateAboutDataAction(
   prevState: UpdateAboutDataFormState,
   formData: FormData
 ): Promise<UpdateAboutDataFormState> {
-  let rawDataForValidation: AboutMeData | undefined = undefined;
+  if (!firestore) {
+    return { message: "Firestore not initialized.", status: 'error', data: defaultAboutMeDataForClient };
+  }
+  let rawDataForValidation: Partial<AboutMeData> | undefined = undefined;
 
   try {
-    const currentAppData = await readDataFromFile();
-    const currentAboutMe = currentAppData.aboutMe;
+    const currentAboutMe = await readAboutMeDataFromFirestore();
 
     rawDataForValidation = {
-      ...currentAboutMe, // Start with all current aboutMe data
-      email: String(formData.get('email') || ''), // Override with form data
+      // Keep all existing fields, only update contact ones from form
+      ...currentAboutMe,
+      email: String(formData.get('email') || ''),
       linkedinUrl: String(formData.get('linkedinUrl') || ''),
       githubUrl: String(formData.get('githubUrl') || ''),
       twitterUrl: String(formData.get('twitterUrl') || ''),
@@ -344,19 +326,17 @@ export async function updateAboutDataAction(
 
     if (!validatedFields.success) {
       const fieldErrors = validatedFields.error.flatten().fieldErrors;
-      console.warn("Admin Contact Action: Zod validation failed. Errors:", JSON.stringify(fieldErrors));
       return {
         message: "Failed to update contact data. Please check the errors below.",
         status: 'error',
         errors: fieldErrors,
-        data: rawDataForValidation,
+        data: rawDataForValidation as AboutMeData, // Cast, ensure UI handles partial data
       };
     }
 
-    const validatedContactData = validatedFields.data;
+    const validatedContactData = validatedFields.data; // This is full AboutMeData structure
 
-    const allDataToSave = { ...currentAppData }; 
-    allDataToSave.aboutMe = {
+    const allDataToSave: AboutMeData = {
       ...currentAboutMe, 
       email: validatedContactData.email,
       linkedinUrl: validatedContactData.linkedinUrl,
@@ -364,28 +344,23 @@ export async function updateAboutDataAction(
       twitterUrl: validatedContactData.twitterUrl,
     };
       
-    await writeDataToFile(allDataToSave);
+    await writeAboutMeDataToFirestore(allDataToSave);
 
     revalidatePath('/contact'); 
     revalidatePath('/about'); 
     revalidatePath('/');    
+    revalidatePath('/admin/about');
 
     return {
       message: "Contact & Socials data updated successfully!",
       status: 'success',
-      data: { 
-        ...currentAboutMe, 
-        email: validatedContactData.email,
-        linkedinUrl: validatedContactData.linkedinUrl,
-        githubUrl: validatedContactData.githubUrl,
-        twitterUrl: validatedContactData.twitterUrl,
-      },
+      data: allDataToSave,
       errors: {},
     };
 
   } catch (error) {
     console.error("Admin Contact Action: An unexpected error occurred:", error);
-    const fallbackAboutMe = rawDataForValidation || (await readDataFromFile()).aboutMe;
+    const fallbackAboutMe = rawDataForValidation ? rawDataForValidation as AboutMeData : await readAboutMeDataFromFirestore();
     return {
       message: "An unexpected server error occurred (Contact/Socials action).",
       status: 'error',
@@ -394,4 +369,3 @@ export async function updateAboutDataAction(
     };
   }
 }
-

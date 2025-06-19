@@ -1,39 +1,46 @@
 
+"use client"; // Needs to be client for useState and useEffect for loading state
+
 import { PageHeader } from '@/components/shared/page-header';
 import { ContactForm } from '@/components/contact/contact-form';
 import { ContactInfo } from '@/components/contact/contact-info';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wrapper';
-import type { AboutMeData } from '@/lib/types'; // Type import is fine
+import type { AboutMeData } from '@/lib/types';
 import { getAboutMeDataAction } from '@/actions/getAboutMeDataAction';
+import { defaultAboutMeDataForClient } from '@/lib/data';
+import { useEffect, useState } from 'react';
+import { Loader2 } from 'lucide-react';
 
-// Default data remains useful for fallbacks
-const defaultAboutMeData: AboutMeData = { 
-  name: 'User Name', 
-  title: 'User Title', 
-  bio: 'Default bio.', 
-  profileImage: 'https://placehold.co/400x400.png', 
-  dataAiHint: 'placeholder image',
-  experience: [], 
-  education: [],
-  email: 'user@example.com',
-  linkedinUrl: '',
-  githubUrl: '',
-  twitterUrl: '',
-};
+export default function ContactPage() {
+  const [aboutMeData, setAboutMeData] = useState<AboutMeData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-async function getPageData(): Promise<AboutMeData> {
-  try {
-    const data = await getAboutMeDataAction();
-    return data || defaultAboutMeData; // Use default if action returns null/undefined
-  } catch (error) {
-    console.error("Error fetching About Me data for Contact page:", error);
-    return defaultAboutMeData; // Fallback to default on error
+  useEffect(() => {
+    async function fetchPageData() {
+      setIsLoading(true);
+      try {
+        const data = await getAboutMeDataAction();
+        setAboutMeData(data || defaultAboutMeDataForClient);
+      } catch (error) {
+        console.error("Error fetching About Me data for Contact page:", error);
+        setAboutMeData(defaultAboutMeDataForClient); // Fallback to default on error
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchPageData();
+  }, []);
+
+  if (isLoading || !aboutMeData) {
+    return (
+      <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8 flex justify-center items-center min-h-[calc(100vh-200px)]">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
   }
-}
 
-export default async function ContactPage() {
-  const aboutMeData = await getPageData();
+  const displayedData = aboutMeData; // Already has fallbacks
 
   return (
     <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
@@ -55,7 +62,7 @@ export default async function ContactPage() {
         <ScrollAnimationWrapper className="lg:col-span-2" delay={200}>
            <Card className="shadow-xl p-6 sm:p-8 bg-primary/5">
             <CardContent className="p-0">
-              <ContactInfo aboutMeData={aboutMeData} />
+              <ContactInfo aboutMeData={displayedData} />
             </CardContent>
           </Card>
         </ScrollAnimationWrapper>

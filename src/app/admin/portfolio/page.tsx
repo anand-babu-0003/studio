@@ -17,15 +17,15 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
-// Removed: import { portfolioItems as initialPortfolioItemsData } from '@/lib/data'; // No longer using this for initial data
 import type { PortfolioItem } from '@/lib/types';
 import {
-  getPortfolioItemsAction, // Added
+  getPortfolioItemsAction, 
   savePortfolioItemAction,
   deletePortfolioItemAction,
   type PortfolioFormState,
 } from '@/actions/admin/portfolioActions';
 import { portfolioItemAdminSchema, type PortfolioAdminFormData } from '@/lib/adminSchemas';
+import { defaultPortfolioItemsDataForClient } from '@/lib/data'; // For default form values
 
 const initialFormState: PortfolioFormState = { message: '', status: 'idle', errors: {} };
 
@@ -64,7 +64,7 @@ function SubmitButton() {
 
 export default function AdminPortfolioPage() {
   const [projects, setProjects] = useState<PortfolioItem[]>([]);
-  const [isLoadingProjects, setIsLoadingProjects] = useState(true); // Added loading state
+  const [isLoadingProjects, setIsLoadingProjects] = useState(true);
   const [currentProject, setCurrentProject] = useState<PortfolioItem | null>(null);
   const [showForm, setShowForm] = useState(false);
   const { toast } = useToast();
@@ -82,7 +82,6 @@ export default function AdminPortfolioPage() {
     return `add-new-project-form-${new Date().getTime()}`;
   }, [showForm, currentProject]);
   
-  // Fetch initial projects from Firestore
   useEffect(() => {
     async function fetchProjects() {
       setIsLoadingProjects(true);
@@ -114,13 +113,14 @@ export default function AdminPortfolioPage() {
         const existingIndex = prevProjects.findIndex(p => p.id === savedProject.id);
         let newProjectsArray;
         if (existingIndex > -1) {
-          const updatedProjects = [...prevProjects];
-          updatedProjects[existingIndex] = savedProject;
-          newProjectsArray = updatedProjects;
+          newProjectsArray = prevProjects.map(p => p.id === savedProject.id ? savedProject : p);
         } else {
-          newProjectsArray = [savedProject, ...prevProjects]; // Add new projects to the top
+          newProjectsArray = [savedProject, ...prevProjects];
         }
-        return newProjectsArray.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)); // Sort by creation time
+        // Ensure sorting by createdAt (desc) after update/add
+        return newProjectsArray.sort((a, b) => 
+          new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+        );
       });
       
       setShowForm(false);
@@ -175,10 +175,7 @@ export default function AdminPortfolioPage() {
     const result = await deletePortfolioItemAction(projectId);
     if (result.success) {
       toast({ title: "Success!", description: result.message });
-      setProjects(prevProjects => {
-        const updated = prevProjects.filter(p => p.id !== projectId);
-        return updated;
-      });
+      setProjects(prevProjects => prevProjects.filter(p => p.id !== projectId));
     } else {
       toast({ title: "Error Deleting", description: result.message, variant: "destructive" });
     }

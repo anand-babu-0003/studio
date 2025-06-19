@@ -1,39 +1,48 @@
 
 "use server";
 
-import fs from 'fs/promises';
-import path from 'path';
+import { firestore } from '@/lib/firebaseConfig';
+import { collection, getDocs, doc, deleteDoc, query, orderBy, Timestamp, addDoc, serverTimestamp } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
 import type { ContactMessage } from '@/lib/types';
 
-const messagesFilePath = path.join(process.cwd(), 'src', 'lib', 'contact-messages.json');
-
-async function readMessagesFromFile(): Promise<ContactMessage[]> {
-  try {
-    const fileContent = await fs.readFile(messagesFilePath, 'utf-8');
-    if (!fileContent.trim()) {
-        return [];
-    }
-    return JSON.parse(fileContent) as ContactMessage[];
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-      // File doesn't exist, which is fine, return empty array
-      return [];
-    }
-    console.error("Error reading contact messages file:", error);
-    // In case of other errors (e.g., malformed JSON), return empty or handle appropriately
-    return []; 
-  }
+const messagesCollectionRef = () => {
+  if (!firestore) throw new Error("Firestore not initialized");
+  return collection(firestore, 'contactMessages');
 }
 
-async function writeMessagesToFile(messages: ContactMessage[]): Promise<void> {
-  await fs.writeFile(messagesFilePath, JSON.stringify(messages, null, 2), 'utf-8');
+const messageDocRef = (id: string) => {
+  if (!firestore) throw new Error("Firestore not initialized");
+  return doc(firestore, 'contactMessages', id);
 }
 
 export async function getContactMessagesAction(): Promise<ContactMessage[]> {
-  const messages = await readMessagesFromFile();
-  // Already stored in reverse chronological order, but can sort again to be sure
-  return messages.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+  if (!firestore) {
+    console.warn("Firestore not initialized in getContactMessagesAction. Returning empty array.");
+    return [];
+  }
+  try {
+    const q = query(messagesCollectionRef(), orderBy('submittedAt', 'desc'));
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) {
+      return [];
+    }
+    return snapshot.docs.map(docSnap => {
+      const data = docSnap.data();
+      return {
+        id: docSnap.id,
+        name: data.name || 'N/A',
+        email: data.email || 'N/A',
+        message: data.message || '',
+        submittedAt: data.submittedAt instanceof Timestamp 
+                       ? data.submittedAt.toDate().toISOString() 
+                       : new Date().toISOString(), // Fallback, should ideally not happen
+      } as ContactMessage;
+    });
+  } catch (error) {
+    console.error("Error fetching contact messages from Firestore:", error);
+    return []; 
+  }
 }
 
 export type DeleteMessageResult = {
@@ -45,20 +54,18 @@ export async function deleteContactMessageAction(messageId: string): Promise<Del
     if (!messageId) {
         return { success: false, message: "No message ID provided for deletion." };
     }
+    if (!firestore) {
+      return { success: false, message: "Firestore not initialized. Cannot delete message." };
+    }
     try {
-        let messages = await readMessagesFromFile();
-        const initialLength = messages.length;
-        messages = messages.filter(msg => msg.id !== messageId);
-
-        if (messages.length < initialLength) {
-            await writeMessagesToFile(messages);
-            revalidatePath('/admin/messages');
-            return { success: true, message: `Message (ID: ${messageId}) deleted successfully!` };
-        } else {
-            return { success: false, message: `Message (ID: ${messageId}) not found.` };
-        }
+        await deleteDoc(messageDocRef(messageId));
+        revalidatePath('/admin/messages');
+        return { success: true, message: `Message (ID: ${messageId}) deleted successfully!` };
     } catch (error) {
-        console.error("Error deleting contact message:", error);
+        console.error("Error deleting contact message from Firestore:", error);
         return { success: false, message: "Failed to delete message due to a server error." };
     }
 }
+
+// Note: The submitContactForm action is in src/actions/contact.ts
+// It will also need to use Firestore (addDoc to contactMessages collection).

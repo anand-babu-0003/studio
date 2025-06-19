@@ -1,24 +1,42 @@
 
+"use client"; // Needs to be client for useState and useEffect for loading state
+
 import { PageHeader } from '@/components/shared/page-header';
 import { PortfolioCard } from '@/components/portfolio/portfolio-card';
 import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wrapper';
-import type { PortfolioItem } from '@/lib/types'; // Type import is fine
+import type { PortfolioItem } from '@/lib/types';
 import { getPortfolioItemsAction } from '@/actions/admin/portfolioActions';
+import { defaultPortfolioItemsDataForClient } from '@/lib/data';
+import { useEffect, useState } from 'react';
+import { Loader2 } from 'lucide-react';
 
-const defaultPortfolioItems: PortfolioItem[] = [];
+export default function PortfolioPage() {
+  const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-async function getPageData(): Promise<PortfolioItem[]> {
-  try {
-    const items = await getPortfolioItemsAction();
-    return items || defaultPortfolioItems; // Use default if action returns null/undefined
-  } catch (error) {
-    console.error("Error fetching portfolio items for page:", error);
-    return defaultPortfolioItems; // Fallback to default on error
+  useEffect(() => {
+    async function fetchPageData() {
+      setIsLoading(true);
+      try {
+        const items = await getPortfolioItemsAction();
+        setPortfolioItems(items || []); // Use empty array if null/undefined
+      } catch (error) {
+        console.error("Error fetching portfolio items for page:", error);
+        setPortfolioItems(defaultPortfolioItemsDataForClient); // Fallback to default on error
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchPageData();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8 flex justify-center items-center min-h-[calc(100vh-200px)]">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
   }
-}
-
-export default async function PortfolioPage() {
-  const portfolioItems = await getPageData();
 
   return (
     <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
@@ -32,7 +50,7 @@ export default async function PortfolioPage() {
       {(portfolioItems || []).length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {portfolioItems.map((project, index) => (
-            <ScrollAnimationWrapper key={project.id} delay={index * 100} threshold={0.05} className="h-full">
+            <ScrollAnimationWrapper key={project.id || `portfolio-${index}`} delay={index * 100} threshold={0.05} className="h-full">
               <PortfolioCard project={project} />
             </ScrollAnimationWrapper>
           ))}

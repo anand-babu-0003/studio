@@ -1,62 +1,68 @@
 
+"use client"; // Needs to be client for useState and useEffect for loading state
+
 import Image from 'next/image';
 import { PageHeader } from '@/components/shared/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Briefcase, GraduationCap } from 'lucide-react';
+import { Briefcase, GraduationCap, Loader2 } from 'lucide-react';
 import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wrapper';
-import type { AboutMeData, Experience, Education } from '@/lib/types'; // Types are fine
+import type { AboutMeData, Experience, Education } from '@/lib/types';
 import { getAboutMeDataAction } from '@/actions/getAboutMeDataAction';
+import { defaultAboutMeDataForClient } from '@/lib/data';
+import { useEffect, useState } from 'react';
 
-// Default data remains useful for fallbacks if action fails or returns null
-const defaultAboutMeData: AboutMeData = { 
-  name: 'User Name', 
-  title: 'User Title', 
-  bio: 'A passionate individual with a story to tell. Currently updating details, please check back soon!', 
-  profileImage: 'https://placehold.co/350x350.png', 
-  dataAiHint: 'profile picture',
-  experience: [], 
-  education: [],
-  email: 'user@example.com',
-  linkedinUrl: '',
-  githubUrl: '',
-  twitterUrl: '',
-};
+export default function AboutPage() {
+  const [aboutMeData, setAboutMeData] = useState<AboutMeData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-async function getPageData(): Promise<AboutMeData> {
-  try {
-    const data = await getAboutMeDataAction();
-    return data || defaultAboutMeData; // Use default if action returns null/undefined
-  } catch (error) {
-    console.error("Error fetching About Me data for page:", error);
-    return defaultAboutMeData; // Fallback to default on error
+  useEffect(() => {
+    async function fetchPageData() {
+      setIsLoading(true);
+      try {
+        const data = await getAboutMeDataAction();
+        setAboutMeData(data || defaultAboutMeDataForClient);
+      } catch (error) {
+        console.error("Error fetching About Me data for page:", error);
+        setAboutMeData(defaultAboutMeDataForClient); // Fallback to default on error
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchPageData();
+  }, []);
+
+  if (isLoading || !aboutMeData) {
+    return (
+      <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8 flex justify-center items-center min-h-[calc(100vh-200px)]">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
   }
-}
 
-export default async function AboutPage() {
-  const aboutMeData = await getPageData();
+  const displayedData = aboutMeData; // Already has fallbacks from action/state
 
   return (
     <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
       <ScrollAnimationWrapper>
         <PageHeader 
           title="About Me" 
-          subtitle={`Get to know the person behind the code: ${(aboutMeData.name || 'User').split(' ')[0]}.`}
+          subtitle={`Get to know the person behind the code: ${(displayedData.name || 'User').split(' ')[0]}.`}
         />
       </ScrollAnimationWrapper>
 
       <div className="grid lg:grid-cols-3 gap-12 items-start">
         <ScrollAnimationWrapper className="lg:col-span-1 flex flex-col items-center" delay={100}>
           <Image
-            src={aboutMeData.profileImage || 'https://placehold.co/350x350.png'}
-            alt={`Profile picture of ${aboutMeData.name || 'User'}`}
+            src={displayedData.profileImage || defaultAboutMeDataForClient.profileImage}
+            alt={`Profile picture of ${displayedData.name || 'User'}`}
             width={350}
             height={350}
             className="rounded-full shadow-2xl object-cover mb-8 aspect-square"
-            data-ai-hint={aboutMeData.dataAiHint || 'profile picture'}
+            data-ai-hint={displayedData.dataAiHint || defaultAboutMeDataForClient.dataAiHint}
             priority
           />
-          <h2 className="font-headline text-3xl font-semibold text-primary text-center">{aboutMeData.name || 'User Name'}</h2>
-          <p className="text-muted-foreground text-center mt-1">{aboutMeData.title || 'User Title'}</p>
+          <h2 className="font-headline text-3xl font-semibold text-primary text-center">{displayedData.name || 'User Name'}</h2>
+          <p className="text-muted-foreground text-center mt-1">{displayedData.title || 'User Title'}</p>
         </ScrollAnimationWrapper>
 
         <ScrollAnimationWrapper className="lg:col-span-2" delay={200}>
@@ -65,7 +71,7 @@ export default async function AboutPage() {
               <CardTitle className="font-headline text-2xl text-primary">My Story</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-lg text-foreground/80 leading-relaxed">
-              {(aboutMeData.bio || 'Detailed biography coming soon...').split('\n\n').map((paragraph, index) => (
+              {(displayedData.bio || 'Detailed biography coming soon...').split('\n\n').map((paragraph, index) => (
                 <p key={index}>{paragraph}</p>
               ))}
             </CardContent>
@@ -83,9 +89,9 @@ export default async function AboutPage() {
                 <Briefcase className="mr-3 h-7 w-7 text-primary" /> Professional Journey
               </h3>
               <div className="space-y-6">
-                {(aboutMeData.experience || []).length > 0 ? (
-                  (aboutMeData.experience || []).map((exp: Experience, index: number) => (
-                    <ScrollAnimationWrapper key={exp.id || index} delay={index * 100}>
+                {(displayedData.experience || []).length > 0 ? (
+                  (displayedData.experience || []).map((exp: Experience, index: number) => (
+                    <ScrollAnimationWrapper key={exp.id || `exp-${index}`} delay={index * 100}>
                       <Card className="shadow-md hover:shadow-lg transition-shadow">
                         <CardHeader>
                           <CardTitle className="font-headline text-xl text-primary">{exp.role}</CardTitle>
@@ -109,9 +115,9 @@ export default async function AboutPage() {
                 <GraduationCap className="mr-3 h-7 w-7 text-primary" /> Academic Background
               </h3>
               <div className="space-y-6">
-                {(aboutMeData.education || []).length > 0 ? (
-                  (aboutMeData.education || []).map((edu: Education, index: number) => (
-                    <ScrollAnimationWrapper key={edu.id || index} delay={index * 100}>
+                {(displayedData.education || []).length > 0 ? (
+                  (displayedData.education || []).map((edu: Education, index: number) => (
+                    <ScrollAnimationWrapper key={edu.id || `edu-${index}`} delay={index * 100}>
                       <Card className="shadow-md hover:shadow-lg transition-shadow">
                         <CardHeader>
                           <CardTitle className="font-headline text-xl text-primary">{edu.degree}</CardTitle>

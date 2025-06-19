@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { Github, Linkedin, Twitter, Mail } from 'lucide-react';
 import type { SocialLink, AboutMeData } from '@/lib/types';
 import { useEffect, useState } from 'react';
-// Removed: import { getAboutMeDataAction } from '@/actions/getAboutMeDataAction'; // Data now passed as prop
 import { Button } from '@/components/ui/button'; 
+import { defaultAboutMeDataForClient } from '@/lib/data'; // For fallback structure
 
 const mainNavItems = [
   { href: '/', label: 'Home' },
@@ -16,22 +16,8 @@ const mainNavItems = [
   { href: '/contact', label: 'Contact' },
 ];
 
-const defaultAboutMeForFooter: AboutMeData = {
-    name: "B.Anand", 
-    title: "Default Title", // Added to satisfy AboutMeData type
-    bio: "Default Bio", // Added
-    profileImage: "", // Added
-    dataAiHint: "", // Added
-    experience: [], // Added
-    education: [], // Added
-    email: "hello@example.com", 
-    githubUrl: "https://github.com",
-    linkedinUrl: "https://linkedin.com",
-    twitterUrl: "https://twitter.com",
-};
-
 interface FooterProps {
-  aboutMeData: AboutMeData | null;
+  aboutMeData: AboutMeData | null; // Can be null if fetching fails
 }
 
 export default function Footer({ aboutMeData }: FooterProps) {
@@ -43,14 +29,15 @@ export default function Footer({ aboutMeData }: FooterProps) {
     setCurrentYear(new Date().getFullYear()); 
   }, []);
 
-  const displayedAboutMe = isMounted && aboutMeData ? aboutMeData : defaultAboutMeForFooter;
+  // Use passed aboutMeData, or fallback to defaults if null or during SSR
+  const displayedAboutMe = isMounted && aboutMeData ? aboutMeData : defaultAboutMeDataForClient;
 
   const socialLinksToDisplay: SocialLink[] = [
     ...(displayedAboutMe.githubUrl ? [{ id: 'github', name: 'GitHub', url: displayedAboutMe.githubUrl, icon: Github }] : []),
     ...(displayedAboutMe.linkedinUrl ? [{ id: 'linkedin', name: 'LinkedIn', url: displayedAboutMe.linkedinUrl, icon: Linkedin }] : []),
     ...(displayedAboutMe.twitterUrl ? [{ id: 'twitter', name: 'Twitter', url: displayedAboutMe.twitterUrl, icon: Twitter }] : []),
     ...(displayedAboutMe.email ? [{ id: 'email', name: 'Email', url: `mailto:${displayedAboutMe.email}`, icon: Mail }] : []),
-  ].filter(link => link.url);
+  ].filter(link => link.url && link.url.trim() !== '');
 
 
   return (
@@ -69,7 +56,7 @@ export default function Footer({ aboutMeData }: FooterProps) {
                 <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               <span className="font-headline text-xl font-bold text-primary group-hover:text-accent transition-colors">
-                AnandVerse 
+                {(isMounted && displayedAboutMe.name) ? `${displayedAboutMe.name.split(' ')[0]}'s Verse` : "MyVerse"} 
               </span>
             </Link>
             <p className="text-sm text-muted-foreground max-w-md">
@@ -111,7 +98,7 @@ export default function Footer({ aboutMeData }: FooterProps) {
                     aria-label={link.name}
                   >
                     <Link
-                      href={link.url!}
+                      href={link.url!} // url is guaranteed by filter
                       target={link.id === 'email' ? '_self' : '_blank'}
                       rel="noopener noreferrer"
                     >
@@ -126,8 +113,8 @@ export default function Footer({ aboutMeData }: FooterProps) {
 
         <div className="mt-10 border-t border-border pt-8 text-center">
           <p className="text-sm text-muted-foreground">
-            &copy; {isMounted ? currentYear : new Date().getFullYear()}{' '}
-            AnandVerse. All rights reserved. 
+            &copy; {currentYear}{' '}
+            {(isMounted && displayedAboutMe.name) ? displayedAboutMe.name : "User Name"}. All rights reserved. 
           </p>
           <p className="text-sm text-muted-foreground mt-2">
             💻 Made with caffeine, code, and mild chaos — by{' '}
@@ -138,7 +125,7 @@ export default function Footer({ aboutMeData }: FooterProps) {
                 </Link>
               </Button>
             ) : (
-              defaultAboutMeForFooter.name 
+              defaultAboutMeDataForClient.name 
             )}
           </p>
         </div>

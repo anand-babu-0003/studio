@@ -1,149 +1,130 @@
 
 "use server";
 
-import type { Skill, AppData } from '@/lib/types';
+import { firestore } from '@/lib/firebaseConfig';
+import { collection, getDocs, doc, setDoc, deleteDoc, query, orderBy, Timestamp } from 'firebase/firestore';
+import type { Skill as LibSkillType } from '@/lib/types';
 import { skillAdminSchema, type SkillAdminFormData } from '@/lib/adminSchemas';
-import fs from 'fs/promises';
-import path from 'path';
 import { revalidatePath } from 'next/cache';
+import { defaultSkillsDataForClient } from '@/lib/data'; // For fallback
 
-const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
+const skillsCollectionRef = () => {
+  if (!firestore) throw new Error("Firestore not initialized");
+  return collection(firestore, 'skills');
+}
 
-// Standardized default AppData structure
-const defaultAppData: AppData = {
-  portfolioItems: [],
-  skills: [],
-  aboutMe: {
-    name: 'Default Name',
-    title: 'Default Title',
-    bio: 'Default bio.',
-    profileImage: 'https://placehold.co/400x400.png',
-    dataAiHint: 'placeholder image',
-    experience: [],
-    education: [],
-    email: 'default@example.com',
-    linkedinUrl: '',
-    githubUrl: '',
-    twitterUrl: '',
-  },
-  siteSettings: {
-    siteName: 'My Portfolio',
-    defaultMetaDescription: 'A showcase of my projects and skills.',
-    defaultMetaKeywords: '',
-    siteOgImageUrl: '',
-  },
-};
+const skillDocRef = (id: string) => {
+  if (!firestore) throw new Error("Firestore not initialized");
+  return doc(firestore, 'skills', id);
+}
 
-async function readDataFromFile(): Promise<AppData> {
+// Action to get all skills
+export async function getSkillsAction(): Promise<LibSkillType[]> {
+  if (!firestore) {
+    console.warn("Firestore not initialized in getSkillsAction. Returning empty array.");
+    return [];
+  }
   try {
-    const fileContent = await fs.readFile(dataFilePath, 'utf-8');
-    if (!fileContent.trim()) {
-        console.warn("Data file is empty in skillsActions, returning default structure.");
-        return defaultAppData;
+    const q = query(skillsCollectionRef(), orderBy('category'), orderBy('name')); // Example ordering
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) {
+      return [];
     }
-    const parsedData = JSON.parse(fileContent);
-    // Use comprehensive merging strategy
-    return {
-      ...defaultAppData, // Start with full default structure
-      ...parsedData,     // Override with parsed data
-      aboutMe: { ...defaultAppData.aboutMe, ...(parsedData.aboutMe ?? {}) }, // Deep merge for aboutMe
-      skills: Array.isArray(parsedData.skills) ? parsedData.skills : defaultAppData.skills,
-      portfolioItems: Array.isArray(parsedData.portfolioItems) ? parsedData.portfolioItems : defaultAppData.portfolioItems,
-      siteSettings: { ...defaultAppData.siteSettings, ...(parsedData.siteSettings ?? {}) }, // Deep merge for siteSettings
-    };
+    return snapshot.docs.map(docSnap => {
+      const data = docSnap.data();
+      return {
+        id: docSnap.id,
+        name: data.name || 'Unnamed Skill',
+        category: data.category || 'Other',
+        iconName: data.iconName || 'Package', // Default icon
+        proficiency: data.proficiency === undefined || data.proficiency === null ? undefined : Number(data.proficiency),
+      } as LibSkillType;
+    });
   } catch (error) {
-    console.error("Error reading or parsing data file in skillsActions, returning default structure:", error);
-    return defaultAppData;
+    console.error("Error fetching skills from Firestore:", error);
+    return [];
   }
 }
 
-async function writeDataToFile(data: AppData): Promise<void> {
-  await fs.writeFile(dataFilePath, JSON.stringify(data, null, 2), 'utf-8');
-}
 
 export type SkillFormState = {
   message: string;
   status: 'success' | 'error' | 'idle';
   errors?: Partial<Record<keyof SkillAdminFormData, string[]>>;
   formDataOnError?: SkillAdminFormData;
-  savedSkill?: Skill;
+  savedSkill?: LibSkillType;
 };
 
 export async function saveSkillAction(
   prevState: SkillFormState,
   formData: FormData
 ): Promise<SkillFormState> {
+  if (!firestore) {
+    return { 
+      message: "Firestore is not initialized. Cannot save skill.", 
+      status: 'error', 
+      formDataOnError: Object.fromEntries(formData.entries()) as SkillAdminFormData 
+    };
+  }
   
-  const idFromForm = formData.get('id');
-  const nameFromForm = formData.get('name');
-  const categoryFromForm = formData.get('category');
-  const iconNameFromForm = formData.get('iconName');
-  const proficiencyString = formData.get('proficiency'); 
-
-  const proficiencyValue = (proficiencyString !== null && String(proficiencyString).trim() !== '') 
-    ? Number(proficiencyString) 
-    : undefined;
-
-  const dataForZod: SkillAdminFormData = {
-    id: typeof idFromForm === 'string' ? idFromForm : undefined,
-    name: typeof nameFromForm === 'string' ? nameFromForm : '',
-    category: (typeof categoryFromForm === 'string' ? categoryFromForm : '') as SkillAdminFormData['category'],
-    proficiency: proficiencyValue,
-    iconName: (typeof iconNameFromForm === 'string' ? iconNameFromForm : '') as SkillAdminFormData['iconName'],
+  const rawData: SkillAdminFormData = {
+    id: formData.get('id') as string || undefined,
+    name: String(formData.get('name') || ''),
+    category: String(formData.get('category') || 'Other') as LibSkillType['category'],
+    iconName: String(formData.get('iconName') || 'Package'),
+    proficiency: formData.get('proficiency') === null || String(formData.get('proficiency')).trim() === ''
+      ? undefined
+      : Number(formData.get('proficiency')),
   };
 
-  const validatedFields = skillAdminSchema.safeParse(dataForZod);
+  const validatedFields = skillAdminSchema.safeParse(rawData);
 
   if (!validatedFields.success) {
-    console.error("Admin Skill Action: Zod validation failed. Errors:", JSON.stringify(validatedFields.error.flatten().fieldErrors));
     return {
       message: "Failed to save skill. Please check errors.",
       status: 'error',
       errors: validatedFields.error.flatten().fieldErrors as SkillFormState['errors'],
-      formDataOnError: dataForZod,
+      formDataOnError: rawData,
     };
   }
 
   const data = validatedFields.data;
+  let skillId = data.id || `skill_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
-  const skillToSave: Skill = {
-    id: data.id || `skill_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+  const skillToSave: Omit<LibSkillType, 'id'> = {
     name: data.name,
     category: data.category,
-    proficiency: data.proficiency ?? undefined, 
     iconName: data.iconName,
+    proficiency: data.proficiency === null ? undefined : data.proficiency, // Ensure null becomes undefined
   };
 
   try {
-    const allData = await readDataFromFile();
-    if (data.id) {
-      const skillIndex = allData.skills.findIndex(s => s.id === data.id);
-      if (skillIndex > -1) {
-        allData.skills[skillIndex] = skillToSave;
-      } else {
-        allData.skills.push(skillToSave); 
-      }
-    } else {
-      allData.skills.push(skillToSave);
-    }
-    await writeDataToFile(allData);
+    await setDoc(skillDocRef(skillId), skillToSave, { merge: true });
+    
+    const savedSkillData: LibSkillType = {
+      id: skillId,
+      ...skillToSave,
+    };
 
     revalidatePath('/skills');
+    revalidatePath('/admin/skills');
+    revalidatePath('/'); // If skills are on homepage
 
     return {
-      message: `Skill "${skillToSave.name}" ${data.id ? 'updated' : 'added'} successfully!`,
+      message: `Skill "${savedSkillData.name}" ${data.id ? 'updated' : 'added'} successfully!`,
       status: 'success',
-      savedSkill: skillToSave,
+      savedSkill: savedSkillData,
       errors: {},
     };
 
   } catch (error) {
-    console.error("Error saving skill in skillsActions.ts:", error);
+    console.error("Error saving skill to Firestore:", error);
     return {
       message: "An unexpected server error occurred while saving the skill. Please try again.",
       status: 'error',
       errors: {},
-      formDataOnError: dataForZod, 
+      formDataOnError: rawData, 
     };
   }
 }
@@ -157,21 +138,17 @@ export async function deleteSkillAction(itemId: string): Promise<DeleteSkillResu
     if (!itemId) {
         return { success: false, message: "No skill ID provided for deletion." };
     }
+    if (!firestore) {
+      return { success: false, message: "Firestore not initialized. Cannot delete skill." };
+    }
     try {
-        const allData = await readDataFromFile();
-        const initialLength = allData.skills.length;
-        allData.skills = allData.skills.filter(s => s.id !== itemId);
-
-        if (allData.skills.length < initialLength) {
-          await writeDataToFile(allData);
-          revalidatePath('/skills');
-          return { success: true, message: `Skill (ID: ${itemId}) deleted successfully!` };
-        } else {
-           return { success: false, message: `Skill (ID: ${itemId}) not found for deletion.` };
-        }
+        await deleteDoc(skillDocRef(itemId));
+        revalidatePath('/skills');
+        revalidatePath('/admin/skills');
+        revalidatePath('/');
+        return { success: true, message: `Skill (ID: ${itemId}) deleted successfully!` };
     } catch (error) {
-        console.error("Error deleting skill:", error);
+        console.error("Error deleting skill from Firestore:", error);
         return { success: false, message: "Failed to delete skill due to a server error." };
     }
 }
-

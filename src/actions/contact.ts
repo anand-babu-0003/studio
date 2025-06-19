@@ -2,8 +2,8 @@
 "use server";
 
 import { z } from 'zod';
-import fs from 'fs/promises';
-import path from 'path';
+import { firestore } from '@/lib/firebaseConfig';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import type { ContactMessage } from '@/lib/types';
 
 const contactFormSchema = z.object({
@@ -22,30 +22,17 @@ export type ContactFormState = {
   };
 };
 
-const messagesFilePath = path.join(process.cwd(), 'src', 'lib', 'contact-messages.json');
-
-async function readMessages(): Promise<ContactMessage[]> {
-  try {
-    const fileContent = await fs.readFile(messagesFilePath, 'utf-8');
-    return JSON.parse(fileContent) as ContactMessage[];
-  } catch (error) {
-    // If file doesn't exist or is invalid JSON, return empty array
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-      return [];
-    }
-    console.error("Error reading messages file:", error);
-    return [];
-  }
-}
-
-async function writeMessages(messages: ContactMessage[]): Promise<void> {
-  await fs.writeFile(messagesFilePath, JSON.stringify(messages, null, 2), 'utf-8');
-}
-
 export async function submitContactForm(
   prevState: ContactFormState,
   formData: FormData
 ): Promise<ContactFormState> {
+  if (!firestore) {
+    return {
+      message: "System error: Database not configured. Please try again later.",
+      status: 'error',
+    };
+  }
+
   const validatedFields = contactFormSchema.safeParse({
     name: formData.get('name'),
     email: formData.get('email'),
@@ -63,19 +50,16 @@ export async function submitContactForm(
   const { name, email, message } = validatedFields.data;
 
   try {
-    const newMessage: ContactMessage = {
-      id: `msg_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+    const messagesCollection = collection(firestore, 'contactMessages');
+    const newMessageData = {
       name,
       email,
       message,
-      submittedAt: new Date().toISOString(),
+      submittedAt: serverTimestamp(), // Use Firestore server timestamp
     };
 
-    const existingMessages = await readMessages();
-    existingMessages.unshift(newMessage); // Add to the beginning for reverse chrono order
-    await writeMessages(existingMessages);
-    
-    console.log("New contact form submission saved:", newMessage.id);
+    const docRef = await addDoc(messagesCollection, newMessageData);
+    console.log("New contact form submission saved with ID:", docRef.id);
 
     return {
       message: "Your message has been sent successfully! I'll get back to you soon.",
@@ -83,9 +67,9 @@ export async function submitContactForm(
     };
 
   } catch (error) {
-    console.error("Error submitting contact form or saving message:", error);
+    console.error("Error submitting contact form or saving message to Firestore:", error);
     return {
-      message: "An unexpected error occurred. Please try again later.",
+      message: "An unexpected error occurred while sending your message. Please try again later.",
       status: 'error',
     };
   }

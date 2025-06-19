@@ -9,37 +9,15 @@ import { Toaster } from '@/components/ui/toaster';
 import Navbar from '@/components/layout/navbar';
 import Footer from '@/components/layout/footer';
 import { ThemeProvider } from '@/components/layout/theme-provider';
-import type { SiteSettings, AboutMeData } from '@/lib/types'; // Added AboutMeData
+import type { SiteSettings, AboutMeData } from '@/lib/types';
 import { getSiteSettingsAction } from '@/actions/admin/settingsActions'; 
 import { getAboutMeDataAction } from '@/actions/getAboutMeDataAction';
-
+import { defaultSiteSettingsForClient, defaultAboutMeDataForClient } from '@/lib/data';
 
 // Static metadata object - can be a fallback or initial state
 export const staticMetadata: Metadata = {
-  title: 'Portfolio', // Default title
-  description: 'Personal portfolio of a passionate developer.', // Default description
-};
-
-// Default complete site settings for fallback
-const defaultSiteSettingsInitial: SiteSettings = {
-  siteName: String(staticMetadata.title || 'Portfolio'), 
-  defaultMetaDescription: String(staticMetadata.description || 'Default description for my portfolio.'),
-  defaultMetaKeywords: '', 
-  siteOgImageUrl: '', 
-};
-
-const defaultAboutMeDataInitial: AboutMeData = {
-  name: 'User Name',
-  title: 'User Title',
-  bio: 'Default bio.',
-  profileImage: 'https://placehold.co/300x300.png',
-  dataAiHint: 'profile picture',
-  experience: [],
-  education: [],
-  email: 'user@example.com',
-  linkedinUrl: '',
-  githubUrl: '',
-  twitterUrl: '',
+  title: defaultSiteSettingsForClient.siteName,
+  description: defaultSiteSettingsForClient.defaultMetaDescription,
 };
 
 // Helper function to create or update a meta tag
@@ -83,36 +61,30 @@ export default function RootLayout({
   const isAdminRoute = pathname.startsWith('/admin');
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isMounted, setIsMounted] = useState(false);
-  const [currentSiteSettings, setCurrentSiteSettings] = useState<SiteSettings>(defaultSiteSettingsInitial);
-  const [currentAboutMeData, setCurrentAboutMeData] = useState<AboutMeData>(defaultAboutMeDataInitial); // For Footer
+  const [currentSiteSettings, setCurrentSiteSettings] = useState<SiteSettings>(defaultSiteSettingsForClient);
+  const [currentAboutMeData, setCurrentAboutMeData] = useState<AboutMeData>(defaultAboutMeDataForClient); 
 
   const fetchInitialData = useCallback(async () => {
     try {
       const settings = await getSiteSettingsAction();
-      setCurrentSiteSettings({
-        ...defaultSiteSettingsInitial,
-        ...(settings ?? {}),
-      });
+      setCurrentSiteSettings(settings || defaultSiteSettingsForClient);
     } catch (error) {
       console.error("Failed to fetch site settings for layout:", error);
-      setCurrentSiteSettings(defaultSiteSettingsInitial);
+      setCurrentSiteSettings(defaultSiteSettingsForClient);
     }
 
-    try { // Fetch about me data for footer, etc.
+    try { 
       const aboutData = await getAboutMeDataAction();
-      setCurrentAboutMeData({
-          ...defaultAboutMeDataInitial,
-          ...(aboutData ?? {})
-      });
+      setCurrentAboutMeData(aboutData || defaultAboutMeDataForClient);
     } catch (error) {
         console.error("Failed to fetch about me data for layout:", error);
-        setCurrentAboutMeData(defaultAboutMeDataInitial);
+        setCurrentAboutMeData(defaultAboutMeDataForClient);
     }
   }, []);
 
 
   useEffect(() => {
-    setIsMounted(true);
+    setIsMounted(true); // Indicate client-side mount
     fetchInitialData();
 
     const handleMouseMove = (event: MouseEvent) => {
@@ -133,22 +105,25 @@ export default function RootLayout({
   
   useEffect(() => {
     if (currentSiteSettings) {
-      const pageTitleSegment = pathname.split('/').pop();
+      const pageTitleSegment = pathname.split('/').pop()?.replace(/-/g, ' ');
       const formattedPageTitle = pageTitleSegment 
-        ? pageTitleSegment.charAt(0).toUpperCase() + pageTitleSegment.slice(1).replace(/-/g, ' ')
+        ? pageTitleSegment.charAt(0).toUpperCase() + pageTitleSegment.slice(1)
         : '';
       
-      if (pathname === '/') {
-         document.title = currentSiteSettings.siteName;
-      } else if (formattedPageTitle && !isAdminRoute) {
-         document.title = `${currentSiteSettings.siteName} | ${formattedPageTitle}`;
-      } else if (!isAdminRoute) {
-         document.title = currentSiteSettings.siteName;
-      }
+      const siteNameBase = currentSiteSettings.siteName || defaultSiteSettingsForClient.siteName;
 
-      updateMetaTag('description', currentSiteSettings.defaultMetaDescription);
-      updateMetaTag('og:title', currentSiteSettings.siteName, true);
-      updateMetaTag('og:description', currentSiteSettings.defaultMetaDescription, true);
+      if (pathname === '/') {
+         document.title = siteNameBase;
+      } else if (formattedPageTitle && !isAdminRoute) {
+         document.title = `${siteNameBase} | ${formattedPageTitle}`;
+      } else if (!isAdminRoute) { // Fallback for other public pages
+         document.title = siteNameBase;
+      }
+      // Admin pages will manage their own titles or use a default
+
+      updateMetaTag('description', currentSiteSettings.defaultMetaDescription || defaultSiteSettingsForClient.defaultMetaDescription);
+      updateMetaTag('og:title', siteNameBase, true);
+      updateMetaTag('og:description', currentSiteSettings.defaultMetaDescription || defaultSiteSettingsForClient.defaultMetaDescription, true);
       
       if (currentSiteSettings.defaultMetaKeywords && currentSiteSettings.defaultMetaKeywords.trim() !== '') {
         updateMetaTag('keywords', currentSiteSettings.defaultMetaKeywords);
@@ -157,9 +132,9 @@ export default function RootLayout({
       }
 
       if (currentSiteSettings.siteOgImageUrl && currentSiteSettings.siteOgImageUrl.trim() !== '') {
-        updateMetaTag('og:image', currentSiteSettings.siteOgImageUrl, true);
+        updateMetaTag('og:image', currentSiteSettings.siteOgImageUrl);
       } else {
-        removeMetaTag('og:image', true);
+         removeMetaTag('og:image', true); // remove if empty, or use a global default
       }
     }
   }, [currentSiteSettings, pathname, isAdminRoute]);
@@ -175,8 +150,9 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
         
-        <title>{currentSiteSettings?.siteName || defaultSiteSettingsInitial.siteName}</title>
-        <meta name="description" content={currentSiteSettings?.defaultMetaDescription || defaultSiteSettingsInitial.defaultMetaDescription} />
+        {/* Default title and meta for initial load / JS disabled */}
+        <title>{currentSiteSettings?.siteName || defaultSiteSettingsForClient.siteName}</title>
+        <meta name="description" content={currentSiteSettings?.defaultMetaDescription || defaultSiteSettingsForClient.defaultMetaDescription} />
       </head>
       <body className="font-body antialiased flex flex-col min-h-screen">
         {isMounted && !isAdminRoute && (
@@ -199,12 +175,12 @@ export default function RootLayout({
         
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
+          defaultTheme="dark" 
           enableSystem
           disableTransitionOnChange
         >
           {!isAdminRoute && <Navbar />}
-          <div className={isAdminRoute ? "flex-grow" : "flex-grow"}>{children}</div>
+          <div className="flex-grow">{children}</div> {/* Ensure flex-grow is on a direct child of the flex container */}
           {!isAdminRoute && <Footer aboutMeData={currentAboutMeData} />}
           <Toaster />
         </ThemeProvider>
@@ -212,4 +188,3 @@ export default function RootLayout({
     </html>
   );
 }
-

@@ -10,14 +10,14 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { PortfolioItem } from '@/lib/types'; // Type import is fine
+import type { PortfolioItem } from '@/lib/types';
 import { getPortfolioItemsAction, getPortfolioItemBySlugAction } from '@/actions/admin/portfolioActions';
-
+import { defaultPortfolioItemsDataForClient } from '@/lib/data'; // For default structure
 
 export async function generateStaticParams() {
   try {
     const portfolioItems = await getPortfolioItemsAction();
-    if (!portfolioItems || portfolioItems.length === 0) {
+    if (!Array.isArray(portfolioItems) || portfolioItems.length === 0) {
       return [];
     }
     return portfolioItems
@@ -27,7 +27,7 @@ export async function generateStaticParams() {
       }));
   } catch (error) {
     console.error("Error generating static params for portfolio slugs:", error);
-    return []; // Return empty array on error to prevent build failure
+    return []; 
   }
 }
 
@@ -41,12 +41,16 @@ export default async function PortfolioDetailPage({
     project = await getPortfolioItemBySlugAction(params.slug);
   } catch (error) {
     console.error(`Error fetching portfolio item for slug ${params.slug}:`, error);
-    // project remains null, will trigger notFound()
   }
 
   if (!project) {
     notFound();
   }
+  
+  // Ensure project.images is an array, even if empty
+  const projectImages = Array.isArray(project.images) ? project.images : [];
+  const projectTags = Array.isArray(project.tags) ? project.tags : [];
+
 
   return (
     <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
@@ -60,15 +64,15 @@ export default async function PortfolioDetailPage({
 
       <PageHeader title={project.title || 'Project Details'} />
 
-      {project.images && project.images.length > 0 && (
+      {projectImages.length > 0 && (
         <div className="mb-16">
           <Carousel className="w-full max-w-3xl mx-auto shadow-2xl rounded-lg overflow-hidden">
             <CarouselContent>
-              {(project.images || []).map((src, index) => (
+              {projectImages.map((src, index) => (
                 <CarouselItem key={index}>
                   <div className="aspect-video relative">
                     <Image
-                      src={src || 'https://placehold.co/1200x675.png'}
+                      src={src || defaultPortfolioItemsDataForClient[0]?.images[0] || 'https://placehold.co/1200x675.png'}
                       alt={`${project.title || 'Project'} - Screenshot ${index + 1}`}
                       fill
                       className="object-cover"
@@ -79,7 +83,7 @@ export default async function PortfolioDetailPage({
                 </CarouselItem>
               ))}
             </CarouselContent>
-            {(project.images || []).length > 1 && (
+            {projectImages.length > 1 && (
               <>
                 <CarouselPrevious />
                 <CarouselNext />
@@ -101,14 +105,14 @@ export default async function PortfolioDetailPage({
           </CardContent>
         </Card>
 
-        {(project.tags && project.tags.length > 0) && (
+        {projectTags.length > 0 && (
           <Card>
             <CardHeader>
               <CardTitle className="font-headline text-2xl text-primary">Technologies Used</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
-                {(project.tags || []).map((tag) => (
+                {projectTags.map((tag) => (
                   <Badge key={tag} variant="default" className="text-sm px-3 py-1">{tag}</Badge>
                 ))}
               </div>

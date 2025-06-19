@@ -1,42 +1,38 @@
 
 "use server";
 
-import type { AboutMeData, AppData } from '@/lib/types';
-import fs from 'fs/promises';
-import path from 'path';
+import { firestore } from '@/lib/firebaseConfig';
+import { doc, getDoc } from 'firebase/firestore';
+import type { AboutMeData } from '@/lib/types';
+import { defaultAboutMeDataForClient } from '@/lib/data'; // For fallback
 
-const dataFilePath = path.resolve(process.cwd(), 'src/lib/data.json');
-
-// Default structure to return in case of errors or if the file is empty/corrupted.
-const defaultFullAboutMeData: AboutMeData = {
-  name: 'Default Name',
-  title: 'Default Title',
-  bio: 'Default bio.',
-  profileImage: 'https://placehold.co/300x300.png',
-  dataAiHint: 'profile picture',
-  experience: [],
-  education: [],
-  email: 'default@example.com',
-  linkedinUrl: '',
-  githubUrl: '',
-  twitterUrl: '',
-};
+const aboutMeDocRef = () => {
+  if (!firestore) throw new Error("Firestore not initialized");
+  return doc(firestore, 'app_config', 'aboutMeDoc');
+}
 
 export async function getAboutMeDataAction(): Promise<AboutMeData> {
+  if (!firestore) {
+    console.warn("Firestore not initialized in getAboutMeDataAction. Returning default data.");
+    return defaultAboutMeDataForClient;
+  }
   try {
-    const fileContent = await fs.readFile(dataFilePath, 'utf-8');
-    if (!fileContent.trim()) {
-        console.warn("Data file is empty in getAboutMeDataAction, returning default structure.");
-        return defaultFullAboutMeData;
+    const docSnap = await getDoc(aboutMeDocRef());
+    if (docSnap.exists()) {
+      const data = docSnap.data() as AboutMeData;
+      // Ensure experience and education arrays are present, even if empty from DB
+      return {
+        ...defaultAboutMeDataForClient, // provides structure
+        ...data, // overwrites with DB data
+        experience: data.experience || [],
+        education: data.education || [],
+      };
+    } else {
+      console.warn("About Me document not found in Firestore. Returning default data.");
+      return defaultAboutMeDataForClient;
     }
-    const appData = JSON.parse(fileContent) as Partial<AppData>;
-    
-    return {
-      ...defaultFullAboutMeData, 
-      ...(appData.aboutMe ?? {}), 
-    };
   } catch (error) {
-    console.error("Error reading or parsing data.json in getAboutMeDataAction, returning default structure:", error);
-    return defaultFullAboutMeData;
+    console.error("Error fetching About Me data from Firestore:", error);
+    return defaultAboutMeDataForClient; // Fallback to defaults on error
   }
 }
