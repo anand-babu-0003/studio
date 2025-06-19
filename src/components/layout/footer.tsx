@@ -116,7 +116,7 @@ export default function Footer({ aboutMeData }: FooterProps) {
             {displayedData.name || defaultAboutMeDataForClient.name}. All rights reserved.
           </p>
           <p className="text-sm text-muted-foreground mt-2">
-            💻 Made with caffeine, code, and mild chaos — by B.Anand
+            💻 Made with caffeine, code, and mild chaos — by <Link href="/admin/dashboard" className="text-primary hover:underline font-semibold">B.Anand</Link>
           </p>
         </div>
       </div>

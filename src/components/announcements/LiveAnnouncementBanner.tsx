@@ -13,9 +13,12 @@ interface FetchedAnnouncement extends Omit<Announcement, 'createdAt'> {
   createdAt: FirestoreTimestamp;
 }
 
+const AUTO_HIDE_DELAY = 15000; // 15 seconds
+
 export default function LiveAnnouncementBanner() {
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const [hideTimer, setHideTimer] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!firestore) {
@@ -33,26 +36,24 @@ export default function LiveAnnouncementBanner() {
       if (!snapshot.empty) {
         const doc = snapshot.docs[0];
         const data = doc.data() as FetchedAnnouncement;
-        // Check if this is a new announcement or if it's different from current
-        // For simplicity, we'll just show the latest one if it exists and is active
-        if (data.isActive !== false) { // Default to show if isActive is not explicitly false
+        
+        if (data.isActive !== false) {
           const newAnnouncement: Announcement = {
             id: doc.id,
             message: data.message,
-            createdAt: data.createdAt.toDate(), // Convert Timestamp to Date
+            createdAt: data.createdAt.toDate(),
             isActive: data.isActive,
           };
           
-          // Only update and show if it's different from the current one or if current is null
+          // If it's a new announcement or different message, show it
           if (!announcement || announcement.id !== newAnnouncement.id || announcement.message !== newAnnouncement.message) {
             setAnnouncement(newAnnouncement);
             setIsVisible(true);
           } else if (announcement && announcement.id === newAnnouncement.id && !isVisible) {
-            // If same announcement, but banner was dismissed, make it visible again (optional behavior)
-             // setIsVisible(true); // Uncomment to re-show dismissed banners on new data if it's the same announcement
+            // Potentially re-show if it's the same but was dismissed, though auto-hide might make this less relevant
+            // setIsVisible(true); // Optional: re-trigger visibility if needed
           }
         } else {
-          // If latest is not active, effectively clear the banner
           setAnnouncement(null);
           setIsVisible(false);
         }
@@ -67,7 +68,36 @@ export default function LiveAnnouncementBanner() {
     });
 
     return () => unsubscribe();
-  }, [announcement, isVisible]); // Re-run if current announcement changes to handle updates/dismissals
+  }, [announcement]); // Rerun if current announcement changes to allow for updates
+
+  useEffect(() => {
+    if (hideTimer) {
+      clearTimeout(hideTimer);
+      setHideTimer(null);
+    }
+
+    if (isVisible && announcement) {
+      const timer = setTimeout(() => {
+        setIsVisible(false);
+      }, AUTO_HIDE_DELAY);
+      setHideTimer(timer);
+    }
+
+    return () => {
+      if (hideTimer) {
+        clearTimeout(hideTimer);
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isVisible, announcement]); // Re-run if visibility or announcement changes
+
+  const handleDismiss = () => {
+    setIsVisible(false);
+    if (hideTimer) {
+      clearTimeout(hideTimer);
+      setHideTimer(null);
+    }
+  };
 
   if (!isVisible || !announcement) {
     return null;
@@ -90,7 +120,7 @@ export default function LiveAnnouncementBanner() {
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => setIsVisible(false)}
+        onClick={handleDismiss}
         aria-label="Dismiss announcement"
         className="h-7 w-7 p-1 text-accent-foreground hover:bg-accent/80"
       >

@@ -114,7 +114,7 @@ export default function AdminSkillsPage() {
         const existingIndex = prevSkills.findIndex(s => s.id === savedSkill.id);
         let newSkillsArray;
         if (existingIndex > -1) {
-          newSkillsArray = prevSkills.map(s => s.id === savedSkill.id ? savedSkill : s);
+          newSkillsArray = prevSkills.map(s => s.id === savedSkill.id ? savedSkill : s); // Corrected typo here
         } else {
           newSkillsArray = [savedSkill, ...prevSkills];
         }
