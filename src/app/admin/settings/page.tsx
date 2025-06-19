@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { Info, UploadCloud, Search, Save, Loader2 } from 'lucide-react';
+import { Info, Search, Save, Loader2 } from 'lucide-react'; // Changed UploadCloud to Info
 
 import type { SiteSettings } from '@/lib/types';
 import { siteSettingsAdminSchema, type SiteSettingsAdminFormData } from '@/lib/adminSchemas';
@@ -183,8 +183,8 @@ export default function AdminSettingsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Alert variant="default" className="mt-0"> {/* Changed margin from mt-4 to mt-0 */}
-              <UploadCloud className="h-4 w-4" />
+            <Alert variant="default" className="mt-0">
+              <Info className="h-4 w-4" /> {/* Changed icon here */}
               <AlertTitle>Favicon Management</AlertTitle>
               <AlertDescription>
                 To change your site's favicon:
