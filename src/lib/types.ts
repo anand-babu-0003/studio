@@ -68,7 +68,9 @@ export interface SiteSettings {
   defaultMetaDescription: string;
   defaultMetaKeywords?: string;
   siteOgImageUrl?: string;
-  maintenanceMode?: boolean; // Added for live updates
+  maintenanceMode?: boolean;
+  skillsPageMetaTitle?: string; // Added
+  skillsPageMetaDescription?: string; // Added
 }
 
 export interface NotFoundPageData {
@@ -84,7 +86,7 @@ export interface AppData {
   skills: Skill[];
   aboutMe: AboutMeData;
   siteSettings: SiteSettings;
-  notFoundPage?: NotFoundPageData; // Added
+  notFoundPage?: NotFoundPageData;
 }
 
 export interface ContactMessage {

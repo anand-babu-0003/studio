@@ -121,7 +121,9 @@ export const siteSettingsAdminSchema = z.object({
   defaultMetaDescription: z.string().min(10, { message: "Meta Description must be at least 10 characters." }).max(160, {message: "Meta Description should not exceed 160 characters."}),
   defaultMetaKeywords: z.string().optional(),
   siteOgImageUrl: z.string().url({ message: "Please enter a valid URL for the Open Graph image or leave blank." }).or(z.literal("")).optional(),
-  maintenanceMode: z.boolean().optional(), // Added
+  maintenanceMode: z.boolean().optional(),
+  skillsPageMetaTitle: z.string().min(5, "Skills page meta title is too short.").max(70, "Skills page meta title is too long.").optional(),
+  skillsPageMetaDescription: z.string().min(10, "Skills page meta description is too short.").max(160, "Skills page meta description is too long.").optional(),
 });
 export type SiteSettingsAdminFormData = z.infer<typeof siteSettingsAdminSchema>;
 
@@ -133,3 +135,4 @@ export const notFoundPageAdminSchema = z.object({
   buttonText: z.string().min(3, "Button text is too short.").max(30, "Button text is too long."),
 });
 export type NotFoundPageAdminFormData = z.infer<typeof notFoundPageAdminSchema>;
+

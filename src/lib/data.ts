@@ -15,7 +15,9 @@ export const defaultSiteSettingsForClient: SiteSettings = {
   defaultMetaDescription: 'A showcase of my projects and skills in VermaVerse, the digital realm of Anand Verma.',
   defaultMetaKeywords: 'portfolio, web developer, react, nextjs, anand verma, full-stack',
   siteOgImageUrl: 'https://placehold.co/1200x630.png?text=VermaVerse',
-  maintenanceMode: false, // Added
+  maintenanceMode: false,
+  skillsPageMetaTitle: 'My Skills | VermaVerse', // Added
+  skillsPageMetaDescription: 'Explore my diverse skill set including programming languages, frameworks, and tools used in VermaVerse.', // Added
 };
 
 export const defaultExperienceForClient: Experience[] = [
@@ -32,7 +34,7 @@ export const defaultAboutMeDataForClient: AboutMeData = {
   name: 'Anand Verma',
   title: 'Full-Stack Developer & UI Enthusiast',
   bio: "Hello! I'm Anand, a passionate and results-oriented Full-Stack Developer with a keen eye for UI/UX design. My journey in the tech world is driven by the thrill of turning complex problems into elegant, user-friendly solutions. I thrive in collaborative environments and am always eager to learn and adapt to new technologies.\n\nIn VermaVerse, you'll find a collection of projects that showcase my dedication to quality, innovation, and a user-first approach. From architecting robust backend systems to crafting pixel-perfect frontends, I enjoy every aspect of the development lifecycle. Let's build something amazing together!",
-  profileImage: 'https://placehold.co/400x400.png?text=AV',
+  profileImage: 'https://github.com/anand-babu-0003/TrueValidator2/blob/main/Screenshot_2024-11-19-16-59-04-27_99c04817c0de5652397fc8b56c3b3817~2.jpg?raw=true',
   dataAiHint: 'developer portrait modern tech',
   experience: defaultExperienceForClient,
   education: defaultEducationForClient,
@@ -111,3 +113,4 @@ export const commonSkillNames: string[] = [
   "Agile", "Scrum", "Kanban", "CI/CD", "REST APIs", "GraphQL", "Microservices", "Serverless",
   "Problem Solving", "Critical Thinking", "Communication", "Teamwork", "Project Management", "Leadership", "UI/UX Design Principles"
 ];
+

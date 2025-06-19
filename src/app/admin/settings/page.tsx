@@ -15,7 +15,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { Info, Save, Loader2, Tool } from 'lucide-react'; 
+import { Info, Save, Loader2, Tool, Settings2, ListChecks } from 'lucide-react'; 
 import FullScreenLoader from '@/components/shared/FullScreenLoader';
 
 import { siteSettingsAdminSchema, type SiteSettingsAdminFormData } from '@/lib/adminSchemas';
@@ -30,6 +30,8 @@ const defaultFormValues: SiteSettingsAdminFormData = {
   defaultMetaKeywords: defaultSiteSettingsForClient.defaultMetaKeywords || '',
   siteOgImageUrl: defaultSiteSettingsForClient.siteOgImageUrl || '',
   maintenanceMode: defaultSiteSettingsForClient.maintenanceMode || false,
+  skillsPageMetaTitle: defaultSiteSettingsForClient.skillsPageMetaTitle || '', // Added
+  skillsPageMetaDescription: defaultSiteSettingsForClient.skillsPageMetaDescription || '', // Added
 };
 
 function SubmitButton() {
@@ -73,6 +75,8 @@ export default function AdminSettingsPage() {
             defaultMetaKeywords: currentSettings.defaultMetaKeywords || '',
             siteOgImageUrl: currentSettings.siteOgImageUrl || '',
             maintenanceMode: typeof currentSettings.maintenanceMode === 'boolean' ? currentSettings.maintenanceMode : false,
+            skillsPageMetaTitle: currentSettings.skillsPageMetaTitle || defaultSiteSettingsForClient.skillsPageMetaTitle || '', // Added
+            skillsPageMetaDescription: currentSettings.skillsPageMetaDescription || defaultSiteSettingsForClient.skillsPageMetaDescription || '', // Added
           });
         } else {
           form.reset(defaultFormValues); 
@@ -133,7 +137,7 @@ export default function AdminSettingsPage() {
           <form action={settingsFormAction} className="space-y-8">
             <Card>
               <CardHeader>
-                <CardTitle>General Site Information & SEO</CardTitle>
+                <CardTitle className="flex items-center gap-2"><Settings2 className="h-6 w-6 text-primary" /> General Site Information & SEO</CardTitle>
                 <CardDescription>
                   Basic information and default SEO settings for your website.
                 </CardDescription>
@@ -182,8 +186,8 @@ export default function AdminSettingsPage() {
                  <FormField control={form.control} name="maintenanceMode" render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                     <div className="space-y-0.5">
-                      <FormLabel className="text-base">Maintenance Mode</FormLabel>
-                      <p className="text-xs text-muted-foreground">
+                      <FormLabel className="text-base flex items-center gap-2"><Tool className="h-4 w-4" />Maintenance Mode</FormLabel>
+                      <p className="text-xs text-muted-foreground pl-6">
                         If enabled, a maintenance banner will be shown to users.
                       </p>
                     </div>
@@ -194,6 +198,40 @@ export default function AdminSettingsPage() {
                         name={field.name} 
                       />
                     </FormControl>
+                  </FormItem>
+                )} />
+              </CardContent>
+              <CardFooter className="flex justify-end">
+                <SubmitButton />
+              </CardFooter>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><ListChecks className="h-6 w-6 text-primary" /> Skills Page SEO</CardTitle>
+                <CardDescription>
+                  Customize the meta title and description specifically for your Skills page.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <FormField control={form.control} name="skillsPageMetaTitle" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Skills Page Meta Title</FormLabel>
+                    <FormControl><Input {...field} placeholder="My Skills | Your Site Name" /></FormControl>
+                    <FormMessage />
+                    <p className="text-xs text-muted-foreground">
+                      The title that appears in browser tabs and search results for the /skills page.
+                    </p>
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="skillsPageMetaDescription" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Skills Page Meta Description</FormLabel>
+                    <FormControl><Input {...field} placeholder="A summary of my technical skills and expertise." /></FormControl>
+                    <FormMessage />
+                    <p className="text-xs text-muted-foreground">
+                      A brief description (max 160 characters) for the /skills page, used by search engines.
+                    </p>
                   </FormItem>
                 )} />
               </CardContent>

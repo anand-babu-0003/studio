@@ -34,7 +34,9 @@ export async function getSiteSettingsAction(): Promise<SiteSettings> {
         defaultMetaDescription: data.defaultMetaDescription || defaultSiteSettingsForClient.defaultMetaDescription,
         defaultMetaKeywords: data.defaultMetaKeywords || defaultSiteSettingsForClient.defaultMetaKeywords,
         siteOgImageUrl: data.siteOgImageUrl || defaultSiteSettingsForClient.siteOgImageUrl,
-        maintenanceMode: typeof data.maintenanceMode === 'boolean' ? data.maintenanceMode : defaultSiteSettingsForClient.maintenanceMode, // Added
+        maintenanceMode: typeof data.maintenanceMode === 'boolean' ? data.maintenanceMode : defaultSiteSettingsForClient.maintenanceMode,
+        skillsPageMetaTitle: data.skillsPageMetaTitle || defaultSiteSettingsForClient.skillsPageMetaTitle, // Added
+        skillsPageMetaDescription: data.skillsPageMetaDescription || defaultSiteSettingsForClient.skillsPageMetaDescription, // Added
       };
     } else {
       console.warn("Site settings document not found in Firestore. Returning default settings.");
@@ -62,19 +64,21 @@ export async function updateSiteSettingsAction(
       message: criticalErrorLog,
       status: 'error',
       errors: {},
-      data: { // Provide current form data back to avoid data loss on UI
+      data: { 
         siteName: String(formData.get('siteName') || defaultSiteSettingsForClient.siteName),
         defaultMetaDescription: String(formData.get('defaultMetaDescription') || defaultSiteSettingsForClient.defaultMetaDescription),
         defaultMetaKeywords: String(formData.get('defaultMetaKeywords') || defaultSiteSettingsForClient.defaultMetaKeywords || ''),
         siteOgImageUrl: String(formData.get('siteOgImageUrl') || defaultSiteSettingsForClient.siteOgImageUrl || ''),
         maintenanceMode: formData.get('maintenanceMode') === 'on',
+        skillsPageMetaTitle: String(formData.get('skillsPageMetaTitle') || defaultSiteSettingsForClient.skillsPageMetaTitle || ''), // Added
+        skillsPageMetaDescription: String(formData.get('skillsPageMetaDescription') || defaultSiteSettingsForClient.skillsPageMetaDescription || ''), // Added
       }
     };
   }
 
   let currentSettings: SiteSettings;
   try {
-    currentSettings = await getSiteSettingsAction(); // Fetch current to ensure no data loss for fields not on form
+    currentSettings = await getSiteSettingsAction(); 
   } catch (e) {
      console.error("Failed to read current site settings before update:", e);
      return { message: "Failed to read current settings. Update aborted.", status: 'error' };
@@ -87,7 +91,9 @@ export async function updateSiteSettingsAction(
       defaultMetaDescription: String(formData.get('defaultMetaDescription') || currentSettings.defaultMetaDescription),
       defaultMetaKeywords: String(formData.get('defaultMetaKeywords') || currentSettings.defaultMetaKeywords || ''),
       siteOgImageUrl: String(formData.get('siteOgImageUrl') || currentSettings.siteOgImageUrl || ''),
-      maintenanceMode: formData.get('maintenanceMode') === 'on', // HTML forms send "on" for checked
+      maintenanceMode: formData.get('maintenanceMode') === 'on',
+      skillsPageMetaTitle: String(formData.get('skillsPageMetaTitle') || currentSettings.skillsPageMetaTitle || ''), // Added
+      skillsPageMetaDescription: String(formData.get('skillsPageMetaDescription') || currentSettings.skillsPageMetaDescription || ''), // Added
     };
 
     const validatedFields = siteSettingsAdminSchema.safeParse(rawData);
@@ -108,25 +114,26 @@ export async function updateSiteSettingsAction(
       defaultMetaDescription: validatedFields.data.defaultMetaDescription,
       defaultMetaKeywords: validatedFields.data.defaultMetaKeywords || '',
       siteOgImageUrl: validatedFields.data.siteOgImageUrl || '',
-      maintenanceMode: validatedFields.data.maintenanceMode || false, // Default to false if not provided
+      maintenanceMode: validatedFields.data.maintenanceMode || false,
+      skillsPageMetaTitle: validatedFields.data.skillsPageMetaTitle || '', // Added
+      skillsPageMetaDescription: validatedFields.data.skillsPageMetaDescription || '', // Added
     };
 
     await setDoc(siteSettingsDocRef(), dataToSave, { merge: true });
 
-    // Revalidate all key paths that might display site settings or titles
-    revalidatePath('/', 'layout'); // This should revalidate the layout and thus RootLayout
-    revalidatePath('/'); // Homepage
+    revalidatePath('/', 'layout'); 
+    revalidatePath('/'); 
     revalidatePath('/about');
     revalidatePath('/portfolio');
     revalidatePath('/portfolio/[slug]', 'page');
-    revalidatePath('/skills');
+    revalidatePath('/skills'); // Ensure skills page is revalidated
     revalidatePath('/contact');
     revalidatePath('/admin/settings');
 
     return {
       message: "Site settings updated successfully!",
       status: 'success',
-      data: validatedFields.data, // Return the validated data
+      data: validatedFields.data, 
       errors: {},
     };
 
@@ -138,6 +145,8 @@ export async function updateSiteSettingsAction(
       defaultMetaKeywords: String(formData.get('defaultMetaKeywords') || defaultSiteSettingsForClient.defaultMetaKeywords || ''),
       siteOgImageUrl: String(formData.get('siteOgImageUrl') || defaultSiteSettingsForClient.siteOgImageUrl || ''),
       maintenanceMode: formData.get('maintenanceMode') === 'on',
+      skillsPageMetaTitle: String(formData.get('skillsPageMetaTitle') || defaultSiteSettingsForClient.skillsPageMetaTitle || ''), // Added
+      skillsPageMetaDescription: String(formData.get('skillsPageMetaDescription') || defaultSiteSettingsForClient.skillsPageMetaDescription || ''), // Added
     };
     const errorMessage = (error instanceof Error && 'code' in error)
       ? `Firebase error (${(error as any).code}): ${(error as Error).message}`

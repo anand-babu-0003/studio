@@ -1,17 +1,54 @@
 
 "use client"; 
 
+import type { Metadata } from 'next';
 import { PageHeader } from '@/components/shared/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { lucideIconsMap, skillCategories as SKILL_CATEGORIES_STATIC, defaultSkillsDataForClient } from '@/lib/data';
+import { lucideIconsMap, skillCategories as SKILL_CATEGORIES_STATIC, defaultSkillsDataForClient, defaultSiteSettingsForClient } from '@/lib/data';
 import type { Skill } from '@/lib/types';
 import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wrapper';
 import { Package } from 'lucide-react'; 
 import { Badge } from '@/components/ui/badge';
 import { getSkillsAction } from '@/actions/admin/skillsActions';
+import { getSiteSettingsAction } from '@/actions/admin/settingsActions';
 import { useEffect, useState } from 'react';
 import FullScreenLoader from '@/components/shared/FullScreenLoader';
+
+// This function now makes `getSiteSettingsAction` to be called at build time for static generation,
+// or server-side for dynamic rendering.
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const siteSettings = await getSiteSettingsAction();
+    const pageTitle = siteSettings?.skillsPageMetaTitle || defaultSiteSettingsForClient.skillsPageMetaTitle || "My Skills";
+    const siteName = siteSettings?.siteName || defaultSiteSettingsForClient.siteName;
+    const title = `${pageTitle} | ${siteName}`;
+    const description = siteSettings?.skillsPageMetaDescription || defaultSiteSettingsForClient.skillsPageMetaDescription || "A showcase of my technical skills and expertise.";
+    const ogImageUrl = siteSettings?.siteOgImageUrl || defaultSiteSettingsForClient.siteOgImageUrl;
+
+    return {
+      title,
+      description,
+      openGraph: {
+        title,
+        description,
+        images: ogImageUrl ? [{ url: ogImageUrl }] : [],
+      },
+    };
+  } catch (error) {
+    console.error("Error generating metadata for skills page:", error);
+    // Fallback metadata if the action fails
+    const siteName = defaultSiteSettingsForClient.siteName;
+    const pageTitle = defaultSiteSettingsForClient.skillsPageMetaTitle || "My Skills";
+    const title = `${pageTitle} | ${siteName}`;
+    const description = defaultSiteSettingsForClient.skillsPageMetaDescription || "A showcase of my technical skills and expertise.";
+    return {
+      title,
+      description,
+    };
+  }
+}
+
 
 export default function SkillsPage() { 
   const [skillsData, setSkillsData] = useState<Skill[]>([]);
