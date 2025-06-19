@@ -9,41 +9,35 @@ import Navbar from '@/components/layout/navbar';
 import Footer from '@/components/layout/footer';
 import { ThemeProvider } from '@/components/layout/theme-provider';
 import type { SiteSettings, AboutMeData } from '@/lib/types';
-import { getSiteSettingsAction } from '@/actions/admin/settingsActions';
 import { getAboutMeDataAction } from '@/actions/getAboutMeDataAction';
 import { defaultSiteSettingsForClient, defaultAboutMeDataForClient } from '@/lib/data';
-import { Loader2 } from 'lucide-react';
-import LiveAnnouncementBanner from '@/components/announcements/LiveAnnouncementBanner'; // Added
+import { Loader2, AlertTriangle } from 'lucide-react'; // Added AlertTriangle
+import LiveAnnouncementBanner from '@/components/announcements/LiveAnnouncementBanner';
 
-// Helper function to create or update a meta tag
+import { firestore } from '@/lib/firebaseConfig'; // For live updates
+import { doc, onSnapshot } from 'firebase/firestore'; // For live updates
+
+
 function updateMetaTag(name: string, content: string, isProperty: boolean = false) {
   if (typeof document === 'undefined') return;
-
   let element = isProperty
     ? document.querySelector(`meta[property="${name}"]`)
     : document.querySelector(`meta[name="${name}"]`);
-
   if (!element) {
     element = document.createElement('meta');
-    if (isProperty) {
-      element.setAttribute('property', name);
-    } else {
-      element.setAttribute('name', name);
-    }
+    if (isProperty) element.setAttribute('property', name);
+    else element.setAttribute('name', name);
     document.head.appendChild(element);
   }
   element.setAttribute('content', content);
 }
 
-// Helper function to remove a meta tag
 function removeMetaTag(name: string, isProperty: boolean = false) {
   if (typeof document === 'undefined') return;
   const element = isProperty
     ? document.querySelector(`meta[property="${name}"]`)
     : document.querySelector(`meta[name="${name}"]`);
-  if (element) {
-    element.remove();
-  }
+  if (element) element.remove();
 }
 
 
@@ -64,28 +58,50 @@ export default function RootLayout({
 
   useEffect(() => {
     setIsMounted(true); 
+    let settingsUnsubscribe: (() => void) | undefined;
 
-    const fetchInitialData = async () => {
-      setIsLayoutLoading(true);
+    const fetchInitialAboutData = async () => {
       try {
-        const settingsPromise = getSiteSettingsAction();
-        const aboutPromise = getAboutMeDataAction();
-        
-        const [settings, aboutData] = await Promise.all([settingsPromise, aboutPromise]);
-
-        setCurrentSiteSettings(settings || defaultSiteSettingsForClient);
+        const aboutData = await getAboutMeDataAction();
         setCurrentAboutMeData(aboutData || defaultAboutMeDataForClient);
-
       } catch (error) {
-        console.error("Failed to fetch initial layout data:", error);
-        setCurrentSiteSettings(defaultSiteSettingsForClient); 
+        console.error("Failed to fetch initial About Me data:", error);
         setCurrentAboutMeData(defaultAboutMeDataForClient);
-      } finally {
-        setIsLayoutLoading(false);
       }
     };
 
-    fetchInitialData(); 
+    if (firestore) {
+      const settingsDocRef = doc(firestore, 'app_config', 'siteSettingsDoc');
+      settingsUnsubscribe = onSnapshot(settingsDocRef, 
+        (docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data() as SiteSettings;
+            setCurrentSiteSettings({
+              siteName: data.siteName || defaultSiteSettingsForClient.siteName,
+              defaultMetaDescription: data.defaultMetaDescription || defaultSiteSettingsForClient.defaultMetaDescription,
+              defaultMetaKeywords: data.defaultMetaKeywords || defaultSiteSettingsForClient.defaultMetaKeywords,
+              siteOgImageUrl: data.siteOgImageUrl || defaultSiteSettingsForClient.siteOgImageUrl,
+              maintenanceMode: typeof data.maintenanceMode === 'boolean' ? data.maintenanceMode : defaultSiteSettingsForClient.maintenanceMode,
+            });
+          } else {
+            console.warn("Site settings document not found in Firestore for live listener. Using defaults.");
+            setCurrentSiteSettings(defaultSiteSettingsForClient);
+          }
+          if(isLayoutLoading) setIsLayoutLoading(false); // Mark as loaded after first snapshot
+        },
+        (error) => {
+          console.error("Error listening to site settings:", error);
+          setCurrentSiteSettings(defaultSiteSettingsForClient); // Fallback on error
+           if(isLayoutLoading) setIsLayoutLoading(false);
+        }
+      );
+    } else {
+      console.warn("RootLayout: Firestore not available for live settings updates. Using defaults and marking as loaded.");
+      setCurrentSiteSettings(defaultSiteSettingsForClient);
+      setIsLayoutLoading(false);
+    }
+
+    fetchInitialAboutData(); 
 
     const handleMouseMove = (event: MouseEvent) => {
       setMousePosition({ x: event.clientX, y: event.clientY });
@@ -99,8 +115,13 @@ export default function RootLayout({
       if (!isAdminRoute) {
         window.removeEventListener('mousemove', handleMouseMove);
       }
+      if (settingsUnsubscribe) {
+        settingsUnsubscribe();
+      }
     };
-  }, [isAdminRoute]); 
+  // isLayoutLoading is added to dependency array to ensure that setIsLayoutLoading(false) is called.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdminRoute, isLayoutLoading]); 
 
 
   useEffect(() => {
@@ -116,21 +137,22 @@ export default function RootLayout({
                               .join(' ');
         }
         
-        const formattedPageTitle = pageTitleSegment;
         const siteNameBase = currentSiteSettings.siteName || defaultSiteSettingsForClient.siteName;
+        let title = siteNameBase;
 
         if (pathname === '/') {
-            document.title = siteNameBase;
-        } else if (formattedPageTitle && !isAdminRoute) {
-            document.title = `${formattedPageTitle} | ${siteNameBase}`;
+            title = siteNameBase;
+        } else if (pageTitleSegment && !isAdminRoute) {
+            title = `${pageTitleSegment} | ${siteNameBase}`;
         } else if (isAdminRoute && pathSegments.length > 1 && pathSegments[0] === 'admin') {
-            const adminPageTitle = formattedPageTitle || 'Dashboard'; 
-            document.title = `Admin: ${adminPageTitle} | ${siteNameBase}`;
+            const adminPageTitle = pageTitleSegment || 'Dashboard'; 
+            title = `Admin: ${adminPageTitle} | ${siteNameBase}`;
         } else if (isAdminRoute && (pathname === '/admin' || pathname === '/admin/')) {
-            document.title = `Admin: Dashboard | ${siteNameBase}`;
-        } else {
-            document.title = formattedPageTitle ? `${formattedPageTitle} | ${siteNameBase}` : siteNameBase;
+            title = `Admin: Dashboard | ${siteNameBase}`;
+        } else if (pageTitleSegment) {
+             title = `${pageTitleSegment} | ${siteNameBase}`;
         }
+        document.title = title;
 
         updateMetaTag('description', currentSiteSettings.defaultMetaDescription || defaultSiteSettingsForClient.defaultMetaDescription);
         updateMetaTag('og:title', document.title, true); 
@@ -200,7 +222,16 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {!isAdminRoute && <LiveAnnouncementBanner />} {/* Added Banner */}
+          {!isAdminRoute && <LiveAnnouncementBanner />}
+          {currentSiteSettings.maintenanceMode && !isAdminRoute && (
+            <div className="fixed top-0 left-0 right-0 z-[101] p-3 bg-destructive text-destructive-foreground shadow-md flex items-center justify-center gap-2">
+              <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+              <p className="text-sm font-medium">
+                The site is currently under maintenance. Some features may be unavailable.
+              </p>
+            </div>
+          )}
+          
           {isLayoutLoading && !isAdminRoute ? (
              <div className="flex-grow flex items-center justify-center">
                 <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -208,7 +239,7 @@ export default function RootLayout({
           ) : (
             <>
               {!isAdminRoute && <Navbar />}
-              <div className="flex-grow pt-10">{/* Added pt-10 to prevent overlap with banner */}
+              <div className={`flex-grow ${currentSiteSettings.maintenanceMode && !isAdminRoute ? 'pt-12' : ''} ${!isAdminRoute && !currentSiteSettings.maintenanceMode ? 'pt-10' : 'pt-0'}`}>
                 {children}
               </div>
               {!isAdminRoute && <Footer aboutMeData={currentAboutMeData} />}

@@ -9,25 +9,23 @@ import {
 import { SKILL_CATEGORIES } from './constants';
 
 // --- Default Data Structures for Client-Side Admin Forms & Fallbacks ---
-// These are used to initialize forms or provide default content if Firestore data is unavailable.
-// IMPORTANT: These are defaults for when Firestore is unreachable or empty.
-// They should be deep-cloned when used to avoid mutation issues (e.g., JSON.parse(JSON.stringify(defaultXYZ))).
 
 export const defaultSiteSettingsForClient: SiteSettings = {
   siteName: 'VermaVerse',
   defaultMetaDescription: 'A showcase of my projects and skills in VermaVerse, the digital realm of Anand Verma.',
   defaultMetaKeywords: 'portfolio, web developer, react, nextjs, anand verma, full-stack',
   siteOgImageUrl: 'https://placehold.co/1200x630.png?text=VermaVerse',
+  maintenanceMode: false, // Added
 };
 
 export const defaultExperienceForClient: Experience[] = [
-  { id: 'exp_default_client_1', role: 'Lead Developer', company: 'Innovate Solutions Inc.', period: '2022 - Present', description: 'Spearheading the development of cutting-edge web applications using modern JavaScript frameworks and cloud technologies. Responsible for team leadership, code architecture, and project delivery.' },
-  { id: 'exp_default_client_2', role: 'Senior UI/UX Designer', company: 'Creative Designs Co.', period: '2020 - 2022', description: 'Designed intuitive and engaging user interfaces for various digital products. Conducted user research, created wireframes and prototypes, and collaborated closely with development teams.' },
+  { id: 'exp_default_client_1_static', role: 'Lead Developer', company: 'Innovate Solutions Inc.', period: '2022 - Present', description: 'Spearheading the development of cutting-edge web applications using modern JavaScript frameworks and cloud technologies. Responsible for team leadership, code architecture, and project delivery.' },
+  { id: 'exp_default_client_2_static', role: 'Senior UI/UX Designer', company: 'Creative Designs Co.', period: '2020 - 2022', description: 'Designed intuitive and engaging user interfaces for various digital products. Conducted user research, created wireframes and prototypes, and collaborated closely with development teams.' },
 ];
 
 export const defaultEducationForClient: Education[] = [
-  { id: 'edu_default_client_1', degree: 'Master of Science in Interaction Design', institution: 'Global Design Institute', period: '2018 - 2020' },
-  { id: 'edu_default_client_2', degree: 'Bachelor of Technology in Computer Science', institution: 'Tech University', period: '2014 - 2018' },
+  { id: 'edu_default_client_1_static', degree: 'Master of Science in Interaction Design', institution: 'Global Design Institute', period: '2018 - 2020' },
+  { id: 'edu_default_client_2_static', degree: 'Bachelor of Technology in Computer Science', institution: 'Tech University', period: '2014 - 2018' },
 ];
 
 export const defaultAboutMeDataForClient: AboutMeData = {
@@ -64,8 +62,8 @@ export const defaultPortfolioItemsDataForClient: PortfolioItem[] = [
     slug: 'personal-portfolio-vermaverse',
     dataAiHint: 'website design code modern',
     readmeContent: '# Personal Portfolio - VermaVerse\n\nThis project is the source code for my personal portfolio website, VermaVerse. It demonstrates my ability to build full-stack applications with modern technologies.\n\n## Key Features\n- Dynamic content managed via Firestore.\n- Responsive design for all devices.\n- Showcase of projects, skills, and professional background.\n- Interactive contact form.\n- Admin panel for content updates (portfolio, skills, about me, site settings).\n\n## Technology Stack\n- **Frontend**: Next.js (App Router), React, TypeScript, Tailwind CSS, ShadCN UI Components, Lucide Icons\n- **Backend/Database**: Firebase (Firestore)\n- **Styling**: Tailwind CSS, PostCSS\n- **State Management**: React Hooks, Server Actions\n- **Form Handling**: React Hook Form, Zod for validation\n\nThis site is deployed on Vercel.',
-    liveUrl: '#', // Should ideally be the actual URL of the deployed site
-    repoUrl: 'https://github.com/yourusername/vermaverse-portfolio', // Replace with actual repo if available
+    liveUrl: '#', 
+    repoUrl: 'https://github.com/yourusername/vermaverse-portfolio', 
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -81,12 +79,11 @@ export const defaultPortfolioItemsDataForClient: PortfolioItem[] = [
     readmeContent: '# E-commerce Platform Concept\n\nThis document outlines the concept for a modern e-commerce platform designed for scalability and excellent user experience.\n\n## Core Modules & Features\n- **Product Catalog Management**: Advanced filtering, search, product variants, reviews.\n- **User Authentication & Profiles**: Secure login, order history, wishlists.\n- **Shopping Cart & Checkout**: Streamlined multi-step checkout, multiple payment options.\n- **Order Management**: Admin dashboard for order tracking, inventory updates.\n- **Personalization Engine**: AI-driven product recommendations.\n- **Marketing & Promotions**: Coupon codes, sales events management.',
     liveUrl: '',
     repoUrl: '',
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(), // 7 days ago
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(), 
     updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
   }
 ];
 
-// --- Static Configurations (should not change often) ---
 export const skillCategories = SKILL_CATEGORIES;
 
 export const lucideIconsMap: { [key: string]: React.ElementType } = {

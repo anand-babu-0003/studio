@@ -13,8 +13,9 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Switch } from '@/components/ui/switch'; // Added Switch
 import { useToast } from '@/hooks/use-toast';
-import { Info, Save, Loader2 } from 'lucide-react';
+import { Info, Save, Loader2, Tool } from 'lucide-react'; // Added Tool icon
 
 import { siteSettingsAdminSchema, type SiteSettingsAdminFormData } from '@/lib/adminSchemas';
 import { getSiteSettingsAction, updateSiteSettingsAction, type UpdateSiteSettingsFormState } from '@/actions/admin/settingsActions';
@@ -27,6 +28,7 @@ const defaultFormValues: SiteSettingsAdminFormData = {
   defaultMetaDescription: defaultSiteSettingsForClient.defaultMetaDescription,
   defaultMetaKeywords: defaultSiteSettingsForClient.defaultMetaKeywords || '',
   siteOgImageUrl: defaultSiteSettingsForClient.siteOgImageUrl || '',
+  maintenanceMode: defaultSiteSettingsForClient.maintenanceMode || false, // Added
 };
 
 function SubmitButton() {
@@ -69,9 +71,10 @@ export default function AdminSettingsPage() {
             defaultMetaDescription: currentSettings.defaultMetaDescription || defaultSiteSettingsForClient.defaultMetaDescription,
             defaultMetaKeywords: currentSettings.defaultMetaKeywords || '',
             siteOgImageUrl: currentSettings.siteOgImageUrl || '',
+            maintenanceMode: typeof currentSettings.maintenanceMode === 'boolean' ? currentSettings.maintenanceMode : false, // Added
           });
         } else {
-          form.reset(defaultFormValues); // Fallback to hardcoded defaults if action returns null/undefined
+          form.reset(defaultFormValues); 
         }
       } catch (error) {
         console.error("Failed to fetch initial site settings:", error);
@@ -80,7 +83,7 @@ export default function AdminSettingsPage() {
           description: "Could not load current site settings.",
           variant: "destructive",
         });
-        form.reset(defaultFormValues); // Fallback on error
+        form.reset(defaultFormValues); 
       } finally {
         setIsLoadingInitialData(false);
       }
@@ -175,6 +178,23 @@ export default function AdminSettingsPage() {
                     </p>
                   </FormItem>
                 )} />
+                 <FormField control={form.control} name="maintenanceMode" render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Maintenance Mode</FormLabel>
+                      <p className="text-xs text-muted-foreground">
+                        If enabled, a maintenance banner will be shown to users.
+                      </p>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        name={field.name} // Ensure name attribute is passed for FormData
+                      />
+                    </FormControl>
+                  </FormItem>
+                )} />
               </CardContent>
               <CardFooter className="flex justify-end">
                 <SubmitButton />
@@ -207,6 +227,7 @@ export default function AdminSettingsPage() {
             </Alert>
           </CardContent>
         </Card>
+
       </div>
     </div>
   );

@@ -5,16 +5,14 @@ import { availableIconNames as ZOD_AVAILABLE_ICON_NAMES_CONST } from './data'; /
 
 const ZOD_SKILL_CATEGORIES = SKILL_CATEGORIES; 
 
-// Ensure ZOD_AVAILABLE_ICON_NAMES is a non-empty tuple for z.enum
 const ZOD_AVAILABLE_ICON_NAMES = ZOD_AVAILABLE_ICON_NAMES_CONST.length > 0 
     ? ZOD_AVAILABLE_ICON_NAMES_CONST as [string, ...string[]] 
-    : ['Package'] as [string, ...string[]]; // Fallback if empty, though unlikely
+    : ['Package'] as [string, ...string[]]; 
 
 if (ZOD_AVAILABLE_ICON_NAMES_CONST.length === 0) {
   console.warn("ZOD_AVAILABLE_ICON_NAMES is empty in adminSchemas.ts. Check lucideIconsMap in data.ts. Falling back to ['Package'].");
 }
 
-// --- Schemas ---
 export const experienceSchema = z.object({
   id: z.string().min(1, "Experience item ID is required"), 
   role: z.string().min(1, "Role is required"),
@@ -58,17 +56,17 @@ export type ProfileBioData = z.infer<typeof profileBioSchema>;
 
 export const experienceSectionSchema = z.object({
   experience: z.array(experienceSchema)
-    .min(0) // Allow empty array
-    .refine(items => { // Custom validation: ensure if an item is present, its fields are filled
+    .min(0) 
+    .refine(items => { 
         return items.every(item => 
             item.role.trim() !== '' || 
             item.company.trim() !== '' || 
             item.period.trim() !== '' || 
             item.description.trim() !== '' ||
-            !item.id.startsWith('new_exp_') // If it's an existing item, it's fine even if fields are now blank (to be caught by item schema)
+            !item.id.startsWith('new_exp_') 
         );
     }, { message: "New experience entries cannot be completely blank." })
-    .optional(), // Make the whole array optional if that's desired for forms
+    .optional(), 
 });
 export type ExperienceSectionData = z.infer<typeof experienceSectionSchema>;
 
@@ -123,5 +121,6 @@ export const siteSettingsAdminSchema = z.object({
   defaultMetaDescription: z.string().min(10, { message: "Meta Description must be at least 10 characters." }).max(160, {message: "Meta Description should not exceed 160 characters."}),
   defaultMetaKeywords: z.string().optional(),
   siteOgImageUrl: z.string().url({ message: "Please enter a valid URL for the Open Graph image or leave blank." }).or(z.literal("")).optional(),
+  maintenanceMode: z.boolean().optional(), // Added
 });
 export type SiteSettingsAdminFormData = z.infer<typeof siteSettingsAdminSchema>;

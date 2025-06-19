@@ -68,6 +68,7 @@ export interface SiteSettings {
   defaultMetaDescription: string;
   defaultMetaKeywords?: string;
   siteOgImageUrl?: string;
+  maintenanceMode?: boolean; // Added for live updates
 }
 
 export interface AppData {
