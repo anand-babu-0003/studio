@@ -38,7 +38,7 @@ import {
   List, ListChecks, ListEnd, ListFilter, ListMinus, ListMusic, ListOrdered, ListPlus, ListRestart, ListTodo,
   ListTree, ListVideo, ListX, Loader, Lock, LogIn, LogOut, Lollipop, Luggage, Map, MapPin, Martini, Maximize,
   Medal, Megaphone, Menu, Merge, Milestone, Milk, Minus, Monitor, Moon, MoreHorizontal, Mountain, Mouse,
-  MousePointer, Move, Music, Navigation, Newspaper, Nut, Orbit, PackageCheck, PackageMinus, PackageOpen, // Removed Npm
+  MousePointer, Move, Music, Navigation, Newspaper, Nut, Orbit, PackageCheck, PackageMinus, PackageOpen,
   PackagePlus, PackageSearch, PackageX, PaintBucket, Paintbrush, Palette as PaletteIcon, Palmtree, PanelBottom,
   PanelLeft, Paperclip, ParkingCircle, PartyPopper, Pause, PawPrint, PcCase, Pen, Pencil, Percent, PersonStanding,
   Phone, PieChart, Pin, Pipette, Pizza, Plane, Plug, Plus, Pointer, PoundSterling, Power, Presentation, Printer,
@@ -206,7 +206,7 @@ export const lucideIconsMap: { [key: string]: React.ElementType } = {
   BlenderIcon: Blend,
 };
 
-export const commonSkillNames: string[] = [
+export let commonSkillNames: string[] = [
   // Languages
   "JavaScript", "TypeScript", "Python", "Java", "C#", "Go", "Ruby", "Swift", "Kotlin", "PHP", "C++", "C", "Rust", "Scala", "Perl", "Lua", "Haskell", "Elixir", "Objective-C", "Solidity", "R", "Dart", "Groovy", "MATLAB",
   // Frontend Frameworks/Libraries
@@ -240,11 +240,10 @@ export const commonSkillNames: string[] = [
   // Blockchain
   "Solidity", "Ethereum", "Web3.js", "Ethers.js", "Hardhat", "Truffle",
   // Other Specific Technologies
-  "WordPress", "Drupal", "Shopify", "Magento", "Salesforce Development (Apex, LWC)", "SAP (ABAP, Fiori)", "Oracle PL/SQL", "PowerShell", "Bash Scripting", "Nginx", "Apache HTTP Server", "GraphQL Apollo", "Redux", "Vuex", "MobX", "Zustand", "Jotai", "RxJS", "Auth0", "Okta", "JWT", "OAuth", "WebSockets", "gRPC", "WebRTC", "D3.js", "Three.js", "Electron.js", "Kafka", "RabbitMQ", "Elastic Stack", "Splunk", "npm" // Added npm to common skills
+  "WordPress", "Drupal", "Shopify", "Magento", "Salesforce Development (Apex, LWC)", "SAP (ABAP, Fiori)", "Oracle PL/SQL", "PowerShell", "Bash Scripting", "Nginx", "Apache HTTP Server", "GraphQL Apollo", "Redux", "Vuex", "MobX", "Zustand", "Jotai", "RxJS", "Auth0", "Okta", "JWT", "OAuth", "WebSockets", "gRPC", "WebRTC", "D3.js", "Three.js", "Electron.js", "Kafka", "RabbitMQ", "Elastic Stack", "Splunk", "npm" // Added npm
 ];
 
-const uniqueCommonSkillNames = [...new Set(commonSkillNames)].sort((a, b) => a.localeCompare(b));
-export { uniqueCommonSkillNames as commonSkillNames };
+commonSkillNames = [...new Set(commonSkillNames)].sort((a, b) => a.localeCompare(b));
 
 const ensureIcon = (name: string, iconComponent: React.ElementType) => {
   if (!lucideIconsMap[name]) {
@@ -252,30 +251,30 @@ const ensureIcon = (name: string, iconComponent: React.ElementType) => {
   }
 };
 
-uniqueCommonSkillNames.forEach(skillName => {
-  if (skillName.toLowerCase().includes('python')) ensureIcon(skillName, Code);
-  else if (skillName.toLowerCase().includes('java') && !skillName.toLowerCase().includes('javascript')) ensureIcon(skillName, CupSoda);
-  else if (skillName.toLowerCase().includes('react') || skillName.toLowerCase().includes('next.js')) ensureIcon(skillName, Laptop);
-  else if (skillName.toLowerCase().includes('node.js') || skillName.toLowerCase().includes('express.js')) ensureIcon(skillName, Server);
-  else if (skillName.toLowerCase().includes('figma')) ensureIcon(skillName, Figma);
-  else if (skillName.toLowerCase().includes('aws') || skillName.toLowerCase().includes('azure') || skillName.toLowerCase().includes('gcp') || skillName.toLowerCase().includes('cloud')) ensureIcon(skillName, Cloud);
-  else if (skillName.toLowerCase().includes('docker')) ensureIcon(skillName, Container);
-  else if (skillName.toLowerCase().includes('kubernetes')) ensureIcon(skillName, Orbit);
-  else if (skillName.toLowerCase().includes('git')) ensureIcon(skillName, GitMerge);
-  else if (skillName.toLowerCase().includes('sql') || skillName.toLowerCase().includes('database')) ensureIcon(skillName, Database);
-  else if (skillName.toLowerCase().includes('c#') || skillName.toLowerCase().includes('c++')) ensureIcon(skillName, Code);
-  else if (skillName.toLowerCase().includes('swift') || skillName.toLowerCase().includes('kotlin') || skillName.toLowerCase().includes('android') || skillName.toLowerCase().includes('ios')) ensureIcon(skillName, Smartphone);
-  else if (skillName.toLowerCase().includes('ruby')) ensureIcon(skillName, Gem);
-  else if (skillName.toLowerCase().includes('php')) ensureIcon(skillName, Code);
-  else if (skillName.toLowerCase().includes('rust')) ensureIcon(skillName, ShieldCheck);
-  else if (skillName.toLowerCase().includes('ai') || skillName.toLowerCase().includes('machine learning') || skillName.toLowerCase().includes('tensorflow') || skillName.toLowerCase().includes('pytorch')) ensureIcon(skillName, Brain);
-  else if (skillName.toLowerCase().includes('unity') || skillName.toLowerCase().includes('unreal')) ensureIcon(skillName, Puzzle);
-  else if (skillName.toLowerCase().includes('blender')) ensureIcon(skillName, Blend);
-  else if (skillName.toLowerCase() === 'npm') ensureIcon(skillName, Package); // Map npm skill to Package icon
+commonSkillNames.forEach(skillName => {
+  const lowerSkillName = skillName.toLowerCase();
+  if (lowerSkillName.includes('python')) ensureIcon(skillName, Code);
+  else if (lowerSkillName.includes('java') && !lowerSkillName.includes('javascript')) ensureIcon(skillName, CupSoda);
+  else if (lowerSkillName.includes('react') || lowerSkillName.includes('next.js')) ensureIcon(skillName, Laptop);
+  else if (lowerSkillName.includes('node.js') || lowerSkillName.includes('express.js')) ensureIcon(skillName, Server);
+  else if (lowerSkillName.includes('figma')) ensureIcon(skillName, Figma);
+  else if (lowerSkillName.includes('aws') || lowerSkillName.includes('azure') || lowerSkillName.includes('gcp') || lowerSkillName.includes('cloud')) ensureIcon(skillName, Cloud);
+  else if (lowerSkillName.includes('docker')) ensureIcon(skillName, Container);
+  else if (lowerSkillName.includes('kubernetes')) ensureIcon(skillName, Orbit);
+  else if (lowerSkillName.includes('git')) ensureIcon(skillName, GitMerge);
+  else if (lowerSkillName.includes('sql') || lowerSkillName.includes('database')) ensureIcon(skillName, Database);
+  else if (lowerSkillName.includes('c#') || lowerSkillName.includes('c++')) ensureIcon(skillName, Code);
+  else if (lowerSkillName.includes('swift') || lowerSkillName.includes('kotlin') || lowerSkillName.includes('android') || lowerSkillName.includes('ios')) ensureIcon(skillName, Smartphone);
+  else if (lowerSkillName.includes('ruby')) ensureIcon(skillName, Gem);
+  else if (lowerSkillName.includes('php')) ensureIcon(skillName, Code);
+  else if (lowerSkillName.includes('rust')) ensureIcon(skillName, ShieldCheck);
+  else if (lowerSkillName.includes('ai') || lowerSkillName.includes('machine learning') || lowerSkillName.includes('tensorflow') || lowerSkillName.includes('pytorch')) ensureIcon(skillName, Brain);
+  else if (lowerSkillName.includes('unity') || lowerSkillName.includes('unreal')) ensureIcon(skillName, Puzzle);
+  else if (lowerSkillName.includes('blender')) ensureIcon(skillName, Blend); // Changed to use Blend icon for Blender
+  else if (lowerSkillName === 'npm') ensureIcon(skillName, Package); 
   else ensureIcon(skillName, Package);
 });
 
 export const availableIconNames = Object.keys(lucideIconsMap);
 
-Object.assign(module.exports, { availableIconNames: Object.keys(lucideIconsMap) });
     
