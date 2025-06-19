@@ -24,7 +24,8 @@ export async function getSkillsAction(): Promise<LibSkillType[]> {
     return JSON.parse(JSON.stringify(defaultSkillsDataForClient)); // Return deep clone of defaults
   }
   try {
-    const q = query(skillsCollectionRef(), orderBy('category'), orderBy('name'));
+    // Explicitly stating 'asc' for order, though it's the default
+    const q = query(skillsCollectionRef(), orderBy('category', 'asc'), orderBy('name', 'asc'));
     const snapshot = await getDocs(q);
 
     if (snapshot.empty) {
@@ -42,6 +43,12 @@ export async function getSkillsAction(): Promise<LibSkillType[]> {
     });
   } catch (error) {
     console.error("Error fetching skills from Firestore:", error);
+    // If it's an index error, it will be caught here and logged.
+    // The UI will then likely show default/empty data.
+    if (error instanceof Error && error.message.includes("query requires an index")) {
+        console.error("Firebase Firestore: The query for skills requires a composite index. Please ensure it is created and active in your Firebase console.");
+        console.error("Required index: Collection 'skills', Fields: 'category' (Ascending), 'name' (Ascending).");
+    }
     return JSON.parse(JSON.stringify(defaultSkillsDataForClient)); // Fallback on error
   }
 }
