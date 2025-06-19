@@ -6,7 +6,7 @@ import { collection, getDocs, doc, setDoc, deleteDoc, query, orderBy, Timestamp 
 import type { Skill as LibSkillType } from '@/lib/types';
 import { skillAdminSchema, type SkillAdminFormData } from '@/lib/adminSchemas';
 import { revalidatePath } from 'next/cache';
-import { defaultSkillsDataForClient } from '@/lib/data'; // For fallback if needed
+import { defaultSkillsDataForClient } from '@/lib/data'; 
 
 const skillsCollectionRef = () => {
   if (!firestore) throw new Error("Firestore not initialized");
@@ -20,8 +20,8 @@ const skillDocRef = (id: string) => {
 
 export async function getSkillsAction(): Promise<LibSkillType[]> {
   if (!firestore) {
-    console.warn("Firestore not initialized in getSkillsAction. Returning empty array.");
-    return defaultSkillsDataForClient; // Fallback to default mock data
+    console.warn("Firestore not initialized in getSkillsAction. Returning default client skills.");
+    return JSON.parse(JSON.stringify(defaultSkillsDataForClient)); // Return deep clone of defaults
   }
   try {
     const q = query(skillsCollectionRef(), orderBy('category'), orderBy('name'));
@@ -37,12 +37,13 @@ export async function getSkillsAction(): Promise<LibSkillType[]> {
         name: data.name || 'Unnamed Skill',
         category: data.category || 'Other',
         iconName: data.iconName || 'Package',
-        proficiency: data.proficiency === undefined || data.proficiency === null ? null : Number(data.proficiency),
+        // Ensure proficiency is either a number or null, not undefined
+        proficiency: (data.proficiency === undefined || data.proficiency === null) ? null : Number(data.proficiency),
       } as LibSkillType;
     });
   } catch (error) {
     console.error("Error fetching skills from Firestore:", error);
-    return defaultSkillsDataForClient; // Fallback to default mock data on error
+    return JSON.parse(JSON.stringify(defaultSkillsDataForClient)); // Fallback on error
   }
 }
 
@@ -63,7 +64,7 @@ export async function saveSkillAction(
     return { 
       message: "Firestore is not initialized. Cannot save skill.", 
       status: 'error', 
-      formDataOnError: Object.fromEntries(formData.entries()) as SkillAdminFormData 
+      formDataOnError: Object.fromEntries(formData.entries()) as unknown as SkillAdminFormData
     };
   }
   
@@ -72,6 +73,7 @@ export async function saveSkillAction(
     name: String(formData.get('name') || ''),
     category: String(formData.get('category') || 'Other') as LibSkillType['category'],
     iconName: String(formData.get('iconName') || 'Package'),
+    // Zod schema will handle conversion of empty string to undefined for proficiency
     proficiency: formData.get('proficiency') as any, 
   };
 
@@ -86,15 +88,14 @@ export async function saveSkillAction(
     };
   }
 
-  const data = validatedFields.data; // This is SkillAdminFormData after Zod validation
+  const data = validatedFields.data; 
   let skillId = data.id || `skill_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
-  // Construct the object to save to Firestore
-  // Explicitly set proficiency to null if it's undefined after Zod processing
   const skillToSave: Omit<LibSkillType, 'id'> = {
     name: data.name,
     category: data.category,
     iconName: data.iconName,
+    // Ensure proficiency is explicitly null if it's undefined after Zod (empty input)
     proficiency: data.proficiency === undefined ? null : data.proficiency,
   };
 
@@ -103,11 +104,7 @@ export async function saveSkillAction(
     
     const savedSkillData: LibSkillType = {
       id: skillId,
-      name: skillToSave.name,
-      category: skillToSave.category,
-      iconName: skillToSave.iconName,
-      // Ensure proficiency reflects what was intended to be saved (null for undefined)
-      proficiency: skillToSave.proficiency, 
+      ...skillToSave,
     };
 
     revalidatePath('/skills');
@@ -122,11 +119,11 @@ export async function saveSkillAction(
     };
 
   } catch (error) {
-    console.error("Error saving skill to Firestore:", error); // THIS LOG IS CRITICAL
+    console.error("Error saving skill to Firestore:", error); 
     return {
       message: "An unexpected server error occurred while saving the skill. Please try again.",
       status: 'error',
-      errors: {}, // No specific field errors, as it's a general server error
+      errors: {},
       formDataOnError: rawData, 
     };
   }

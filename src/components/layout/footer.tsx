@@ -26,7 +26,7 @@ export default function Footer({ aboutMeData }: FooterProps) {
 
   useEffect(() => {
     setIsMounted(true);
-    setCurrentYear(new Date().getFullYear()); // Set year only on client after mount
+    setCurrentYear(new Date().getFullYear()); 
   }, []);
 
   // Use default data if aboutMeData is null or not yet loaded,
@@ -57,7 +57,7 @@ export default function Footer({ aboutMeData }: FooterProps) {
                 <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               <span className="font-headline text-xl font-bold text-primary group-hover:text-accent transition-colors">
-                {displayedData.name ? `${displayedData.name.split(' ')[0]}'s Verse` : "VermaVerse"}
+                {displayedData.name ? `${displayedData.name.split(' ')[0]}'s Verse` : defaultAboutMeDataForClient.name.split(' ')[0] + "'s Verse"}
               </span>
             </Link>
             <p className="text-sm text-muted-foreground max-w-md">
@@ -114,7 +114,7 @@ export default function Footer({ aboutMeData }: FooterProps) {
 
         <div className="mt-10 border-t border-border pt-8 text-center">
           <p className="text-sm text-muted-foreground">
-            &copy; {currentYear !== null ? currentYear : new Date().getFullYear()}{' '}
+            &copy; {currentYear || new Date().getFullYear()}{' '}
             {displayedData.name || defaultAboutMeDataForClient.name}. All rights reserved.
           </p>
           <p className="text-sm text-muted-foreground mt-2">

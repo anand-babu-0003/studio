@@ -12,17 +12,17 @@ import remarkGfm from 'remark-gfm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { PortfolioItem } from '@/lib/types';
 import { getPortfolioItemsAction, getPortfolioItemBySlugAction } from '@/actions/admin/portfolioActions';
-import { defaultPortfolioItemsDataForClient } from '@/lib/data'; // For default structure
+import { defaultPortfolioItemsDataForClient } from '@/lib/data'; 
 
 export async function generateStaticParams() {
   try {
     const portfolioItems = await getPortfolioItemsAction();
     if (!Array.isArray(portfolioItems) || portfolioItems.length === 0) {
-      console.warn("generateStaticParams: No portfolio items found or an error occurred.");
+      console.warn("generateStaticParams: No portfolio items found or an error occurred while fetching.");
       return [];
     }
     return portfolioItems
-      .filter(item => typeof item.slug === 'string' && item.slug.trim() !== '')
+      .filter(item => item && typeof item.slug === 'string' && item.slug.trim() !== '')
       .map((project) => ({
         slug: project.slug,
       }));
@@ -37,6 +37,11 @@ export default async function PortfolioDetailPage({
 }: {
   params: { slug: string };
 }) {
+  if (!params.slug) {
+    console.warn("PortfolioDetailPage: No slug provided in params.");
+    notFound();
+  }
+
   let project: PortfolioItem | null = null;
   try {
     project = await getPortfolioItemBySlugAction(params.slug);
@@ -50,10 +55,14 @@ export default async function PortfolioDetailPage({
   }
   
   const projectImages = Array.isArray(project.images) && project.images.length > 0 
-    ? project.images 
+    ? project.images.filter(src => typeof src === 'string' && src.trim() !== '') // Ensure valid image URLs
+    : [];
+  
+  const displayImages = projectImages.length > 0 
+    ? projectImages
     : [defaultPortfolioItemsDataForClient[0]?.images[0] || 'https://placehold.co/1200x675.png?text=ProjectImage'];
   
-  const projectTags = Array.isArray(project.tags) ? project.tags : [];
+  const projectTags = Array.isArray(project.tags) ? project.tags.filter(tag => typeof tag === 'string' && tag.trim() !== '') : [];
 
 
   return (
@@ -68,12 +77,12 @@ export default async function PortfolioDetailPage({
 
       <PageHeader title={project.title || 'Project Details'} />
 
-      {projectImages.length > 0 && (
+      {displayImages.length > 0 && (
         <div className="mb-16">
           <Carousel className="w-full max-w-3xl mx-auto shadow-2xl rounded-lg overflow-hidden">
             <CarouselContent>
-              {projectImages.map((src, index) => (
-                <CarouselItem key={src || `project-image-${index}`}>
+              {displayImages.map((src, index) => (
+                <CarouselItem key={src || `project-image-${index}-${Date.now()}`}>
                   <div className="aspect-video relative">
                     <Image
                       src={src || defaultPortfolioItemsDataForClient[0]?.images[0] || 'https://placehold.co/1200x675.png'}
@@ -87,7 +96,7 @@ export default async function PortfolioDetailPage({
                 </CarouselItem>
               ))}
             </CarouselContent>
-            {projectImages.length > 1 && (
+            {displayImages.length > 1 && (
               <>
                 <CarouselPrevious />
                 <CarouselNext />

@@ -2,7 +2,7 @@
 "use server";
 
 import { firestore } from '@/lib/firebaseConfig';
-import { collection, getDocs, doc, deleteDoc, query, orderBy, Timestamp, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, doc, deleteDoc, query, orderBy, Timestamp } from 'firebase/firestore';
 import { revalidatePath } from 'next/cache';
 import type { ContactMessage } from '@/lib/types';
 
@@ -29,14 +29,15 @@ export async function getContactMessagesAction(): Promise<ContactMessage[]> {
     }
     return snapshot.docs.map(docSnap => {
       const data = docSnap.data();
+      const submittedAt = data.submittedAt instanceof Timestamp 
+                       ? data.submittedAt.toDate().toISOString() 
+                       : (data.submittedAt || new Date().toISOString()); // Fallback for submittedAt
       return {
         id: docSnap.id,
         name: data.name || 'N/A',
         email: data.email || 'N/A',
         message: data.message || '',
-        submittedAt: data.submittedAt instanceof Timestamp 
-                       ? data.submittedAt.toDate().toISOString() 
-                       : new Date().toISOString(), // Fallback, should ideally not happen
+        submittedAt: submittedAt,
       } as ContactMessage;
     });
   } catch (error) {
@@ -66,6 +67,3 @@ export async function deleteContactMessageAction(messageId: string): Promise<Del
         return { success: false, message: "Failed to delete message due to a server error." };
     }
 }
-
-// Note: The submitContactForm action is in src/actions/contact.ts
-// It will also need to use Firestore (addDoc to contactMessages collection).

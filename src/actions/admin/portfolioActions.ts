@@ -6,17 +6,17 @@ import { collection, getDocs, doc, getDoc, setDoc, addDoc, deleteDoc, query, whe
 import type { PortfolioItem as LibPortfolioItemType } from '@/lib/types';
 import { portfolioItemAdminSchema, type PortfolioAdminFormData } from '@/lib/adminSchemas';
 import { revalidatePath } from 'next/cache';
-import { defaultPortfolioItemsDataForClient } from '@/lib/data'; // For default structure
+import { defaultPortfolioItemsDataForClient } from '@/lib/data'; 
 
 const defaultPortfolioItemStructure: Omit<LibPortfolioItemType, 'id' | 'createdAt' | 'updatedAt'> = {
   title: 'Untitled Project',
-  description: 'Default description.',
-  longDescription: 'More detailed default description.',
-  images: ['https://placehold.co/600x400.png?text=DefaultProject'],
-  tags: ['default'],
-  slug: `default-project-${Date.now()}`,
+  description: 'Default description for a new project.',
+  longDescription: 'More detailed default description for a new project.',
+  images: ['https://placehold.co/600x400.png?text=ProjectImage'],
+  tags: ['new-project'],
+  slug: `new-project-${Date.now()}`,
   dataAiHint: 'project placeholder',
-  readmeContent: '# Default README\nThis is a placeholder README for a new project.',
+  readmeContent: '# New Project README\n\nThis is a placeholder README content for a newly added project. Please update it with relevant information.',
   liveUrl: '',
   repoUrl: '',
 };
@@ -74,7 +74,10 @@ export async function getPortfolioItemsAction(): Promise<LibPortfolioItemType[]>
 
 // Action to get a single portfolio item by its slug
 export async function getPortfolioItemBySlugAction(slug: string): Promise<LibPortfolioItemType | null> {
-  if (!slug) return null;
+  if (!slug || typeof slug !== 'string' || slug.trim() === '') {
+    console.warn("getPortfolioItemBySlugAction: Invalid or empty slug provided.");
+    return null;
+  }
   if (!firestore) {
     console.warn(`Firestore not initialized in getPortfolioItemBySlugAction for slug: ${slug}. Returning null.`);
     return null;
@@ -131,7 +134,7 @@ export async function savePortfolioItemAction(
     return { 
       message: "Firestore is not initialized. Cannot save project.", 
       status: 'error', 
-      formDataOnError: Object.fromEntries(formData.entries()) as PortfolioAdminFormData 
+      formDataOnError: Object.fromEntries(formData.entries()) as unknown as PortfolioAdminFormData 
     };
   }
 
@@ -166,7 +169,8 @@ export async function savePortfolioItemAction(
   const images: string[] = [];
   if (data.image1 && data.image1.trim() !== '') images.push(data.image1);
   if (data.image2 && data.image2.trim() !== '') images.push(data.image2);
-  const finalImages = images.length > 0 ? images : [...defaultPortfolioItemStructure.images];
+  // Use default image if no images provided and it's a new project or existing images are cleared
+  const finalImages = images.length > 0 ? images : (data.id ? [] : [...defaultPortfolioItemStructure.images]);
 
 
   const tags: string[] = data.tagsString ? data.tagsString.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
@@ -181,57 +185,56 @@ export async function savePortfolioItemAction(
     repoUrl: data.repoUrl || '',
     slug: data.slug,
     dataAiHint: data.dataAiHint || '',
-    readmeContent: data.readmeContent || '',
+    readmeContent: data.readmeContent || defaultPortfolioItemStructure.readmeContent, // Ensure readme has a default
     updatedAt: serverTimestamp(),
   };
   
   let projectId = data.id;
 
   try {
-    if (projectId) { 
-      // Check if slug is being changed to one that already exists (excluding current item)
-      const q = query(portfolioCollectionRef(), where("slug", "==", data.slug));
-      const snapshot = await getDocs(q);
-      if (!snapshot.empty && snapshot.docs.some(doc => doc.id !== projectId)) {
-        return {
-          message: `Slug "${data.slug}" is already in use by another project. Please choose a unique slug.`,
-          status: 'error',
-          errors: { slug: [`Slug "${data.slug}" is already in use.`] },
-          formDataOnError: rawData,
-        };
+    // Check for slug uniqueness
+    const slugCheckQuery = query(portfolioCollectionRef(), where("slug", "==", data.slug));
+    const slugSnapshot = await getDocs(slugCheckQuery);
+    let slugIsTaken = false;
+    if (!slugSnapshot.empty) {
+      if (projectId) { // Editing existing project
+        slugIsTaken = slugSnapshot.docs.some(doc => doc.id !== projectId);
+      } else { // Adding new project
+        slugIsTaken = true;
       }
+    }
+
+    if (slugIsTaken) {
+      return {
+        message: `Slug "${data.slug}" is already in use. Please choose a unique slug.`,
+        status: 'error',
+        errors: { slug: [`Slug "${data.slug}" is already in use.`] },
+        formDataOnError: rawData,
+      };
+    }
+
+    if (projectId) { 
       await setDoc(portfolioDocRef(projectId), projectDataForFirestore, { merge: true });
     } else { 
-      // Check if slug already exists for new item
-      const q = query(portfolioCollectionRef(), where("slug", "==", data.slug));
-      const snapshot = await getDocs(q);
-      if (!snapshot.empty) {
-         return {
-          message: `Slug "${data.slug}" is already in use. Please choose a unique slug.`,
-          status: 'error',
-          errors: { slug: [`Slug "${data.slug}" is already in use.`] },
-          formDataOnError: rawData,
-        };
-      }
       projectDataForFirestore.createdAt = serverTimestamp(); 
       const newProjectRef = await addDoc(portfolioCollectionRef(), projectDataForFirestore);
       projectId = newProjectRef.id;
     }
     
-    const savedDoc = await getDoc(portfolioDocRef(projectId!)); // projectId will be defined here
+    const savedDoc = await getDoc(portfolioDocRef(projectId!)); 
     if (!savedDoc.exists()) {
-        throw new Error("Failed to retrieve saved project from Firestore.");
+        throw new Error("Failed to retrieve saved project from Firestore after save operation.");
     }
     const savedData = savedDoc.data()!;
-    const createdAt = savedData.createdAt instanceof Timestamp ? savedData.createdAt.toDate().toISOString() : new Date(0).toISOString();
-    const updatedAt = savedData.updatedAt instanceof Timestamp ? savedData.updatedAt.toDate().toISOString() : new Date(0).toISOString();
+    const createdAt = savedData.createdAt instanceof Timestamp ? savedData.createdAt.toDate().toISOString() : (projectDataForFirestore.createdAt ? new Date().toISOString() : new Date(0).toISOString());
+    const updatedAt = savedData.updatedAt instanceof Timestamp ? savedData.updatedAt.toDate().toISOString() : new Date().toISOString();
 
     const finalSavedProject: LibPortfolioItemType = {
       id: projectId!,
       title: savedData.title || projectDataForFirestore.title,
       description: savedData.description || projectDataForFirestore.description,
       longDescription: savedData.longDescription || projectDataForFirestore.longDescription,
-      images: savedData.images && savedData.images.length > 0 ? savedData.images : [...defaultPortfolioItemStructure.images],
+      images: savedData.images && savedData.images.length > 0 ? savedData.images : (data.id ? [] : [...defaultPortfolioItemStructure.images]),
       tags: savedData.tags || projectDataForFirestore.tags,
       liveUrl: savedData.liveUrl || projectDataForFirestore.liveUrl,
       repoUrl: savedData.repoUrl || projectDataForFirestore.repoUrl,
@@ -293,7 +296,7 @@ export async function deletePortfolioItemAction(itemId: string): Promise<DeleteP
           revalidatePath(`/portfolio/${projectToDeleteData.slug}`);
         }
         revalidatePath('/admin/portfolio');
-        return { success: true, message: `Project (ID: ${itemId}) deleted successfully!` };
+        return { success: true, message: `Project (ID: ${itemId}, Title: ${projectToDeleteData?.title || 'N/A'}) deleted successfully!` };
         
     } catch (error) {
         console.error("Error deleting portfolio item from Firestore:", error);

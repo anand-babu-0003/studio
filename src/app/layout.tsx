@@ -1,7 +1,6 @@
 
 "use client";
 
-import type { Metadata } from 'next'; // Keep for potential future use with generateMetadata
 import { usePathname } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
 import './globals.css';
@@ -54,22 +53,22 @@ export default function RootLayout({
   const pathname = usePathname();
   const isAdminRoute = pathname.startsWith('/admin');
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [isMounted, setIsMounted] = useState(false);
+  const [isMounted, setIsMounted] = useState(false); // For client-side only effects
+  
+  // Initialize with default values to prevent undefined errors during initial render
   const [currentSiteSettings, setCurrentSiteSettings] = useState<SiteSettings>(defaultSiteSettingsForClient);
   const [currentAboutMeData, setCurrentAboutMeData] = useState<AboutMeData>(defaultAboutMeDataForClient);
 
-
   useEffect(() => {
-    setIsMounted(true); // Set isMounted for client-side conditional rendering
+    setIsMounted(true); 
 
-    // Define fetchInitialData inside useEffect or useCallback to ensure stable reference
     const fetchInitialData = async () => {
       try {
         const settings = await getSiteSettingsAction();
         setCurrentSiteSettings(settings || defaultSiteSettingsForClient);
       } catch (error) {
         console.error("Failed to fetch site settings for layout:", error);
-        // State already defaults to defaultSiteSettingsForClient
+        setCurrentSiteSettings(defaultSiteSettingsForClient); // Fallback
       }
 
       try {
@@ -77,31 +76,33 @@ export default function RootLayout({
         setCurrentAboutMeData(aboutData || defaultAboutMeDataForClient);
       } catch (error) {
           console.error("Failed to fetch about me data for layout:", error);
-          // State already defaults to defaultAboutMeDataForClient
+          setCurrentAboutMeData(defaultAboutMeDataForClient); // Fallback
       }
     };
 
-    fetchInitialData(); // Call fetch
+    fetchInitialData(); 
 
     const handleMouseMove = (event: MouseEvent) => {
       setMousePosition({ x: event.clientX, y: event.clientY });
     };
 
-    if (typeof window !== 'undefined' && !isAdminRoute) {
+    if (!isAdminRoute) {
       window.addEventListener('mousemove', handleMouseMove);
     }
 
     return () => {
-      if (typeof window !== 'undefined' && !isAdminRoute) {
+      if (!isAdminRoute) {
         window.removeEventListener('mousemove', handleMouseMove);
       }
     };
-  }, [isAdminRoute]); // isAdminRoute is a stable dependency here
+  }, [isAdminRoute]); 
 
 
   useEffect(() => {
     if (typeof document !== 'undefined' && currentSiteSettings) {
-        const pageTitleSegment = pathname.split('/').pop()?.replace(/-/g, ' ');
+        const pathSegments = pathname.split('/').filter(Boolean);
+        const pageTitleSegment = pathSegments.length > 0 ? pathSegments[pathSegments.length -1].replace(/-/g, ' ') : '';
+        
         const formattedPageTitle = pageTitleSegment
             ? pageTitleSegment.charAt(0).toUpperCase() + pageTitleSegment.slice(1)
             : '';
@@ -112,11 +113,12 @@ export default function RootLayout({
             document.title = siteNameBase;
         } else if (formattedPageTitle && !isAdminRoute) {
             document.title = `${formattedPageTitle} | ${siteNameBase}`;
-        } else if (isAdminRoute && formattedPageTitle) {
+        } else if (isAdminRoute && formattedPageTitle && pathSegments[0] === 'admin' && pathSegments.length > 1) {
              document.title = `Admin: ${formattedPageTitle} | ${siteNameBase}`;
-        } else if (isAdminRoute) {
-             document.title = `Admin | ${siteNameBase}`;
-        } else {
+        } else if (isAdminRoute && pathSegments[0] === 'admin' && pathSegments.length === 1) { // for /admin or /admin/
+             document.title = `Admin Dashboard | ${siteNameBase}`;
+        }
+         else {
             document.title = siteNameBase;
         }
 
@@ -133,7 +135,7 @@ export default function RootLayout({
         if (currentSiteSettings.siteOgImageUrl && currentSiteSettings.siteOgImageUrl.trim() !== '') {
             updateMetaTag('og:image', currentSiteSettings.siteOgImageUrl, true);
         } else {
-            removeMetaTag('og:image', true);
+            removeMetaTag('og:image', true); // Or set to a default fallback image URL
         }
     }
   }, [currentSiteSettings, pathname, isAdminRoute]);
@@ -142,8 +144,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Favicon links are static and don't depend on fetched data */}
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
