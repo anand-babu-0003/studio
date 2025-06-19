@@ -13,7 +13,7 @@
 .cell {
   flex: 0 0 var(--cell-size);
   margin: var(--cell-spacing);
-  background-color: transparent;
+  background-color: transparent; /* Initial state */
   box-sizing: border-box;
   border-radius: 4px;
   animation: 1.5s ripple ease infinite;
@@ -35,56 +35,28 @@
   animation-delay: 400ms;
 }
 
-.cell:nth-child(1) {
-  --cell-color: #00FF87;
-}
+/* Assign theme-based colors to each cell */
+.cell:nth-child(1) { --cell-color: var(--loader-cell-1); }
+.cell:nth-child(2) { --cell-color: var(--loader-cell-2); }
+.cell:nth-child(3) { --cell-color: var(--loader-cell-3); }
+.cell:nth-child(4) { --cell-color: var(--loader-cell-4); }
+.cell:nth-child(5) { --cell-color: var(--loader-cell-5); }
+.cell:nth-child(6) { --cell-color: var(--loader-cell-6); }
+.cell:nth-child(7) { --cell-color: var(--loader-cell-7); }
+.cell:nth-child(8) { --cell-color: var(--loader-cell-8); }
+.cell:nth-child(9) { --cell-color: var(--loader-cell-9); }
 
-.cell:nth-child(2) {
-  --cell-color: #0CFD95;
-}
-
-.cell:nth-child(3) {
-  --cell-color: #17FBA2;
-}
-
-.cell:nth-child(4) {
-  --cell-color: #23F9B2;
-}
-
-.cell:nth-child(5) {
-  --cell-color: #30F7C3;
-}
-
-.cell:nth-child(6) {
-  --cell-color: #3DF5D4;
-}
-
-.cell:nth-child(7) {
-  --cell-color: #45F4DE;
-}
-
-.cell:nth-child(8) {
-  --cell-color: #53F1F0;
-}
-
-.cell:nth-child(9) {
-  --cell-color: #60EFFF;
-}
-
-/*Animation*/
+/* Animation uses the --cell-color variable */
 @keyframes ripple {
   0% {
     background-color: transparent;
   }
-
   30% {
-    background-color: var(--cell-color);
+    background-color: var(--cell-color); /* Use the assigned cell color */
   }
-
   60% {
     background-color: transparent;
   }
-
   100% {
     background-color: transparent;
   }

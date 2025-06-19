@@ -21,16 +21,25 @@ body {
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 3.9%;
 
-    --primary: 270 31% 50%; 
+    --primary-h: 270; 
+    --primary-s: 31%; 
+    --primary-l: 50%;
+    --primary: var(--primary-h) var(--primary-s) var(--primary-l); 
     --primary-foreground: 0 0% 98%; 
 
-    --secondary: 0 0% 96.1%; 
+    --secondary-h: 0;
+    --secondary-s: 0%;
+    --secondary-l: 96.1%;
+    --secondary: var(--secondary-h) var(--secondary-s) var(--secondary-l); 
     --secondary-foreground: 0 0% 9%;
 
     --muted: 0 0% 90%; 
     --muted-foreground: 0 0% 45.1%;
 
-    --accent: 182 100% 74%; 
+    --accent-h: 182;
+    --accent-s: 100%;
+    --accent-l: 74%;
+    --accent: var(--accent-h) var(--accent-s) var(--accent-l); 
     --accent-foreground: 270 31% 20%; 
 
     --destructive: 0 84.2% 60.2%;
@@ -55,6 +64,17 @@ body {
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Loader cell colors for light theme */
+    --loader-cell-1: hsl(var(--primary-h) var(--primary-s) var(--primary-l));
+    --loader-cell-2: hsl(var(--primary-h) var(--primary-s) calc(var(--primary-l) + 5%));
+    --loader-cell-3: hsl(var(--primary-h) var(--primary-s) calc(var(--primary-l) + 10%));
+    --loader-cell-4: hsl(var(--accent-h) var(--accent-s) calc(var(--accent-l) - 10%));
+    --loader-cell-5: hsl(var(--accent-h) var(--accent-s) calc(var(--accent-l) - 5%));
+    --loader-cell-6: hsl(var(--accent-h) var(--accent-s) var(--accent-l));
+    --loader-cell-7: hsl(var(--secondary-h) var(--secondary-s) calc(var(--secondary-l) - 20%)); /* Darker shade of light secondary */
+    --loader-cell-8: hsl(var(--primary-h) var(--primary-s) calc(var(--primary-l) + 7%));
+    --loader-cell-9: hsl(var(--accent-h) var(--accent-s) calc(var(--accent-l) - 7%));
   }
 
   .dark {
@@ -67,16 +87,25 @@ body {
     --popover: 0 0% 3.9%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 270 31% 60%; 
+    --primary-h: 270; 
+    --primary-s: 31%; 
+    --primary-l: 60%;
+    --primary: var(--primary-h) var(--primary-s) var(--primary-l); 
     --primary-foreground: 0 0% 9%; 
 
-    --secondary: 0 0% 14.9%;
+    --secondary-h: 0;
+    --secondary-s: 0%;
+    --secondary-l: 14.9%;
+    --secondary: var(--secondary-h) var(--secondary-s) var(--secondary-l);
     --secondary-foreground: 0 0% 98%;
 
     --muted: 0 0% 14.9%;
     --muted-foreground: 0 0% 63.9%;
 
-    --accent: 182 100% 65%; 
+    --accent-h: 182;
+    --accent-s: 100%;
+    --accent-l: 65%;
+    --accent: var(--accent-h) var(--accent-s) var(--accent-l); 
     --accent-foreground: 0 0% 98%;
 
     --destructive: 0 72.2% 50.6%;
@@ -100,6 +129,17 @@ body {
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Loader cell colors for dark theme */
+    --loader-cell-1: hsl(var(--primary-h) var(--primary-s) var(--primary-l));
+    --loader-cell-2: hsl(var(--primary-h) var(--primary-s) calc(var(--primary-l) - 5%));
+    --loader-cell-3: hsl(var(--primary-h) var(--primary-s) calc(var(--primary-l) - 10%));
+    --loader-cell-4: hsl(var(--accent-h) var(--accent-s) calc(var(--accent-l) + 10%));
+    --loader-cell-5: hsl(var(--accent-h) var(--accent-s) calc(var(--accent-l) + 5%));
+    --loader-cell-6: hsl(var(--accent-h) var(--accent-s) var(--accent-l));
+    --loader-cell-7: hsl(var(--secondary-h) var(--secondary-s) calc(var(--secondary-l) + 20%)); /* Lighter shade of dark secondary */
+    --loader-cell-8: hsl(var(--primary-h) var(--primary-s) calc(var(--primary-l) - 7%));
+    --loader-cell-9: hsl(var(--accent-h) var(--accent-s) calc(var(--accent-l) + 7%));
   }
 }
 
