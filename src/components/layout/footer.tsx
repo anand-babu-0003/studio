@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Github, Linkedin, Twitter, Mail } from 'lucide-react';
 import type { SocialLink, AboutMeData } from '@/lib/types';
 import { useEffect, useState } from 'react';
-import { getAboutMeDataAction } from '@/actions/getAboutMeDataAction';
+// Removed: import { getAboutMeDataAction } from '@/actions/getAboutMeDataAction'; // Data now passed as prop
 import { Button } from '@/components/ui/button'; 
 
 const mainNavItems = [
@@ -16,39 +16,33 @@ const mainNavItems = [
   { href: '/contact', label: 'Contact' },
 ];
 
-// Default AboutMeData specifically for footer's needs if fetch fails or before client mounts
-// Only include fields directly used by the footer for its fallbacks.
-const defaultAboutMeForFooter: Pick<AboutMeData, 'name' | 'email' | 'githubUrl' | 'linkedinUrl' | 'twitterUrl'> = {
-    name: "B.Anand", // To be used in "by B.Anand"
+const defaultAboutMeForFooter: AboutMeData = {
+    name: "B.Anand", 
+    title: "Default Title", // Added to satisfy AboutMeData type
+    bio: "Default Bio", // Added
+    profileImage: "", // Added
+    dataAiHint: "", // Added
+    experience: [], // Added
+    education: [], // Added
     email: "hello@example.com", 
     githubUrl: "https://github.com",
     linkedinUrl: "https://linkedin.com",
     twitterUrl: "https://twitter.com",
 };
 
+interface FooterProps {
+  aboutMeData: AboutMeData | null;
+}
 
-export default function Footer() {
+export default function Footer({ aboutMeData }: FooterProps) {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-  const [aboutMeData, setAboutMeData] = useState<AboutMeData | null>(null);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
-    setCurrentYear(new Date().getFullYear()); // Ensure year is client-side
-
-    async function fetchData() {
-      try {
-        const data = await getAboutMeDataAction();
-        setAboutMeData(data);
-      } catch (error) {
-        console.error("Failed to fetch about me data for footer:", error);
-        // Data will remain null, displayedAboutMe will use defaultAboutMeForFooter
-      }
-    }
-    fetchData();
+    setCurrentYear(new Date().getFullYear()); 
   }, []);
 
-  // Use fetched data if available and mounted, otherwise use defaults
   const displayedAboutMe = isMounted && aboutMeData ? aboutMeData : defaultAboutMeForFooter;
 
   const socialLinksToDisplay: SocialLink[] = [
@@ -56,19 +50,18 @@ export default function Footer() {
     ...(displayedAboutMe.linkedinUrl ? [{ id: 'linkedin', name: 'LinkedIn', url: displayedAboutMe.linkedinUrl, icon: Linkedin }] : []),
     ...(displayedAboutMe.twitterUrl ? [{ id: 'twitter', name: 'Twitter', url: displayedAboutMe.twitterUrl, icon: Twitter }] : []),
     ...(displayedAboutMe.email ? [{ id: 'email', name: 'Email', url: `mailto:${displayedAboutMe.email}`, icon: Mail }] : []),
-  ];
+  ].filter(link => link.url);
 
 
   return (
     <footer className="border-t bg-background text-foreground">
       <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3 lg:grid-cols-4 mb-10">
-          {/* Brand Section */}
           <div className="md:col-span-1 lg:col-span-2">
             <Link 
-              href="/admin/dashboard" // Static link to admin
+              href="/admin/dashboard" 
               className="inline-flex items-center gap-2 mb-4 group focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-background rounded-md"
-              aria-label="Go to Admin Panel" // Static aria-label
+              aria-label="Go to Admin Panel" 
             >
               <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="text-primary group-hover:text-accent transition-colors">
                 <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
@@ -76,7 +69,7 @@ export default function Footer() {
                 <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               <span className="font-headline text-xl font-bold text-primary group-hover:text-accent transition-colors">
-                AnandVerse {/* Static Brand Name */}
+                AnandVerse 
               </span>
             </Link>
             <p className="text-sm text-muted-foreground max-w-md">
@@ -84,7 +77,6 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* Navigation Links Section */}
           <div className="md:col-span-1">
             <h3 className="text-sm font-semibold text-foreground/80 uppercase tracking-wider mb-4">
               Navigate
@@ -103,8 +95,7 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Social Links Section */}
-          {(isMounted && socialLinksToDisplay.length > 0) && ( // Only render if mounted and links exist
+          {(isMounted && socialLinksToDisplay.length > 0) && ( 
             <div className="md:col-span-1">
               <h3 className="text-sm font-semibold text-foreground/80 uppercase tracking-wider mb-4">
                 Connect
@@ -133,22 +124,21 @@ export default function Footer() {
           )}
         </div>
 
-        {/* Copyright Section */}
         <div className="mt-10 border-t border-border pt-8 text-center">
           <p className="text-sm text-muted-foreground">
             &copy; {isMounted ? currentYear : new Date().getFullYear()}{' '}
-            AnandVerse. All rights reserved. {/* Static Brand Name */}
+            AnandVerse. All rights reserved. 
           </p>
           <p className="text-sm text-muted-foreground mt-2">
             💻 Made with caffeine, code, and mild chaos — by{' '}
-            {isMounted ? (
+            {isMounted && displayedAboutMe.name ? (
               <Button asChild variant="link" className="p-0 h-auto text-sm text-primary hover:text-accent focus:outline-none focus:ring-1 focus:ring-ring rounded">
                 <Link href="/admin/dashboard">
-                 <span>{displayedAboutMe.name || 'B.Anand'}</span>
+                 <span>{displayedAboutMe.name}</span>
                 </Link>
               </Button>
             ) : (
-              defaultAboutMeForFooter.name // Server render / initial client render
+              defaultAboutMeForFooter.name 
             )}
           </p>
         </div>
@@ -156,4 +146,3 @@ export default function Footer() {
     </footer>
   );
 }
-
