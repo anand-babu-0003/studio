@@ -1,4 +1,3 @@
-
 /* src/styles/not-found.css */
 
 .fullscreen-nf-wrapper {
@@ -8,9 +7,10 @@
   width: 100vw;
   height: 100vh;
   background-color: #ffffff !important; /* Solid white background */
-  color: #24292f; 
+  color: #24292f;
   font-family: 'Arvo', serif;
   display: flex;
+  flex-direction: column; /* Allow content to stack vertically */
   align-items: center;
   justify-content: center;
   text-align: center;
@@ -20,67 +20,75 @@
   overflow: auto;
 }
 
-.content-nf {
+.page_404 {
   display: flex;
   flex-direction: column;
   align-items: center;
-  max-width: 600px; 
+  width: 100%;
+  max-width: 500px; /* Max width for the content block */
 }
 
-/* Container for the GIF background and the "404" text */
 .gif-background-container-nf {
+  /* This container has the GIF as a background for the "404" text */
   background-image: url(https://cdn.dribbble.com/users/285475/screenshots/2083086/dribbble_1.gif);
-  height: 400px; /* As per original CSS */
-  width: 100%; 
-  max-width: 500px; /* Or adjust as needed for GIF aspect ratio */
+  height: 200px; /* Or adjust as needed */
+  width: 100%;
+  max-width: 400px; /* Control the width of the background GIF area */
   background-position: center;
   background-repeat: no-repeat;
-  background-size: contain; /* Ensures the whole GIF is visible */
+  background-size: contain;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 20px; /* Space before the caveman image */
-  position: relative; /* For potential absolute positioning of text if needed, though flex handles it well */
+  margin-bottom: 20px; /* Space before the next image/content */
+  position: relative;
 }
 
 .main-404-text-nf {
-  font-size: 80px; /* From original .four_zero_four_bg h1 */
+  font-size: 100px; /* Large 404 text */
   font-weight: bold;
-  color: #000000; /* Black text on top of GIF, can be adjusted */
-  text-align: center; 
+  color: #000000;
+  text-align: center;
   line-height: 1;
-  /* Consider adding a text-shadow if readability over the GIF is an issue: */
-  /* text-shadow: 0 0 5px rgba(255, 255, 255, 0.7), 0 0 10px rgba(255, 255, 255, 0.5); */
+  /* Optional: Add a slight shadow if text over GIF is hard to read */
+  /* text-shadow: 0 0 8px rgba(255, 255, 255, 0.6); */
 }
 
-.caveman-image-container-nf {
-  /* margin-top: 0; Replaced by margin-bottom on gif-background-container-nf */
+.illustration-container-nf { /* Container for the main illustration image */
   margin-bottom: 30px;
+  line-height: 0; /* Helps remove extra space below image if any */
 }
 
-.caveman-image-nf {
+.illustration-image-nf { /* Styles for the main illustration Image component */
   max-width: 100%;
-  height: auto;
-  display: block; /* Good practice for images */
+  height: auto; /* Maintain aspect ratio */
+  display: block;
+}
+
+.contant_box_404 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .lost-heading-nf {
-  font-size: 2rem; 
+  font-size: 2rem; /* Adjusted from 30px in image */
   font-weight: bold;
-  color: #333;
-  margin-bottom: 8px;
+  color: #333333; /* Dark grey from image */
+  margin-top: 0;
+  margin-bottom: 15px; /* Spacing from image */
 }
 
 .lost-subtext-nf {
-  font-size: 1rem; 
-  color: #777; 
+  font-size: 1.125rem; /* Adjusted from 18px in image */
+  color: #555555; /* Medium grey */
   margin-bottom: 30px;
 }
 
 .go-home-btn-nf {
-  color: #fff !important;
-  padding: 10px 25px;
-  background: #39ac31;
+  color: #ffffff !important;
+  padding: 12px 30px; /* Slightly larger padding */
+  background: #39ac31; /* Green button color */
   margin: 20px 0;
   display: inline-block;
   text-decoration: none;
@@ -88,27 +96,13 @@
   font-weight: bold;
   font-size: 1rem;
   transition: background-color 0.2s ease;
+  border: none; /* Ensure no border */
 }
 
 .go-home-btn-nf:hover {
-  background: #2b8a24; 
+  background: #2b8a24; /* Darker green on hover */
   text-decoration: none;
 }
 
-/* Deprecated/unused classes from previous attempts or very specific original HTML */
-.page_404, 
-.container_nf, 
-.row_nf, 
-.col_sm_12_nf, 
-.col_sm_10_nf, 
-.col_sm_offset_1_nf,
-.four_zero_four_bg,
-.four_zero_four_bg h1,
-.four_zero_four_bg h3,
-.link_404, 
-.contant_box_404,
-.contant_box_404 .h2_nf,
-.contant_box_404 .internal_404_text_nf,
-.top-404-on-gif-nf {
-  /* Styles for these are effectively handled by the new structure or are no longer relevant */
-}
+/* Remove specific width/height from .page_404 if it causes issues with flex centering */
+/* .page_404 { width: auto; } */
