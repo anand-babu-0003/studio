@@ -1,17 +1,11 @@
 
 import { z } from 'zod';
 import { SKILL_CATEGORIES } from './constants'; 
-import { availableIconNames as ZOD_AVAILABLE_ICON_NAMES_CONST } from './data'; // Use from data.ts
+import { commonSkillNamesTuple } from './data'; // Import the tuple
 
 const ZOD_SKILL_CATEGORIES = SKILL_CATEGORIES; 
 
-const ZOD_AVAILABLE_ICON_NAMES = ZOD_AVAILABLE_ICON_NAMES_CONST.length > 0 
-    ? ZOD_AVAILABLE_ICON_NAMES_CONST as [string, ...string[]] 
-    : ['Package'] as [string, ...string[]]; 
-
-if (ZOD_AVAILABLE_ICON_NAMES_CONST.length === 0) {
-  console.warn("ZOD_AVAILABLE_ICON_NAMES is empty in adminSchemas.ts. Check lucideIconsMap in data.ts. Falling back to ['Package'].");
-}
+// ZOD_AVAILABLE_ICON_NAMES is no longer needed for icon selection dropdown
 
 export const experienceSchema = z.object({
   id: z.string().min(1, "Experience item ID is required"), 
@@ -105,16 +99,19 @@ export type PortfolioAdminFormData = z.infer<typeof portfolioItemAdminSchema>;
 
 export const skillAdminSchema = z.object({
   id: z.string().optional(),
-  name: z.string().min(1, { message: "Skill name is required." }),
+  name: z.enum(commonSkillNamesTuple, { // Use the tuple for enum validation
+    errorMap: (issue, ctx) => ({ message: "Please select a valid skill from the list." })
+  }),
   category: z.enum(ZOD_SKILL_CATEGORIES, { errorMap: () => ({ message: "Please select a valid category." })}),
   proficiency: z.preprocess(
     (val) => (String(val).trim() === '' || val === null || val === undefined ? undefined : Number(val)),
     z.number().min(0).max(100).optional().nullable()
   ),
-  iconName: z.enum(ZOD_AVAILABLE_ICON_NAMES, { errorMap: () => ({ message: "Please select a valid icon."}) }),
+  // iconName is removed from user input schema
 });
 
 export type SkillAdminFormData = z.infer<typeof skillAdminSchema>;
+
 
 export const siteSettingsAdminSchema = z.object({
   siteName: z.string().min(3, { message: "Site Name must be at least 3 characters." }),
@@ -135,4 +132,3 @@ export const notFoundPageAdminSchema = z.object({
   buttonText: z.string().min(3, "Button text is too short.").max(30, "Button text is too long."),
 });
 export type NotFoundPageAdminFormData = z.infer<typeof notFoundPageAdminSchema>;
-

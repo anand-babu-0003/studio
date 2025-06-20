@@ -20,9 +20,8 @@ import FullScreenLoader from '@/components/shared/FullScreenLoader';
 
 import { 
   skillCategories, 
-  availableIconNames, 
   lucideIconsMap, 
-  commonSkillNames,
+  commonSkillNames, // Use the expanded commonSkillNames
   defaultSkillsDataForClient
 } from '@/lib/data';
 import type { Skill } from '@/lib/types';
@@ -38,10 +37,10 @@ const initialFormState: SkillFormState = { message: '', status: 'idle', errors: 
 
 const defaultFormValues: SkillAdminFormData = {
   id: undefined,
-  name: '',
+  name: commonSkillNames.length > 0 ? commonSkillNames[0] : '', // Default to first common skill or empty
   category: skillCategories[0], 
   proficiency: undefined, 
-  iconName: availableIconNames.length > 0 ? availableIconNames[0] : 'Package', 
+  // iconName is no longer part of SkillAdminFormData
 };
 
 function SubmitButton() {
@@ -114,7 +113,7 @@ export default function AdminSkillsPage() {
         const existingIndex = prevSkills.findIndex(s => s.id === savedSkill.id);
         let newSkillsArray;
         if (existingIndex > -1) {
-          newSkillsArray = prevSkills.map(s => s.id === savedSkill.id ? savedSkill : s); // Corrected typo here
+          newSkillsArray = prevSkills.map(s => s.id === savedSkill.id ? savedSkill : s);
         } else {
           newSkillsArray = [savedSkill, ...prevSkills];
         }
@@ -165,7 +164,7 @@ export default function AdminSkillsPage() {
       id: skill.id,
       name: skill.name || '',
       category: skill.category || skillCategories[0],
-      iconName: skill.iconName || 'Package',
+      // iconName is no longer part of form data
       proficiency: skill.proficiency ?? undefined, 
     });
     setShowForm(true);
@@ -202,7 +201,7 @@ export default function AdminSkillsPage() {
         <Card key={formCardKey}> 
           <CardHeader>
             <CardTitle>{currentSkill ? 'Edit Skill' : 'Add New Skill'}</CardTitle>
-            <CardDescription>Fill in the details for the skill.</CardDescription>
+            <CardDescription>Select a skill and its details.</CardDescription>
           </CardHeader>
           <Form {...form}>
             <form action={dispatchServerAction}>
@@ -212,17 +211,21 @@ export default function AdminSkillsPage() {
                 <FormField control={form.control} name="name" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Skill Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} list="common-skills-list" />
-                    </FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger><SelectValue placeholder="Select a skill" /></SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {commonSkillNames.map(skillName => (
+                          <SelectItem key={skillName} value={skillName}>
+                            {skillName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )} />
-                <datalist id="common-skills-list">
-                  {commonSkillNames.map(skillName => (
-                    <option key={skillName} value={skillName} />
-                  ))}
-                </datalist>
 
                 <FormField control={form.control} name="category" render={({ field }) => (
                   <FormItem>
@@ -238,21 +241,8 @@ export default function AdminSkillsPage() {
                     <FormMessage />
                   </FormItem>
                 )} />
-
-                <FormField control={form.control} name="iconName" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Icon</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value || 'Package'}>
-                      <FormControl>
-                        <SelectTrigger><SelectValue placeholder="Select an icon" /></SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {availableIconNames.map(iconName => <SelectItem key={iconName} value={iconName}>{iconName}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )} />
+                
+                {/* Icon Selection Dropdown is REMOVED */}
                 
                 <FormField
                   control={form.control}
@@ -312,7 +302,8 @@ export default function AdminSkillsPage() {
                 </h2>
                 <div className="space-y-4">
                   {categorySkills.map(skill => {
-                    const IconComponent = lucideIconsMap[skill.iconName] || Package;
+                    // Use skill.iconName (which is now derived and stored)
+                    const IconComponent = lucideIconsMap[skill.iconName] || Package; 
                     return (
                       <Card key={skill.id} className="flex items-center justify-between p-4 hover:shadow-md transition-shadow">
                         <div className="flex items-center gap-3">
@@ -361,4 +352,3 @@ export default function AdminSkillsPage() {
     </div>
   );
 }
-

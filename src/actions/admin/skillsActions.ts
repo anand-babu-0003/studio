@@ -6,7 +6,7 @@ import { collection, getDocs, doc, setDoc, deleteDoc, query, orderBy, Timestamp 
 import type { Skill as LibSkillType } from '@/lib/types';
 import { skillAdminSchema, type SkillAdminFormData } from '@/lib/adminSchemas';
 import { revalidatePath } from 'next/cache';
-import { defaultSkillsDataForClient } from '@/lib/data'; 
+import { defaultSkillsDataForClient, lucideIconsMap } from '@/lib/data'; 
 
 const skillsCollectionRef = () => {
   if (!firestore) throw new Error("Firestore not initialized");
@@ -21,10 +21,9 @@ const skillDocRef = (id: string) => {
 export async function getSkillsAction(): Promise<LibSkillType[]> {
   if (!firestore) {
     console.warn("Firestore not initialized in getSkillsAction. Returning default client skills.");
-    return JSON.parse(JSON.stringify(defaultSkillsDataForClient)); // Return deep clone of defaults
+    return JSON.parse(JSON.stringify(defaultSkillsDataForClient)); 
   }
   try {
-    // Explicitly stating 'asc' for order, though it's the default
     const q = query(skillsCollectionRef(), orderBy('category', 'asc'), orderBy('name', 'asc'));
     const snapshot = await getDocs(q);
 
@@ -37,19 +36,17 @@ export async function getSkillsAction(): Promise<LibSkillType[]> {
         id: docSnap.id,
         name: data.name || 'Unnamed Skill',
         category: data.category || 'Other',
-        iconName: data.iconName || 'Package',
+        iconName: data.iconName || 'Package', // Will be derived from lucideIconsMap based on name
         proficiency: (data.proficiency === undefined || data.proficiency === null) ? null : Number(data.proficiency),
       } as LibSkillType;
     });
   } catch (error) {
     console.error("Error fetching skills from Firestore:", error);
-    // If it's an index error, it will be caught here and logged.
-    // The UI will then likely show default/empty data.
     if (error instanceof Error && error.message.includes("query requires an index")) {
         console.error("Firebase Firestore: The query for skills requires a composite index. Please ensure it is created and active in your Firebase console.");
         console.error("Required index: Collection 'skills', Fields: 'category' (Ascending), 'name' (Ascending).");
     }
-    return JSON.parse(JSON.stringify(defaultSkillsDataForClient)); // Fallback on error
+    return JSON.parse(JSON.stringify(defaultSkillsDataForClient)); 
   }
 }
 
@@ -70,7 +67,12 @@ export async function saveSkillAction(
     return { 
       message: "Firestore is not initialized. Cannot save skill.", 
       status: 'error', 
-      formDataOnError: Object.fromEntries(formData.entries()) as unknown as SkillAdminFormData
+      formDataOnError: {
+        id: formData.get('id') as string || undefined,
+        name: String(formData.get('name') || ''),
+        category: String(formData.get('category') || 'Other') as LibSkillType['category'],
+        proficiency: formData.get('proficiency') ? Number(formData.get('proficiency')) : undefined,
+      }
     };
   }
   
@@ -78,7 +80,6 @@ export async function saveSkillAction(
     id: formData.get('id') as string || undefined,
     name: String(formData.get('name') || ''),
     category: String(formData.get('category') || 'Other') as LibSkillType['category'],
-    iconName: String(formData.get('iconName') || 'Package'),
     proficiency: formData.get('proficiency') as any, 
   };
 
@@ -96,10 +97,15 @@ export async function saveSkillAction(
   const data = validatedFields.data; 
   let skillId = data.id || `skill_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
+  // Determine iconName based on the skill name
+  const IconComponent = lucideIconsMap[data.name] || lucideIconsMap['Package']; // Fallback to Package
+  const determinedIconName = Object.keys(lucideIconsMap).find(key => lucideIconsMap[key] === IconComponent) || 'Package';
+
+
   const skillToSave: Omit<LibSkillType, 'id'> = {
     name: data.name,
     category: data.category,
-    iconName: data.iconName,
+    iconName: determinedIconName,
     proficiency: data.proficiency === undefined ? null : data.proficiency,
   };
 
@@ -156,6 +162,3 @@ export async function deleteSkillAction(itemId: string): Promise<DeleteSkillResu
         return { success: false, message: "Failed to delete skill due to a server error." };
     }
 }
-
-
-    
