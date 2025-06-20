@@ -112,7 +112,6 @@ export async function saveSkillAction(
   };
 
   try {
-    console.log(`Attempting to save skill (ID: ${skillId}):`, skillToSave); // Log what's being saved
     await setDoc(skillDocRef(skillId), skillToSave, { merge: true });
     
     const savedSkillData: LibSkillType = {
@@ -133,18 +132,44 @@ export async function saveSkillAction(
 
   } catch (error) {
     let specificErrorMessage = "An unknown server error occurred during save.";
+    let errorDetailsForClient = "";
+
     if (error instanceof Error) {
         specificErrorMessage = error.message;
-        // Firebase errors often have a 'code' property
-        if ((error as any).code) {
+        errorDetailsForClient = `Message: ${error.message}`;
+        if ((error as any).code) { // Check if error has a 'code' property (common in Firebase errors)
             specificErrorMessage = `Firebase Error (${(error as any).code}): ${error.message}`;
+            errorDetailsForClient += ` Code: ${(error as any).code}`;
+        }
+        // Log stack on server, don't send to client
+        if (error.stack) {
+            console.error("Full error stack (server-side):", error.stack);
+        }
+    } else if (typeof error === 'string') {
+        specificErrorMessage = error;
+        errorDetailsForClient = `Details: ${error}`;
+    } else if (error && typeof error === 'object') {
+        specificErrorMessage = "Object-based error occurred. See server logs.";
+        try {
+          errorDetailsForClient = `Object Error: ${JSON.stringify(error)}`;
+        } catch (e) {
+          errorDetailsForClient = `Object Error: Could not stringify error object.`;
         }
     }
-    console.error("Error saving skill to Firestore:", specificErrorMessage, error); // Log the full error too
+
+    console.error("--- Error Saving Skill to Firestore (Server-Side) ---");
+    console.error("Timestamp:", new Date().toISOString());
+    console.error("Raw Data Received by Action (before Zod):", Object.fromEntries(formData.entries()));
+    console.error("Data after Zod validation (data variable):", data);
+    console.error("Skill ID used/generated:", skillId);
+    console.error("Data Prepared for Firestore (skillToSave variable):", skillToSave);
+    console.error("Actual Error Object:", error);
+    console.error("--- End Error Report ---");
+
     return {
-      message: `Failed to save skill: ${specificErrorMessage}`, // Return the more specific message
+      message: `Save failed. Server: ${specificErrorMessage}. ${errorDetailsForClient ? `Client Hint: ${errorDetailsForClient}` : ''}`,
       status: 'error',
-      errors: {},
+      errors: {}, 
       formDataOnError: rawData,
     };
   }
