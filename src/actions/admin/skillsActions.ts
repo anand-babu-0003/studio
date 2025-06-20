@@ -36,7 +36,7 @@ export async function getSkillsAction(): Promise<LibSkillType[]> {
         id: docSnap.id,
         name: data.name || 'Unnamed Skill',
         category: data.category || 'Other',
-        iconName: data.iconName || 'Package', // Will be derived from lucideIconsMap based on name
+        iconName: data.iconName || 'Package',
         proficiency: (data.proficiency === undefined || data.proficiency === null) ? null : Number(data.proficiency),
       } as LibSkillType;
     });
@@ -76,8 +76,9 @@ export async function saveSkillAction(
     };
   }
   
+  const idFromForm = formData.get('id');
   const rawData: SkillAdminFormData = {
-    id: formData.get('id') as string || undefined,
+    id: (idFromForm && typeof idFromForm === 'string' && idFromForm.trim() !== '') ? idFromForm.trim() : undefined,
     name: String(formData.get('name') || ''),
     category: String(formData.get('category') || 'Other') as LibSkillType['category'],
     proficiency: formData.get('proficiency') as any, 
@@ -96,10 +97,9 @@ export async function saveSkillAction(
 
   const data = validatedFields.data; 
   let skillId = data.id || `skill_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-
-  // Determine iconName based on the skill name
-  const IconComponent = lucideIconsMap[data.name] || lucideIconsMap['Package']; // Fallback to Package
-  const determinedIconName = Object.keys(lucideIconsMap).find(key => lucideIconsMap[key] === IconComponent) || 'Package';
+  
+  const IconComponentFromMap = lucideIconsMap[data.name] || lucideIconsMap['Package']; // Default to Package component if skill name not in map
+  const determinedIconName = Object.keys(lucideIconsMap).find(key => lucideIconsMap[key] === IconComponentFromMap) || 'Package';
 
 
   const skillToSave: Omit<LibSkillType, 'id'> = {
@@ -130,8 +130,9 @@ export async function saveSkillAction(
 
   } catch (error) {
     console.error("Error saving skill to Firestore:", error); 
+    const errorMessage = error instanceof Error ? error.message : "An unknown server error occurred during save.";
     return {
-      message: "An unexpected server error occurred while saving the skill. Please try again.",
+      message: `Failed to save skill: ${errorMessage}`,
       status: 'error',
       errors: {},
       formDataOnError: rawData, 
@@ -162,3 +163,4 @@ export async function deleteSkillAction(itemId: string): Promise<DeleteSkillResu
         return { success: false, message: "Failed to delete skill due to a server error." };
     }
 }
+

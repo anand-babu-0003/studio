@@ -1,11 +1,9 @@
 
 import { z } from 'zod';
 import { SKILL_CATEGORIES } from './constants'; 
-import { commonSkillNamesTuple } from './data'; // Import the tuple
+import { commonSkillNamesTuple } from './data'; 
 
 const ZOD_SKILL_CATEGORIES = SKILL_CATEGORIES; 
-
-// ZOD_AVAILABLE_ICON_NAMES is no longer needed for icon selection dropdown
 
 export const experienceSchema = z.object({
   id: z.string().min(1, "Experience item ID is required"), 
@@ -98,16 +96,21 @@ export const portfolioItemAdminSchema = z.object({
 export type PortfolioAdminFormData = z.infer<typeof portfolioItemAdminSchema>;
 
 export const skillAdminSchema = z.object({
-  id: z.string().optional(),
-  name: z.enum(commonSkillNamesTuple, { // Use the tuple for enum validation
+  id: z.string().min(1, "ID must be a non-empty string if provided.").optional(), // Ensures if ID is there, it's valid
+  name: z.enum(commonSkillNamesTuple, { 
     errorMap: (issue, ctx) => ({ message: "Please select a valid skill from the list." })
   }),
   category: z.enum(ZOD_SKILL_CATEGORIES, { errorMap: () => ({ message: "Please select a valid category." })}),
   proficiency: z.preprocess(
-    (val) => (String(val).trim() === '' || val === null || val === undefined ? undefined : Number(val)),
-    z.number().min(0).max(100).optional().nullable()
+    (val) => {
+      if (val === null || val === undefined || String(val).trim() === '') { 
+        return undefined; 
+      }
+      const num = Number(val);
+      return isNaN(num) ? undefined : num; 
+    },
+    z.number().min(0).max(100).optional().nullable() 
   ),
-  // iconName is removed from user input schema
 });
 
 export type SkillAdminFormData = z.infer<typeof skillAdminSchema>;
@@ -132,3 +135,4 @@ export const notFoundPageAdminSchema = z.object({
   buttonText: z.string().min(3, "Button text is too short.").max(30, "Button text is too long."),
 });
 export type NotFoundPageAdminFormData = z.infer<typeof notFoundPageAdminSchema>;
+
