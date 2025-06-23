@@ -55,20 +55,19 @@ export default function RootLayout({
   const [currentAboutMeData, setCurrentAboutMeData] = useState<AboutMeData>(defaultAboutMeDataForClient);
   const [isLayoutLoading, setIsLayoutLoading] = useState(true);
 
+  const fetchInitialAboutData = useCallback(async () => {
+    try {
+      const aboutData = await getAboutMeDataAction();
+      setCurrentAboutMeData(aboutData || defaultAboutMeDataForClient);
+    } catch (error) {
+      console.error("Failed to fetch initial About Me data:", error);
+      setCurrentAboutMeData(defaultAboutMeDataForClient);
+    }
+  }, []);
 
   useEffect(() => {
     setIsMounted(true);
     let settingsUnsubscribe: (() => void) | undefined;
-
-    const fetchInitialAboutData = async () => {
-      try {
-        const aboutData = await getAboutMeDataAction();
-        setCurrentAboutMeData(aboutData || defaultAboutMeDataForClient);
-      } catch (error) {
-        console.error("Failed to fetch initial About Me data:", error);
-        setCurrentAboutMeData(defaultAboutMeDataForClient);
-      }
-    };
 
     if (firestore) {
       const settingsDocRef = doc(firestore, 'app_config', 'siteSettingsDoc');
@@ -121,7 +120,7 @@ export default function RootLayout({
         settingsUnsubscribe();
       }
     };
-  }, [isAdminRoute]);
+  }, [isAdminRoute, fetchInitialAboutData]);
 
 
   useEffect(() => {
