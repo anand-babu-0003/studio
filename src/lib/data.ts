@@ -2,15 +2,11 @@
 import type React from 'react';
 import type { PortfolioItem, Skill, AboutMeData, SiteSettings, Experience, Education, NotFoundPageData } from '@/lib/types';
 import {
-  Code, Database, Server, Cloud, PenTool, Terminal, Briefcase, Brain, MessageSquare, // Removed Zap from here
-  Settings, LayoutDashboard as LayoutDashboardIcon, Smartphone, Laptop, GitMerge, Palette, Cog, Lightbulb,
-  Network, Puzzle, ShieldCheck, LineChart, Bot as BotIcon, Cpu, Package,
-  Atom, Accessibility, Anchor, AppWindow, Archive, Asterisk, Award, Axe,
-  Baby, BadgeAlert, BadgeCheck, BadgeDollarSign, BadgeHelp, BadgeInfo, BadgePercent,
-  BaggageClaim, Banana, Banknote, BarChart2, BarChart3, BarChart4, BarChartBig,
-  Baseline, Bath, Beaker, Bean, BedDouble, BedSingle, Beef, Beer, Bell,
-  Bike, Binary, Bitcoin, Blend, Bold, Bomb, Bone, Book, Bookmark, Box, Braces, Brackets, // Removed BotIcon, added Blend
-  BrainCircuit, BrickWall, BriefcaseBusiness, Bug, Building, Bus, Cable, Cake, Calculator, Calendar, Camera,
+  Code, Database, Server, Cloud, PenTool, Terminal, Briefcase, Brain, MessageSquare, Settings, Smartphone, Laptop, GitMerge, Cog, Lightbulb,
+  Network, Puzzle, ShieldCheck, LineChart, Cpu, Package, Atom, Accessibility, Anchor, AppWindow, Archive, Asterisk, Award, Axe,
+  Baby, BadgeAlert, BadgeCheck, BadgeDollarSign, BadgeHelp, BadgeInfo, BadgePercent, BaggageClaim, Banana, Banknote, BarChart2, BarChart3, BarChart4, BarChartBig,
+  Baseline, Bath, Beaker, Bean, BedDouble, BedSingle, Beef, Beer, Bell, Bike, Binary, Bitcoin, Blend, Bold, Bomb, Bone, Book, Bookmark,
+  Box, Braces, Brackets, BrainCircuit, BrickWall, BriefcaseBusiness, Bug, Building, Bus, Cable, Cake, Calculator, Calendar, Camera,
   CandlestickChart, Car, Carrot, CaseLower, CaseSensitive, CaseUpper, CassetteTape, Castle, Cat, CheckCheck,
   ChefHat, Cherry, ChevronDownSquare, ChevronUpSquare, Church, CircleDollarSign, Citrus, Clapperboard,
   Clipboard, Clock, CloudCog, CloudDrizzle, CloudFog, CloudHail, CloudLightning, CloudMoon, CloudRain,
@@ -32,14 +28,14 @@ import {
   GitPullRequestDraft, Github, Gitlab, GlassWater, Globe, Goal, Grab, GraduationCap, Grape, Grid, Grip,
   Hammer, Hand, HandCoins, HandHeart, HandHelping, HandMetal, HandPlatter, HardDrive, HardHat, Hash, Haze,
   Heading1, Heading2, Heading3, Heading4, Heading5, Heading6, Headphones, Heart, Heater, Hexagon, Highlighter,
-  History, Hop, Hourglass, Image as ImageIcon, Import, Indent, IndianRupee, Infinity as InfinityIcon, Info, Italic, IterationCcw,
+  History, Hop, Hourglass, Import, Indent, IndianRupee, Info, Italic, IterationCcw,
   IterationCw, JapaneseYen, Joystick, Kanban, Key, Keyboard, Lamp, Landmark, Languages, Laugh, Layout,
-  LayoutGrid, LayoutList, LayoutTemplate, Leaf, Library, LifeBuoy, Link, Mail as MailIcon, // Added MailIcon alias
+  LayoutGrid, LayoutList, LayoutTemplate, Leaf, Library, LifeBuoy, Link,
   List, ListChecks, ListEnd, ListFilter, ListMinus, ListMusic, ListOrdered, ListPlus, ListRestart, ListTodo,
   ListTree, ListVideo, ListX, Loader, Lock, LogIn, LogOut, Lollipop, Luggage, Map, MapPin, Martini, Maximize,
-  Medal, Menu, Merge, Milestone, Milk, Minus, Monitor, Moon, MoreHorizontal, Mountain, Mouse, // Removed Megaphone
-  MousePointer, Move, Music, Navigation, Newspaper, Nut, Orbit as OrbitIcon, PackageCheck, PackageMinus, PackageOpen, // Removed Npm, aliased Orbit
-  PackagePlus, PackageSearch, PackageX, PaintBucket, Paintbrush, Palette as PaletteIcon, Palmtree, PanelBottom, // Aliased Palette
+  Medal, Menu, Merge, Milestone, Milk, Minus, Monitor, Moon, MoreHorizontal, Mountain, Mouse,
+  MousePointer, Move, Music, Navigation, Newspaper, Nut, PackageCheck, PackageMinus, PackageOpen,
+  PackagePlus, PackageSearch, PackageX, PaintBucket, Paintbrush, Palmtree, PanelBottom,
   PanelLeft, Paperclip, ParkingCircle, PartyPopper, Pause, PawPrint, PcCase, Pen, Pencil, Percent, PersonStanding,
   Phone, PieChart, Pin, Pipette, Pizza, Plane, Plug, Plus, Pointer, PoundSterling, Power, Presentation, Printer,
   Projector, Proportions, Pyramid, QrCode, Quote, Rabbit, Radar, Radiation, Radio, Rat, Ratio, Receipt,
@@ -53,9 +49,18 @@ import {
   TrendingUp, Triangle, Trophy, Truck, Tv, Twitch, Underline, Undo, UnfoldHorizontal, UnfoldVertical, Unlink,
   Unplug, Upload, Usb, User, Users, Utensils, UtilityPole, Variable, Vault, VenetianMask, Vibrate, Video, View,
   Voicemail, Volume, Vote, Wallet, Wand, Warehouse, Watch, Waves, Webcam, Webhook, Weight, Wheat, Wifi, Wind,
-  Wine, Workflow, Wrench, Youtube, Zap as ZapIcon, ZoomIn, ZoomOut, // Kept Zap as ZapIcon
-  Layers as LayersIcon, // Added LayersIcon alias
-  ArrowRightLeft as ArrowRightLeftIcon // Added ArrowRightLeftIcon alias
+  Wine, Workflow, Wrench, Youtube, ZoomIn, ZoomOut,
+  // Aliased imports to avoid name collisions
+  Image as ImageIcon,
+  LayoutDashboard as LayoutDashboardIcon,
+  Bot as BotIcon,
+  Orbit as OrbitIcon,
+  Palette as PaletteIcon,
+  Zap as ZapIcon,
+  Layers as LayersIcon,
+  ArrowRightLeft as ArrowRightLeftIcon,
+  Mail as MailIcon,
+  Infinity as InfinityIcon
 } from 'lucide-react';
 import { SKILL_CATEGORIES } from './constants';
 
@@ -151,7 +156,7 @@ export const lucideIconsMap: { [key: string]: React.ElementType } = {
   "JavaScript": Code,
   "TypeScript": Code,
   "Python": Code,
-  "Java": CupSoda, 
+  "Java": CupSoda,
   "C#": Code,
   "C++": Code,
   "Go": Code,
@@ -160,7 +165,7 @@ export const lucideIconsMap: { [key: string]: React.ElementType } = {
   "Kotlin": Smartphone,
   "PHP": Code,
   "HTML5": CodeSquare,
-  "CSS3": PaletteIcon, // Use aliased PaletteIcon
+  "CSS3": PaletteIcon,
   "SCSS/SASS": PaletteIcon,
   "React": Laptop,
   "React Native": Smartphone,
@@ -184,38 +189,38 @@ export const lucideIconsMap: { [key: string]: React.ElementType } = {
   "PostgreSQL": Database,
   "MySQL": Database,
   "MongoDB": Database,
-  "Firebase": Cloud, 
+  "Firebase": Cloud,
   "Firebase Firestore": Database,
   "AWS": Cloud,
   "Azure": Cloud,
   "GCP": Cloud,
   "Docker": Container,
-  "Kubernetes": OrbitIcon, // Use aliased OrbitIcon
+  "Kubernetes": OrbitIcon,
   "Git": GitMerge,
   "GitHub": Github,
   "GitLab": Gitlab,
   "Jenkins": Cog,
-  "Terraform": LayersIcon, // Use aliased LayersIcon
+  "Terraform": LayersIcon,
   "Figma": Figma,
   "Adobe XD": PenTool,
   "VS Code": Terminal,
-  "REST APIs": ArrowRightLeftIcon, // Use aliased ArrowRightLeftIcon
+  "REST APIs": ArrowRightLeftIcon,
   "GraphQL": Share,
-  "Agile": ZapIcon, // Use aliased ZapIcon
+  "Agile": ZapIcon,
   "Scrum": Users,
   "Jira": BriefcaseBusiness,
   "Linux": Terminal,
-  "Photoshop": ImageIcon, // Use aliased ImageIcon
+  "Photoshop": ImageIcon,
   "Illustrator": PenTool,
   "After Effects": Film,
   "Premiere Pro": Film,
   "Final Cut Pro": Film,
   "Logic Pro X": Music,
   "Ableton Live": Music,
-  "BlenderIcon": Blend, // Changed key, use Blend component
+  "Blender": Blend,
   "Unity": Puzzle,
   "Unreal Engine": Puzzle,
-  "npm": Package, // Mapped Npm to Package icon
+  "npm": Package,
   "Yarn": Package,
   "Webpack": Package,
   "Babel": Cog,
@@ -235,22 +240,22 @@ export const lucideIconsMap: { [key: string]: React.ElementType } = {
   "PenTool": PenTool,
   "Terminal": Terminal,
   "Briefcase": Briefcase,
-  "Zap": ZapIcon,         // Changed value to ZapIcon
+  "Zap": ZapIcon,
   "Brain": Brain,
   "MessageSquare": MessageSquare,
   "Settings": Settings,
-  "LayoutDashboard": LayoutDashboardIcon, // Use aliased
+  "LayoutDashboard": LayoutDashboardIcon,
   "Smartphone": Smartphone,
   "Laptop": Laptop,
   "GitMerge": GitMerge,
-  "Palette": PaletteIcon, // Use aliased
+  "Palette": PaletteIcon,
   "Cog": Cog,
   "Lightbulb": Lightbulb,
   "Network": Network,
   "Puzzle": Puzzle,
   "ShieldCheck": ShieldCheck,
   "LineChart": LineChart,
-  "BotIcon": BotIcon, // Use aliased
+  "Bot": BotIcon,
   "Cpu": Cpu,
   "Package": Package,
   "Atom": Atom,
@@ -395,7 +400,7 @@ export const lucideIconsMap: { [key: string]: React.ElementType } = {
   "Fan": Fan,
   "Feather": Feather,
   "FerrisWheel": FerrisWheel,
-  "FigmaIcon": Figma, // Use Figma component for FigmaIcon key
+  "FigmaIcon": Figma,
   "FileArchive": FileArchive,
   "FileAudio": FileAudio,
   "FileBadge": FileBadge,
@@ -591,7 +596,7 @@ export const lucideIconsMap: { [key: string]: React.ElementType } = {
   "Navigation": Navigation,
   "Newspaper": Newspaper,
   "Nut": Nut,
-  "Orbit": OrbitIcon, // Use aliased
+  "Orbit": OrbitIcon,
   "PackageCheck": PackageCheck,
   "PackageMinus": PackageMinus,
   "PackageOpen": PackageOpen,
@@ -760,11 +765,8 @@ export const lucideIconsMap: { [key: string]: React.ElementType } = {
   "Workflow": Workflow,
   "Wrench": Wrench,
   "Youtube": Youtube,
-  "ZapIcon": ZapIcon, 
   "ZoomIn": ZoomIn,
   "ZoomOut": ZoomOut,
-  "LayersIcon": LayersIcon, 
-  "ArrowRightLeftIcon": ArrowRightLeftIcon,
 };
 
 export let commonSkillNames: string[] = [
@@ -795,7 +797,7 @@ export let commonSkillNames: string[] = [
   // AI/ML, Data Science & Big Data
   "Python (for AI/ML)", "TensorFlow", "PyTorch", "Keras", "Scikit-learn", "Pandas", "NumPy", "Matplotlib", "Seaborn", "Jupyter Notebooks", "Apache Spark", "Hadoop", "Natural Language Processing (NLP)", "Computer Vision (CV)", "Machine Learning Operations (MLOps)", "Data Mining", "Data Visualization", "BigQuery", "Snowflake", "Databricks", "Apache Kafka", "Apache Flink", "Tableau", "Power BI", "SQL (for Data Analysis)", "R (for Data Science)", "Weka", "RapidMiner",
   // Game Development
-  "Unity (C#)", "Unreal Engine (C++/Blueprints)", "Godot Engine (GDScript/C#)", "CryEngine", "Lumberyard", "Phaser", "Cocos2d-x", "GameMaker Studio", "BlenderIcon", "Maya (3D Modeling)", "ZBrush (Sculpting)", "Substance Painter/Designer (Texturing)", // Used BlenderIcon
+  "Unity (C#)", "Unreal Engine (C++/Blueprints)", "Godot Engine (GDScript/C#)", "CryEngine", "Lumberyard", "Phaser", "Cocos2d-x", "GameMaker Studio", "Blender", "Maya (3D Modeling)", "ZBrush (Sculpting)", "Substance Painter/Designer (Texturing)",
   // WebAssembly (Wasm)
   "AssemblyScript", "Emscripten",
   // Blockchain & Web3
@@ -839,7 +841,7 @@ commonSkillNames.forEach(skillName => {
   if (Object.prototype.hasOwnProperty.call(lucideIconsMap, skillName)) {
     // Already explicitly mapped
   } else if (lowerSkillName.includes("javascript") || lowerSkillName.includes("typescript") || lowerSkillName.includes("ecmascript") || lowerSkillName.includes("jquery") || lowerSkillName.includes("json") || lowerSkillName.includes("ajax") || lowerSkillName.includes("webassembly") || lowerSkillName.includes("assemblyscript")) ensureIcon(skillName, Code);
-  else if (lowerSkillName.includes("python")) ensureIcon(skillName, Code); 
+  else if (lowerSkillName.includes("python")) ensureIcon(skillName, Code);
   else if (lowerSkillName.includes("java") && !lowerSkillName.includes("javascript")) ensureIcon(skillName, CupSoda);
   else if (lowerSkillName.includes("c#") || lowerSkillName.includes("c++") || lowerSkillName.includes("objective-c") || lowerSkillName.includes("c")) ensureIcon(skillName, Code);
   else if (lowerSkillName.includes("swift") || lowerSkillName.includes("kotlin") || lowerSkillName.includes("android") || lowerSkillName.includes("ios") || lowerSkillName.includes("flutter") || lowerSkillName.includes("dart") || lowerSkillName.includes("xamarin") || lowerSkillName.includes("react native") || lowerSkillName.includes("nativescript") || lowerSkillName.includes("ionic")) ensureIcon(skillName, Smartphone);
@@ -858,7 +860,7 @@ commonSkillNames.forEach(skillName => {
   else if (lowerSkillName.includes("linux") || lowerSkillName.includes("ubuntu") || lowerSkillName.includes("debian") || lowerSkillName.includes("centos") || lowerSkillName.includes("fedora") || lowerSkillName.includes("unix") || lowerSkillName.includes("bash") || lowerSkillName.includes("shell scripting") || lowerSkillName.includes("powershell") || lowerSkillName.includes("terminal")) ensureIcon(skillName, Terminal);
   else if (lowerSkillName.includes("ai") || lowerSkillName.includes("machine learning") || lowerSkillName.includes("tensorflow") || lowerSkillName.includes("pytorch") || lowerSkillName.includes("keras") || lowerSkillName.includes("scikit-learn") || lowerSkillName.includes("nlp") || lowerSkillName.includes("computer vision") || lowerSkillName.includes("data science")) ensureIcon(skillName, Brain);
   else if (lowerSkillName.includes("unity") || lowerSkillName.includes("unreal engine") || lowerSkillName.includes("godot") || lowerSkillName.includes("game development")) ensureIcon(skillName, Puzzle);
-  else if (lowerSkillName.includes("blendericon") || lowerSkillName.includes("maya") || lowerSkillName.includes("3d modeling")) ensureIcon(skillName, Blend); // Updated to BlenderIcon for matching the key
+  else if (lowerSkillName.includes("blender") || lowerSkillName.includes("maya") || lowerSkillName.includes("3d modeling")) ensureIcon(skillName, Blend);
   else if (lowerSkillName.includes("npm") || lowerSkillName.includes("yarn") || lowerSkillName.includes("pip") || lowerSkillName.includes("maven") || lowerSkillName.includes("gradle") || lowerSkillName.includes("nuget") || lowerSkillName.includes("composer") || lowerSkillName.includes("rubygems") || lowerSkillName.includes("cargo") || lowerSkillName.includes("homebrew") || lowerSkillName.includes("package manager")) ensureIcon(skillName, Package);
   else if (lowerSkillName.includes("webpack") || lowerSkillName.includes("parcel") || lowerSkillName.includes("rollup") || lowerSkillName.includes("babel") || lowerSkillName.includes("build tool")) ensureIcon(skillName, Cog);
   else if (lowerSkillName.includes("jest") || lowerSkillName.includes("mocha") || lowerSkillName.includes("chai") || lowerSkillName.includes("cypress") || lowerSkillName.includes("selenium") || lowerSkillName.includes("puppeteer") || lowerSkillName.includes("playwright") || lowerSkillName.includes("testing")) ensureIcon(skillName, TestTube);
@@ -874,71 +876,9 @@ commonSkillNames.forEach(skillName => {
   else ensureIcon(skillName, Package);
 });
 
-
-const iconComponentsToEnsureImported = [
-  Code, Database, Server, Cloud, PenTool, Terminal, Briefcase, Brain, MessageSquare,
-  Settings, LayoutDashboardIcon, Smartphone, Laptop, GitMerge, PaletteIcon, Cog, Lightbulb,
-  Network, Puzzle, ShieldCheck, LineChart, BotIcon, Cpu, Package,
-  Atom, Accessibility, Anchor, AppWindow, Archive, Asterisk, Award, Axe,
-  Baby, BadgeAlert, BadgeCheck, BadgeDollarSign, BadgeHelp, BadgeInfo, BadgePercent,
-  BaggageClaim, Banana, Banknote, BarChart2, BarChart3, BarChart4, BarChartBig,
-  Baseline, Bath, Beaker, Bean, BedDouble, BedSingle, Beef, Beer, Bell,
-  Bike, Binary, Bitcoin, Blend, Bold, Bomb, Bone, Book, Bookmark, Box, Braces, Brackets,
-  BrainCircuit, BrickWall, BriefcaseBusiness, Bug, Building, Bus, Cable, Cake, Calculator, Calendar, Camera,
-  CandlestickChart, Car, Carrot, CaseLower, CaseSensitive, CaseUpper, CassetteTape, Castle, Cat, CheckCheck,
-  ChefHat, Cherry, ChevronDownSquare, ChevronUpSquare, Church, CircleDollarSign, Citrus, Clapperboard,
-  Clipboard, Clock, CloudCog, CloudDrizzle, CloudFog, CloudHail, CloudLightning, CloudMoon, CloudRain,
-  CloudSnow, CloudSun, Cloudy, Clover, CodeSquare, Codepen, Coins, Columns, Command, Compass, Component,
-  ConciergeBell, Construction, Contact2, Container, Cookie, Copy, Copyright, CornerDownLeft, CornerDownRight,
-  Crown, CupSoda, Currency, PilcrowSquare, Diamond, Dice1, Dice2, Dice3, Dice4, Dice5, Dice6, Dices, Diff, Disc,
-  Dna, Dog, DollarSign, Donut, DoorClosed, DoorOpen, DownloadCloud, DraftingCompass, Drama, Dribbble, Droplet,
-  Drumstick, Dumbbell, Ear, Eclipse, Edit, Egg, Equal, Euro, Expand, ExternalLink, Eye,
-  Facebook, Factory, Fan, Feather, FerrisWheel, Figma, FileArchive, FileAudio, FileBadge, FileBarChart,
-  FileCheck, FileCode, FileCog, FileDiff, FileDigit, FileDown, FileEdit, FileHeart, FileImage, FileInput,
-  FileJson, FileKey, FileLock, FileMinus, FileOutput, FilePlus, FileQuestion, FileScan, FileSearch, FileSpreadsheet,
-  FileSymlink, FileTerminal, FileText, FileType, FileUp, FileVideo, FileVolume, FileWarning, FileX, Files,
-  Film, Filter, Fingerprint, Flag, Flame, FlaskConical, FlaskRound, FlipHorizontal, FlipVertical, Flower,
-  Folder, FolderArchive, FolderCheck, FolderClock, FolderClosed, FolderCog, FolderDot, FolderDown, FolderEdit,
-  FolderGit, FolderGit2, FolderHeart, FolderInput, FolderKanban, FolderKey, FolderLock, FolderMinus, FolderOpen,
-  FolderOutput, FolderPlus, FolderRoot, FolderSearch, FolderSymlink, FolderTree, FolderUp, FolderX, Folders,
-  Footprints, Forklift, Forward, Frame, Frown, Fuel, FunctionSquare, Gamepad, Gamepad2, Gauge, Gavel, Gem,
-  Ghost, Gift, GitBranch, GitBranchPlus, GitCommit, GitCompare, GitFork, GitGraph, GitPullRequest, GitPullRequestClosed,
-  GitPullRequestDraft, Github, Gitlab, GlassWater, Globe, Goal, Grab, GraduationCap, Grape, Grid, Grip,
-  Hammer, Hand, HandCoins, HandHeart, HandHelping, HandMetal, HandPlatter, HardDrive, HardHat, Hash, Haze,
-  Heading1, Heading2, Heading3, Heading4, Heading5, Heading6, Headphones, Heart, Heater, Hexagon, Highlighter,
-  History, Hop, Hourglass, ImageIcon, Import, Indent, IndianRupee, InfinityIcon, Info, Italic, IterationCcw,
-  IterationCw, JapaneseYen, Joystick, Kanban, Key, Keyboard, Lamp, Landmark, Languages, Laugh, Layout,
-  LayoutGrid, LayoutList, LayoutTemplate, Leaf, Library, LifeBuoy, Link, MailIcon, Map, MapPin, Martini, Maximize,
-  Medal, Menu, Merge, Milestone, Milk, Minus, Monitor, Moon, MoreHorizontal, Mountain, Mouse,
-  MousePointer, Move, Music, Navigation, Newspaper, Nut, OrbitIcon, PackageCheck, PackageMinus, PackageOpen,
-  PackagePlus, PackageSearch, PackageX, PaintBucket, Paintbrush, Palmtree, PanelBottom,
-  PanelLeft, Paperclip, ParkingCircle, PartyPopper, Pause, PawPrint, PcCase, Pen, Pencil, Percent, PersonStanding,
-  Phone, PieChart, Pin, Pipette, Pizza, Plane, Plug, Plus, Pointer, PoundSterling, Power, Presentation, Printer,
-  Projector, Proportions, Pyramid, QrCode, Quote, Rabbit, Radar, Radiation, Radio, Rat, Ratio, Receipt,
-  RectangleHorizontal, RectangleVertical, Recycle, Redo, Regex, Repeat, Reply, Rocket, Router, Rss, Ruler,
-  RussianRuble, Sailboat, Save, Scale, Scan, School, Scissors, ScreenShare, Scroll, Search, Send, SeparatorHorizontal,
-  SeparatorVertical, Share, Sheet, Shell, Shield, Ship, Shirt, ShoppingBag, ShoppingCart, Shovel, ShowerHead,
-  Shrink, Sigma, Signal, Siren, Slack, Slice, SlidersHorizontal, Smile, Snowflake, Sofa, Soup, Space, Sparkle,
-  Speaker, Spline, Split, Sprout, Square, Star, Stethoscope, Sticker, Store, StretchHorizontal, StretchVertical,
-  Strikethrough, Subscript, Sun, Superscript, SwatchBook, SwissFranc, SwitchCamera, Sword, Swords, Syringe,
-  Table, Tablet, Tag, Target, Tent, TestTube, Text, TextCursor, TextQuote, Ticket, Timer, Trello, TrendingDown,
-  TrendingUp, Triangle, Trophy, Truck, Tv, Twitch, Underline, Undo, UnfoldHorizontal, UnfoldVertical, Unlink,
-  Unplug, Upload, Usb, User, Users, Utensils, UtilityPole, Variable, Vault, VenetianMask, Vibrate, Video, View,
-  Voicemail, Volume, Vote, Wallet, Wand, Warehouse, Watch, Waves, Webcam, Webhook, Weight, Wheat, Wifi, Wind,
-  Wine, Workflow, Wrench, Youtube, ZapIcon, ZoomIn, ZoomOut, LayersIcon, ArrowRightLeftIcon
-];
-iconComponentsToEnsureImported.forEach(comp => {
-  const name = comp.displayName || comp.name;
-  if (name && !lucideIconsMap[name] && !Object.values(lucideIconsMap).includes(comp)) {
-     // console.warn(`Icon component ${name} was imported but not found in lucideIconsMap directly or by value.`);
-  }
-});
-
-
 export const availableIconNames = Object.keys(lucideIconsMap);
 
 export const commonSkillNamesTuple = (commonSkillNames.length > 0 ? [...commonSkillNames] : ['']) as [string, ...string[]];
 if (commonSkillNames.length === 0) {
   console.warn("commonSkillNames in data.ts is empty. Skill selection dropdown will be empty.");
 }
-
