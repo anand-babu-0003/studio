@@ -37,116 +37,36 @@ import {
   type Education as ZodEducationType
 } from '@/lib/adminSchemas';
 
-
-const initialFullFormState: UpdateAboutDataFormState = { message: '', status: 'idle', errors: {}, data: undefined };
-const initialProfileBioFormState: UpdateProfileBioDataFormState = { message: '', status: 'idle', errors: {}, data: undefined };
-const initialExperienceFormState: UpdateExperienceDataFormState = { message: '', status: 'idle', errors: {}, data: undefined };
-const initialEducationFormState: UpdateEducationDataFormState = { message: '', status: 'idle', errors: {}, data: undefined };
-
-
-interface SubmitButtonProps {
-  form?: string; 
-  text?: string;
-}
-
-function SubmitButton({ form: formId, text = "Save Changes" }: SubmitButtonProps) {
-  const { pending } = useFormStatus();
-  return (
-    <Button type="submit" disabled={pending} form={formId}>
-      {pending ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Saving...
-        </>
-      ) : (
-        <>
-         <Save className="mr-2 h-4 w-4" />
-         {text}
-        </>
-      )}
-    </Button>
-  );
-}
-
-const prepareFullAboutMeDataForForm = (data?: Partial<AboutMeData>): AboutMeData => {
-  const defaults = defaultAboutMeDataForClient;
-  return {
-    name: data?.name || defaults.name,
-    title: data?.title || defaults.title,
-    bio: data?.bio || defaults.bio,
-    profileImage: data?.profileImage || defaults.profileImage,
-    dataAiHint: data?.dataAiHint || defaults.dataAiHint,
-    experience: (Array.isArray(data?.experience) && data.experience.length > 0 ? data.experience : defaults.experience).map(exp => ({ ...exp, id: exp.id || `exp_form_${Date.now()}_${Math.random().toString(36).substring(2,7)}` })),
-    education: (Array.isArray(data?.education) && data.education.length > 0 ? data.education : defaults.education).map(edu => ({ ...edu, id: edu.id || `edu_form_${Date.now()}_${Math.random().toString(36).substring(2,7)}` })),
-    email: data?.email || defaults.email,
-    linkedinUrl: data?.linkedinUrl || defaults.linkedinUrl,
-    githubUrl: data?.githubUrl || defaults.githubUrl,
-    twitterUrl: data?.twitterUrl || defaults.twitterUrl,
-  };
-};
-
-const prepareProfileBioDataForForm = (data?: Partial<ProfileBioData>): ProfileBioData => {
-  const defaults = defaultAboutMeDataForClient;
-  return {
-    name: data?.name || defaults.name,
-    title: data?.title || defaults.title,
-    bio: data?.bio || defaults.bio,
-    profileImage: data?.profileImage || defaults.profileImage,
-    dataAiHint: data?.dataAiHint || defaults.dataAiHint,
-  };
-};
-
-const prepareExperienceSectionDataForForm = (data?: Partial<ExperienceSectionData>): ExperienceSectionData => {
-    const experienceArray = data?.experience || defaultAboutMeDataForClient.experience;
-    return {
-        experience: (Array.isArray(experienceArray) ? experienceArray : []).map(exp => ({
-            id: exp.id || `exp_form_prep_${Date.now()}_${Math.random().toString(36).substring(2,7)}`, 
-            role: exp.role || '',
-            company: exp.company || '',
-            period: exp.period || '',
-            description: exp.description || '',
-        })),
-    };
-};
-
-const prepareEducationSectionDataForForm = (data?: Partial<EducationSectionData>): EducationSectionData => {
-    const educationArray = data?.education || defaultAboutMeDataForClient.education;
-    return {
-        education: (Array.isArray(educationArray) ? educationArray : []).map(edu => ({
-            id: edu.id || `edu_form_prep_${Date.now()}_${Math.random().toString(36).substring(2,7)}`,
-            degree: edu.degree || '',
-            institution: edu.institution || '',
-            period: edu.period || '',
-        })),
-    };
-};
-
-
-export default function AdminAboutPage() {
+// This is the main client component that holds all the logic and state for the forms.
+function AboutAdminClientPage({ initialData }: { initialData: AboutMeData }) {
   const { toast } = useToast();
-  const [initialDataLoading, setInitialDataLoading] = useState(true);
+
+  const initialFullFormState: UpdateAboutDataFormState = { message: '', status: 'idle', errors: {}, data: initialData };
+  const initialProfileBioFormState: UpdateProfileBioDataFormState = { message: '', status: 'idle', errors: {}, data: initialData };
+  const initialExperienceFormState: UpdateExperienceDataFormState = { message: '', status: 'idle', errors: {}, data: { experience: initialData.experience } };
+  const initialEducationFormState: UpdateEducationDataFormState = { message: '', status: 'idle', errors: {}, data: { education: initialData.education } };
 
   const [profileBioState, profileBioFormAction] = useActionState(updateProfileBioDataAction, initialProfileBioFormState);
   const profileBioForm = useForm<ProfileBioData>({
     resolver: zodResolver(profileBioSchema),
-    defaultValues: prepareProfileBioDataForForm(),
+    defaultValues: prepareProfileBioDataForForm(initialData),
   });
 
   const [experienceState, experienceFormAction] = useActionState(updateExperienceDataAction, initialExperienceFormState);
   const experienceForm = useForm<ExperienceSectionData>({
     resolver: zodResolver(experienceSectionSchema),
-    defaultValues: prepareExperienceSectionDataForForm(),
+    defaultValues: prepareExperienceSectionDataForForm(initialData),
   });
   const { fields: experienceFields, append: appendExperience, remove: removeExperience } = useFieldArray({
     control: experienceForm.control,
     name: "experience",
-    keyName: "fieldId", 
+    keyName: "fieldId",
   });
   
   const [educationState, educationFormAction] = useActionState(updateEducationDataAction, initialEducationFormState);
   const educationForm = useForm<EducationSectionData>({
     resolver: zodResolver(educationSectionSchema),
-    defaultValues: prepareEducationSectionDataForForm(),
+    defaultValues: prepareEducationSectionDataForForm(initialData),
   });
   const { fields: educationFields, append: appendEducation, remove: removeEducation } = useFieldArray({
     control: educationForm.control,
@@ -155,47 +75,20 @@ export default function AdminAboutPage() {
   });
 
   const [fullFormState, fullFormAction] = useActionState(updateAboutDataAction, initialFullFormState);
-  const fullForm = useForm<AboutMeData>({ 
+  const fullForm = useForm<AboutMeData>({
     resolver: zodResolver(aboutMeSchema),
-    defaultValues: prepareFullAboutMeDataForForm(), 
+    defaultValues: prepareFullAboutMeDataForForm(initialData),
   });
 
-  useEffect(() => {
-    async function loadInitialData() {
-      setInitialDataLoading(true);
-      try {
-        const fetchedData = await getAboutMeDataAction();
-        const preparedData = prepareFullAboutMeDataForForm(fetchedData);
-        
-        profileBioForm.reset(prepareProfileBioDataForForm(preparedData));
-        experienceForm.reset(prepareExperienceSectionDataForForm({ experience: preparedData.experience }));
-        educationForm.reset(prepareEducationSectionDataForForm({ education: preparedData.education }));
-        fullForm.reset(preparedData); 
-
-      } catch (error) {
-        console.error("Failed to load initial About Me data for admin:", error);
-        toast({ title: "Error", description: "Could not load existing About Me data.", variant: "destructive" });
-        profileBioForm.reset(prepareProfileBioDataForForm(defaultAboutMeDataForClient));
-        experienceForm.reset(prepareExperienceSectionDataForForm({ experience: defaultAboutMeDataForClient.experience }));
-        educationForm.reset(prepareEducationSectionDataForForm({ education: defaultAboutMeDataForClient.education }));
-        fullForm.reset(prepareFullAboutMeDataForForm(defaultAboutMeDataForClient));
-      } finally {
-        setInitialDataLoading(false);
-      }
-    }
-    loadInitialData();
-  }, [profileBioForm, experienceForm, educationForm, fullForm, toast]);
-
-
+  // Effect for handling Profile & Bio form state changes
   useEffect(() => {
     if (profileBioState.status === 'success' && profileBioState.message) {
       toast({ title: "Success!", description: profileBioState.message });
       if (profileBioState.data) profileBioForm.reset(prepareProfileBioDataForForm(profileBioState.data));
     } else if (profileBioState.status === 'error') {
       toast({ title: "Error Profile & Bio", description: profileBioState.message || "An error occurred.", variant: "destructive" });
-      if (profileBioState.data) profileBioForm.reset(prepareProfileBioDataForForm(profileBioState.data)); 
-      else profileBioForm.reset(profileBioForm.getValues()); 
-      
+      if (profileBioState.data) profileBioForm.reset(prepareProfileBioDataForForm(profileBioState.data));
+      else profileBioForm.reset(profileBioForm.getValues());
       if (profileBioState.errors) {
         Object.entries(profileBioState.errors).forEach(([fieldName, fieldErrorMessages]) => {
           if (Array.isArray(fieldErrorMessages) && fieldErrorMessages.length > 0) {
@@ -206,6 +99,7 @@ export default function AdminAboutPage() {
     }
   }, [profileBioState, toast, profileBioForm]);
 
+  // Effect for handling Experience form state changes
   useEffect(() => {
     if (experienceState.status === 'success' && experienceState.message) {
       toast({ title: "Success!", description: experienceState.message });
@@ -214,17 +108,16 @@ export default function AdminAboutPage() {
       toast({ title: "Error Experience", description: experienceState.message || "An error occurred.", variant: "destructive" });
       if (experienceState.data) experienceForm.reset(prepareExperienceSectionDataForForm(experienceState.data));
       else experienceForm.reset(experienceForm.getValues());
-
       if (experienceState.errors) {
         Object.entries(experienceState.errors).forEach(([fieldName, fieldErrorMessages]) => {
             if (fieldName.startsWith("experience.") && Array.isArray(fieldErrorMessages)) {
                 const parts = fieldName.split('.');
-                if (parts.length === 3) { 
+                if (parts.length === 3) {
                     const index = parseInt(parts[1]);
                     const subFieldName = parts[2] as keyof ZodExperienceType;
                     experienceForm.setError(`experience.${index}.${subFieldName}`, { type: 'server', message: fieldErrorMessages.join(', ') });
                 }
-            } else if (fieldName === "experience" && typeof fieldErrorMessages === 'string') { 
+            } else if (fieldName === "experience" && typeof fieldErrorMessages === 'string') {
                  experienceForm.setError("experience", { type: 'server', message: fieldErrorMessages });
             } else if (fieldName === "experience" && Array.isArray(fieldErrorMessages)) {
                  experienceForm.setError("experience", { type: 'server', message: fieldErrorMessages.join(', ') });
@@ -234,6 +127,7 @@ export default function AdminAboutPage() {
     }
   }, [experienceState, toast, experienceForm]);
 
+  // Effect for handling Education form state changes
   useEffect(() => {
     if (educationState.status === 'success' && educationState.message) {
       toast({ title: "Success!", description: educationState.message });
@@ -242,17 +136,16 @@ export default function AdminAboutPage() {
       toast({ title: "Error Education", description: educationState.message || "An error occurred.", variant: "destructive" });
       if (educationState.data) educationForm.reset(prepareEducationSectionDataForForm(educationState.data));
       else educationForm.reset(educationForm.getValues());
-
       if (educationState.errors) {
         Object.entries(educationState.errors).forEach(([fieldName, fieldErrorMessages]) => {
             if (fieldName.startsWith("education.") && Array.isArray(fieldErrorMessages)) {
                 const parts = fieldName.split('.');
-                if (parts.length === 3) { 
+                if (parts.length === 3) {
                     const index = parseInt(parts[1]);
                     const subFieldName = parts[2] as keyof ZodEducationType;
                     educationForm.setError(`education.${index}.${subFieldName}`, { type: 'server', message: fieldErrorMessages.join(', ') });
                 }
-            } else if (fieldName === "education" && typeof fieldErrorMessages === 'string') { 
+            } else if (fieldName === "education" && typeof fieldErrorMessages === 'string') {
                  educationForm.setError("education", { type: 'server', message: fieldErrorMessages });
             } else if (fieldName === "education" && Array.isArray(fieldErrorMessages)) {
                  educationForm.setError("education", { type: 'server', message: fieldErrorMessages.join(', ') });
@@ -262,7 +155,8 @@ export default function AdminAboutPage() {
     }
   }, [educationState, toast, educationForm]);
 
-   useEffect(() => {
+  // Effect for handling Contact & Socials form state changes
+  useEffect(() => {
     if (fullFormState.status === 'success' && fullFormState.message) {
       toast({ title: "Success (Contact/Socials)!", description: fullFormState.message });
       if (fullFormState.data) fullForm.reset(prepareFullAboutMeDataForForm(fullFormState.data));
@@ -270,7 +164,6 @@ export default function AdminAboutPage() {
       toast({ title: "Error Saving (Contact/Socials)", description: fullFormState.message || "An error occurred.", variant: "destructive" });
       if (fullFormState.data) fullForm.reset(prepareFullAboutMeDataForForm(fullFormState.data));
       else fullForm.reset(fullForm.getValues());
-      
       if (fullFormState.errors) {
         Object.entries(fullFormState.errors).forEach(([fieldName, fieldErrorMessages]) => {
           if (Array.isArray(fieldErrorMessages) && fieldErrorMessages.length > 0) {
@@ -281,10 +174,6 @@ export default function AdminAboutPage() {
     }
   }, [fullFormState, toast, fullForm]);
 
-  if (initialDataLoading) {
-    return <FullScreenLoader />;
-  }
-
   return (
     <div className="space-y-6">
       <PageHeader
@@ -292,7 +181,6 @@ export default function AdminAboutPage() {
         subtitle="Edit your profile, bio, contact, experience, and education details."
         className="py-0 text-left"
       />
-      
       <Tabs defaultValue="profile" className="w-full">
         <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-6">
           <TabsTrigger value="profile">Profile & Bio</TabsTrigger>
@@ -453,3 +341,72 @@ export default function AdminAboutPage() {
   );
 }
 
+// Helper functions to prepare data for the forms
+function SubmitButton({ form: formId, text = "Save Changes" }: { form?: string; text?: string }) {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" disabled={pending} form={formId}>
+      {pending ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving...</>) : (<><Save className="mr-2 h-4 w-4" />{text}</>)}
+    </Button>
+  );
+}
+
+const prepareFullAboutMeDataForForm = (data?: Partial<AboutMeData>): AboutMeData => {
+  const defaults = defaultAboutMeDataForClient;
+  return {
+    name: data?.name || defaults.name,
+    title: data?.title || defaults.title,
+    bio: data?.bio || defaults.bio,
+    profileImage: data?.profileImage || defaults.profileImage,
+    dataAiHint: data?.dataAiHint || defaults.dataAiHint,
+    experience: (Array.isArray(data?.experience) && data.experience.length > 0 ? data.experience : defaults.experience).map(exp => ({ ...exp, id: exp.id || `exp_form_${Date.now()}_${Math.random().toString(36).substring(2,7)}` })),
+    education: (Array.isArray(data?.education) && data.education.length > 0 ? data.education : defaults.education).map(edu => ({ ...edu, id: edu.id || `edu_form_${Date.now()}_${Math.random().toString(36).substring(2,7)}` })),
+    email: data?.email || defaults.email,
+    linkedinUrl: data?.linkedinUrl || defaults.linkedinUrl,
+    githubUrl: data?.githubUrl || defaults.githubUrl,
+    twitterUrl: data?.twitterUrl || defaults.twitterUrl,
+  };
+};
+
+const prepareProfileBioDataForForm = (data?: Partial<ProfileBioData>): ProfileBioData => {
+  const defaults = defaultAboutMeDataForClient;
+  return {
+    name: data?.name || defaults.name,
+    title: data?.title || defaults.title,
+    bio: data?.bio || defaults.bio,
+    profileImage: data?.profileImage || defaults.profileImage,
+    dataAiHint: data?.dataAiHint || defaults.dataAiHint,
+  };
+};
+
+const prepareExperienceSectionDataForForm = (data?: Partial<ExperienceSectionData | AboutMeData>): ExperienceSectionData => {
+    const experienceArray = (data && 'experience' in data) ? data.experience : defaultAboutMeDataForClient.experience;
+    return {
+        experience: (Array.isArray(experienceArray) ? experienceArray : []).map(exp => ({
+            id: exp.id || `exp_form_prep_${Date.now()}_${Math.random().toString(36).substring(2,7)}`, 
+            role: exp.role || '',
+            company: exp.company || '',
+            period: exp.period || '',
+            description: exp.description || '',
+        })),
+    };
+};
+
+const prepareEducationSectionDataForForm = (data?: Partial<EducationSectionData | AboutMeData>): EducationSectionData => {
+    const educationArray = (data && 'education' in data) ? data.education : defaultAboutMeDataForClient.education;
+    return {
+        education: (Array.isArray(educationArray) ? educationArray : []).map(edu => ({
+            id: edu.id || `edu_form_prep_${Date.now()}_${Math.random().toString(36).substring(2,7)}`,
+            degree: edu.degree || '',
+            institution: edu.institution || '',
+            period: edu.period || '',
+        })),
+    };
+};
+
+
+// This is the parent server component that fetches initial data.
+export default async function AdminAboutPage() {
+  const initialData = await getAboutMeDataAction();
+  return <AboutAdminClientPage initialData={initialData} />;
+}

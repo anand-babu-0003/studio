@@ -1,61 +1,28 @@
 
-"use client";
-
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Mail, Package } from 'lucide-react';
-import type { PortfolioItem, AboutMeData, Skill } from '@/lib/types';
+import type { PortfolioItem, Skill } from '@/lib/types';
 import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wrapper';
 import { lucideIconsMap, defaultAboutMeDataForClient, defaultPortfolioItemsDataForClient, defaultSkillsDataForClient } from '@/lib/data';
 import StarryBackground from '@/components/layout/starry-background';
 import { PortfolioCard } from '@/components/portfolio/portfolio-card';
-import FullScreenLoader from '@/components/shared/FullScreenLoader';
-
 import { getAboutMeDataAction } from '@/actions/getAboutMeDataAction';
 import { getPortfolioItemsAction } from '@/actions/admin/portfolioActions';
 import { getSkillsAction } from '@/actions/admin/skillsActions';
 
-export default function Home() {
-  const [aboutMeData, setAboutMeData] = useState<AboutMeData | null>(null);
-  const [allPortfolioItems, setAllPortfolioItems] = useState<PortfolioItem[]>([]);
-  const [allSkills, setAllSkills] = useState<Skill[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export default async function Home() {
+  const [aboutMeData, allPortfolioItems, allSkills] = await Promise.all([
+    getAboutMeDataAction(),
+    getPortfolioItemsAction(),
+    getSkillsAction()
+  ]);
 
-  useEffect(() => {
-    async function loadPageData() {
-      setIsLoading(true);
-      try {
-        const [fetchedAboutMe, fetchedPortfolioItems, fetchedSkills] = await Promise.all([
-          getAboutMeDataAction(),
-          getPortfolioItemsAction(),
-          getSkillsAction()
-        ]);
-        setAboutMeData(fetchedAboutMe || defaultAboutMeDataForClient);
-        setAllPortfolioItems(fetchedPortfolioItems || []); 
-        setAllSkills(fetchedSkills || []); 
-      } catch (error) {
-        console.error("Error fetching data for Home page:", error);
-        setAboutMeData(defaultAboutMeDataForClient); 
-        setAllPortfolioItems(defaultPortfolioItemsDataForClient.slice(0,2)); 
-        setAllSkills(defaultSkillsDataForClient.slice(0,6)); 
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    loadPageData();
-  }, []);
-  
   const displayedAboutMe = aboutMeData || defaultAboutMeDataForClient;
-  const featuredProjects = allPortfolioItems.slice(0, 2);
-  const highlightedSkills = allSkills.slice(0, 6);
+  const featuredProjects = (allPortfolioItems || defaultPortfolioItemsDataForClient).slice(0, 2);
+  const highlightedSkills = (allSkills || defaultSkillsDataForClient).slice(0, 6);
   const firstParagraphBio = (displayedAboutMe.bio || '').split('\n\n')[0] || defaultAboutMeDataForClient.bio.split('\n\n')[0];
-
-
-  if (isLoading) {
-    return <FullScreenLoader />;
-  }
 
   return (
     <div className="flex flex-col">
@@ -214,4 +181,3 @@ export default function Home() {
     </div>
   );
 }
-

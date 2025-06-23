@@ -15,21 +15,13 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { Save, Loader2 } from 'lucide-react'; 
-import FullScreenLoader from '@/components/shared/FullScreenLoader';
 
 import { notFoundPageAdminSchema, type NotFoundPageAdminFormData } from '@/lib/adminSchemas';
 import { getNotFoundPageDataAction, updateNotFoundPageDataAction, type UpdateNotFoundPageDataFormState } from '@/actions/admin/notFoundActions';
-import { defaultNotFoundPageDataForClient } from '@/lib/data'; 
+import type { NotFoundPageData } from '@/lib/types';
+
 
 const initialFormState: UpdateNotFoundPageDataFormState = { message: '', status: 'idle', errors: {}, data: undefined };
-
-const defaultFormValues: NotFoundPageAdminFormData = {
-  imageSrc: defaultNotFoundPageDataForClient.imageSrc,
-  dataAiHint: defaultNotFoundPageDataForClient.dataAiHint,
-  heading: defaultNotFoundPageDataForClient.heading,
-  message: defaultNotFoundPageDataForClient.message,
-  buttonText: defaultNotFoundPageDataForClient.buttonText,
-};
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -50,62 +42,28 @@ function SubmitButton() {
   );
 }
 
-export default function AdminNotFoundSettingsPage() {
+// Client Component for the form
+function NotFoundSettingsAdminClientPage({ initialData }: { initialData: NotFoundPageData }) {
   const { toast } = useToast();
   const [formState, formAction] = useActionState(updateNotFoundPageDataAction, initialFormState);
-  const [isLoadingInitialData, setIsLoadingInitialData] = useState(true);
 
   const form = useForm<NotFoundPageAdminFormData>({
     resolver: zodResolver(notFoundPageAdminSchema),
-    defaultValues: defaultFormValues, 
+    defaultValues: initialData,
   });
-
-  useEffect(() => {
-    async function fetchInitialData() {
-      setIsLoadingInitialData(true);
-      try {
-        const currentData = await getNotFoundPageDataAction();
-        if (currentData) {
-          form.reset({
-            imageSrc: currentData.imageSrc || defaultNotFoundPageDataForClient.imageSrc,
-            dataAiHint: currentData.dataAiHint || defaultNotFoundPageDataForClient.dataAiHint,
-            heading: currentData.heading || defaultNotFoundPageDataForClient.heading,
-            message: currentData.message || defaultNotFoundPageDataForClient.message,
-            buttonText: currentData.buttonText || defaultNotFoundPageDataForClient.buttonText,
-          });
-        } else {
-          form.reset(defaultFormValues); 
-        }
-      } catch (error) {
-        console.error("Failed to fetch initial 404 page data:", error);
-        toast({
-          title: "Error",
-          description: "Could not load current 404 page settings.",
-          variant: "destructive",
-        });
-        form.reset(defaultFormValues); 
-      } finally {
-        setIsLoadingInitialData(false);
-      }
-    }
-    fetchInitialData();
-  }, [form, toast]);
 
   useEffect(() => {
     if (formState.status === 'success' && formState.message) {
       toast({ title: "Success!", description: formState.message });
       if (formState.data) {
-        form.reset(formState.data); 
+        form.reset(formState.data);
       }
     } else if (formState.status === 'error') {
-      const errorMessage = (typeof formState.message === 'string' && formState.message.trim() !== '')
-        ? formState.message : "An error occurred saving 404 page settings.";
-      toast({ title: "Error Saving Settings", description: errorMessage, variant: "destructive" });
-      
-      const dataToResetWith = formState.data ? formState.data : form.getValues();
-      form.reset(dataToResetWith); 
-      
-      if (formState.errors && typeof formState.errors === 'object') {
+      toast({ title: "Error Saving Settings", description: formState.message || "An error occurred.", variant: "destructive" });
+      if (formState.data) {
+        form.reset(formState.data);
+      }
+      if (formState.errors) {
         Object.entries(formState.errors).forEach(([fieldName, fieldErrorMessages]) => {
           if (Array.isArray(fieldErrorMessages) && fieldErrorMessages.length > 0) {
             form.setError(fieldName as Path<NotFoundPageAdminFormData>, { type: 'server', message: fieldErrorMessages.join(', ') });
@@ -114,10 +72,6 @@ export default function AdminNotFoundSettingsPage() {
       }
     }
   }, [formState, toast, form]);
-  
-  if (isLoadingInitialData) {
-    return <FullScreenLoader />;
-  }
 
   return (
     <div className="space-y-8">
@@ -126,7 +80,6 @@ export default function AdminNotFoundSettingsPage() {
         subtitle="Customize the content displayed on your 'Page Not Found' page."
         className="py-0 text-left"
       />
-
       <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-1">
         <Form {...form}>
           <form action={formAction} className="space-y-8">
@@ -143,9 +96,7 @@ export default function AdminNotFoundSettingsPage() {
                     <FormLabel>Main Heading</FormLabel>
                     <FormControl><Input {...field} placeholder="e.g., Oops! Page Not Found." /></FormControl>
                     <FormMessage />
-                    <p className="text-xs text-muted-foreground">
-                      The primary title text below the large "404".
-                    </p>
+                    <p className="text-xs text-muted-foreground">The primary title text below the large "404".</p>
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="message" render={({ field }) => (
@@ -153,9 +104,7 @@ export default function AdminNotFoundSettingsPage() {
                     <FormLabel>Descriptive Message</FormLabel>
                     <FormControl><Textarea {...field} rows={3} placeholder="e.g., The page you're looking for seems to have ventured off the map." /></FormControl>
                     <FormMessage />
-                     <p className="text-xs text-muted-foreground">
-                      The subtext message below the main heading.
-                    </p>
+                    <p className="text-xs text-muted-foreground">The subtext message below the main heading.</p>
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="buttonText" render={({ field }) => (
@@ -163,9 +112,7 @@ export default function AdminNotFoundSettingsPage() {
                     <FormLabel>Button Text</FormLabel>
                     <FormControl><Input {...field} placeholder="e.g., Go to Homepage" /></FormControl>
                     <FormMessage />
-                     <p className="text-xs text-muted-foreground">
-                      The text for the button that links to the homepage.
-                    </p>
+                    <p className="text-xs text-muted-foreground">The text for the button that links to the homepage.</p>
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="imageSrc" render={({ field }) => (
@@ -173,9 +120,7 @@ export default function AdminNotFoundSettingsPage() {
                     <FormLabel>Image URL</FormLabel>
                     <FormControl><Input {...field} placeholder="https://placehold.co/400x300.png" /></FormControl>
                     <FormMessage />
-                    <p className="text-xs text-muted-foreground">
-                      The URL for the main illustration on the 404 page.
-                    </p>
+                    <p className="text-xs text-muted-foreground">The URL for the main illustration on the 404 page.</p>
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="dataAiHint" render={({ field }) => (
@@ -183,9 +128,7 @@ export default function AdminNotFoundSettingsPage() {
                     <FormLabel>Image AI Hint (Optional)</FormLabel>
                     <FormControl><Input {...field} placeholder="e.g., lost map, confused robot" /></FormControl>
                     <FormMessage />
-                    <p className="text-xs text-muted-foreground">
-                        A hint for AI image generation if you plan to use that for this image later.
-                    </p>
+                    <p className="text-xs text-muted-foreground">A hint for AI image generation if you plan to use that for this image later.</p>
                   </FormItem>
                 )} />
               </CardContent>
@@ -198,4 +141,10 @@ export default function AdminNotFoundSettingsPage() {
       </div>
     </div>
   );
+}
+
+// Server Component to fetch initial data
+export default async function AdminNotFoundSettingsPage() {
+  const initialData = await getNotFoundPageDataAction();
+  return <NotFoundSettingsAdminClientPage initialData={initialData} />;
 }

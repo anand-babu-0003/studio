@@ -7,23 +7,23 @@ export interface PortfolioItem {
   title: string;
   description: string;
   longDescription?: string;
-  images: string[]; // Should always be an array, even if empty
-  tags: string[];   // Should always be an array, even if empty
+  images: string[];
+  tags: string[];
   liveUrl?: string;
   repoUrl?: string;
   slug: string;
   dataAiHint?: string;
   readmeContent?: string;
-  createdAt?: string; // ISO date string
-  updatedAt?: string; // ISO date string
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Skill {
   id: string;
   name: string;
   iconName: string;
-  category: 'Frontend' | 'Backend' | 'DevOps' | 'Tools' | 'Languages' | 'Other';
-  proficiency?: number | null; // Allow null for "not set"
+  category: 'Languages' | 'Frontend' | 'Backend' | 'DevOps' | 'Tools' | 'Other';
+  proficiency?: number | null;
 }
 
 export interface SocialLink {
@@ -35,7 +35,7 @@ export interface SocialLink {
 }
 
 export interface Experience {
-  id: string; // Ensure ID is always present
+  id: string;
   role: string;
   company: string;
   period: string;
@@ -43,7 +43,7 @@ export interface Experience {
 }
 
 export interface Education {
-  id: string; // Ensure ID is always present
+  id: string;
   degree: string;
   institution: string;
   period: string;
@@ -55,8 +55,8 @@ export interface AboutMeData {
   bio: string;
   profileImage: string;
   dataAiHint: string;
-  experience: Experience[]; // Should always be an array
-  education: Education[];   // Should always be an array
+  experience: Experience[];
+  education: Education[];
   email?: string;
   linkedinUrl?: string;
   githubUrl?: string;
@@ -94,7 +94,5 @@ export interface ContactMessage {
   name: string;
   email: string;
   message: string;
-  submittedAt: string; // ISO date string
+  submittedAt: string;
 }
-
-// Announcement interface removed

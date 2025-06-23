@@ -1,11 +1,9 @@
 
-"use client";
-
 import Link from 'next/link';
 import { Github, Linkedin, Twitter, Mail } from 'lucide-react';
-import type { SocialLink, AboutMeData } from '@/lib/types';
-import { useEffect, useState } from 'react';
+import type { SocialLink } from '@/lib/types';
 import { Button } from '@/components/ui/button';
+import { getAboutMeDataAction } from '@/actions/getAboutMeDataAction';
 import { defaultAboutMeDataForClient } from '@/lib/data';
 
 const mainNavItems = [
@@ -16,20 +14,10 @@ const mainNavItems = [
   { href: '/contact', label: 'Contact' },
 ];
 
-interface FooterProps {
-  aboutMeData: AboutMeData | null;
-}
-
-export default function Footer({ aboutMeData }: FooterProps) {
-  const [currentYear, setCurrentYear] = useState<number | null>(null);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-    setCurrentYear(new Date().getFullYear()); 
-  }, []);
-
-  const displayedData = (isMounted && aboutMeData) ? aboutMeData : defaultAboutMeDataForClient;
+export default async function Footer() {
+  const currentYear = new Date().getFullYear();
+  const aboutMeData = await getAboutMeDataAction();
+  const displayedData = aboutMeData || defaultAboutMeDataForClient;
 
   const socialLinksToDisplay: SocialLink[] = [
     ...(displayedData.githubUrl ? [{ id: 'github', name: 'GitHub', url: displayedData.githubUrl, icon: Github }] : []),
@@ -37,7 +25,6 @@ export default function Footer({ aboutMeData }: FooterProps) {
     ...(displayedData.twitterUrl ? [{ id: 'twitter', name: 'Twitter', url: displayedData.twitterUrl, icon: Twitter }] : []),
     ...(displayedData.email ? [{ id: 'email', name: 'Email', url: `mailto:${displayedData.email}`, icon: Mail }] : []),
   ].filter(link => link.url && link.url.trim() !== '');
-
 
   return (
     <footer className="border-t bg-background text-foreground">
@@ -123,5 +110,3 @@ export default function Footer({ aboutMeData }: FooterProps) {
     </footer>
   );
 }
-
-    

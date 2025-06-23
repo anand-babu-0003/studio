@@ -1,38 +1,11 @@
 
-"use client"; 
-
 import { PageHeader } from '@/components/shared/page-header';
 import { PortfolioCard } from '@/components/portfolio/portfolio-card';
 import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wrapper';
-import type { PortfolioItem } from '@/lib/types';
 import { getPortfolioItemsAction } from '@/actions/admin/portfolioActions';
-import { defaultPortfolioItemsDataForClient } from '@/lib/data';
-import { useEffect, useState } from 'react';
-import FullScreenLoader from '@/components/shared/FullScreenLoader';
 
-export default function PortfolioPage() {
-  const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchPageData() {
-      setIsLoading(true);
-      try {
-        const items = await getPortfolioItemsAction();
-        setPortfolioItems(items || []); 
-      } catch (error) {
-        console.error("Error fetching portfolio items for page:", error);
-        setPortfolioItems(defaultPortfolioItemsDataForClient); 
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    fetchPageData();
-  }, []);
-
-  if (isLoading) {
-    return <FullScreenLoader />;
-  }
+export default async function PortfolioPage() {
+  const portfolioItems = await getPortfolioItemsAction();
 
   return (
     <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
@@ -61,4 +34,3 @@ export default function PortfolioPage() {
     </div>
   );
 }
-

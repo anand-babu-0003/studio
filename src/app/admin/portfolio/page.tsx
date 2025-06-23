@@ -64,9 +64,9 @@ function SubmitButton() {
   );
 }
 
-export default function AdminPortfolioPage() {
-  const [projects, setProjects] = useState<PortfolioItem[]>([]);
-  const [isLoadingProjects, setIsLoadingProjects] = useState(true);
+// Client Component to handle state and interactions
+function PortfolioAdminClientPage({ initialProjects }: { initialProjects: PortfolioItem[] }) {
+  const [projects, setProjects] = useState<PortfolioItem[]>(initialProjects);
   const [currentProject, setCurrentProject] = useState<PortfolioItem | null>(null);
   const [showForm, setShowForm] = useState(false);
   const { toast } = useToast();
@@ -83,28 +83,6 @@ export default function AdminPortfolioPage() {
     if (currentProject?.id) return `edit-${currentProject.id}-${new Date().getTime()}`;
     return `add-new-project-form-${new Date().getTime()}`;
   }, [showForm, currentProject]);
-  
-  useEffect(() => {
-    async function fetchProjects() {
-      setIsLoadingProjects(true);
-      try {
-        const fetchedProjects = await getPortfolioItemsAction();
-        setProjects(fetchedProjects || []);
-      } catch (error) {
-        console.error("Failed to fetch portfolio items for admin:", error);
-        toast({
-          title: "Error Loading Projects",
-          description: "Could not load projects from the database.",
-          variant: "destructive",
-        });
-        setProjects([]);
-      } finally {
-        setIsLoadingProjects(false);
-      }
-    }
-    fetchProjects();
-  }, [toast]);
-
 
   useEffect(() => {
     if (formActionState.status === 'success' && formActionState.savedProject) {
@@ -132,19 +110,13 @@ export default function AdminPortfolioPage() {
       const errorMessage = typeof formActionState.message === 'string' && formActionState.message.trim() !== ''
         ? formActionState.message
         : "An unspecified error occurred. Please check server logs for more details.";
-
       toast({ title: "Error Saving", description: errorMessage, variant: "destructive" });
-      
       const dataToResetWith = formActionState.formDataOnError ? formActionState.formDataOnError : form.getValues();
-      form.reset(dataToResetWith); 
-      
+      form.reset(dataToResetWith);
       if (formActionState.errors) {
         Object.entries(formActionState.errors).forEach(([key, fieldErrorMessages]) => {
           if (Array.isArray(fieldErrorMessages) && fieldErrorMessages.length > 0) {
-            form.setError(key as Path<PortfolioAdminFormData>, { 
-              type: 'server', 
-              message: fieldErrorMessages.join(', ') 
-            });
+            form.setError(key as Path<PortfolioAdminFormData>, { type: 'server', message: fieldErrorMessages.join(', ') });
           }
         });
       }
@@ -214,87 +186,41 @@ export default function AdminPortfolioPage() {
               {currentProject?.id && <input type="hidden" {...form.register('id')} value={currentProject.id} />}
               <CardContent className="space-y-6">
                 <FormField control={form.control} name="title" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Title</FormLabel>
-                    <FormControl><Input {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
+                  <FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
                 <FormField control={form.control} name="slug" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Slug (e.g., my-awesome-project)</FormLabel>
-                    <FormControl><Input {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
+                  <FormItem><FormLabel>Slug (e.g., my-awesome-project)</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
                 <FormField control={form.control} name="description" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Short Description (for cards)</FormLabel>
-                    <FormControl><Textarea {...field} rows={3} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
+                  <FormItem><FormLabel>Short Description (for cards)</FormLabel><FormControl><Textarea {...field} rows={3} /></FormControl><FormMessage /></FormItem>
                 )} />
                 <FormField control={form.control} name="longDescription" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Long Description (for detail page)</FormLabel>
-                    <FormControl><Textarea {...field} rows={6} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
+                  <FormItem><FormLabel>Long Description (for detail page)</FormLabel><FormControl><Textarea {...field} rows={6} /></FormControl><FormMessage /></FormItem>
                 )} />
                  <FormField control={form.control} name="image1" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Image URL 1</FormLabel>
-                    <FormControl><Input {...field} placeholder="https://placehold.co/600x400.png" /></FormControl>
-                    <FormMessage />
-                  </FormItem>
+                  <FormItem><FormLabel>Image URL 1</FormLabel><FormControl><Input {...field} placeholder="https://placehold.co/600x400.png" /></FormControl><FormMessage /></FormItem>
                 )} />
                  <FormField control={form.control} name="image2" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Image URL 2 (Optional)</FormLabel>
-                    <FormControl><Input {...field} placeholder="https://placehold.co/600x400.png" /></FormControl>
-                    <FormMessage />
-                  </FormItem>
+                  <FormItem><FormLabel>Image URL 2 (Optional)</FormLabel><FormControl><Input {...field} placeholder="https://placehold.co/600x400.png" /></FormControl><FormMessage /></FormItem>
                 )} />
                  <FormField control={form.control} name="tagsString" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tags (comma-separated, e.g., React, Next.js, TypeScript)</FormLabel>
-                    <FormControl><Input {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
+                  <FormItem><FormLabel>Tags (comma-separated, e.g., React, Next.js, TypeScript)</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
                 <FormField control={form.control} name="liveUrl" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Live Demo URL (Optional)</FormLabel>
-                    <FormControl><Input {...field} placeholder="https://example.com/live-demo" /></FormControl>
-                    <FormMessage />
-                  </FormItem>
+                  <FormItem><FormLabel>Live Demo URL (Optional)</FormLabel><FormControl><Input {...field} placeholder="https://example.com/live-demo" /></FormControl><FormMessage /></FormItem>
                 )} />
                 <FormField control={form.control} name="repoUrl" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Code Repository URL (Optional)</FormLabel>
-                    <FormControl><Input {...field} placeholder="https://github.com/user/project" /></FormControl>
-                    <FormMessage />
-                  </FormItem>
+                  <FormItem><FormLabel>Code Repository URL (Optional)</FormLabel><FormControl><Input {...field} placeholder="https://github.com/user/project" /></FormControl><FormMessage /></FormItem>
                 )} />
                 <FormField control={form.control} name="dataAiHint" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Image AI Hint (Optional, e.g., "website design")</FormLabel>
-                    <FormControl><Input {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
+                  <FormItem><FormLabel>Image AI Hint (Optional, e.g., "website design")</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
                 <FormField control={form.control} name="readmeContent" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>README Content (Markdown)</FormLabel>
-                    <FormControl><Textarea {...field} rows={15} placeholder="Paste your project's README.md content here..." /></FormControl>
-                    <FormMessage />
-                  </FormItem>
+                  <FormItem><FormLabel>README Content (Markdown)</FormLabel><FormControl><Textarea {...field} rows={15} placeholder="Paste your project's README.md content here..." /></FormControl><FormMessage /></FormItem>
                 )} />
               </CardContent>
               <CardFooter className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={handleCancelForm}>
-                  <XCircle className="mr-2 h-4 w-4" /> Cancel
-                </Button>
+                <Button type="button" variant="outline" onClick={handleCancelForm}><XCircle className="mr-2 h-4 w-4" /> Cancel</Button>
                 <SubmitButton />
               </CardFooter>
             </form>
@@ -302,46 +228,31 @@ export default function AdminPortfolioPage() {
         </Card>
       )}
       {!showForm && (
-        isLoadingProjects ? (
-          <FullScreenLoader />
-        ) : (
-          <div className="space-y-4">
-            {projects.length === 0 && <p className="text-muted-foreground text-center py-4">No projects yet. Click "Add New Project" to start.</p>}
-            {projects.map(project => (
-              <Card key={project.id} className="flex items-center justify-between p-4">
-                <span className="font-medium">{project.title}</span>
-                <div className="space-x-2">
-                  <Button variant="outline" size="sm" onClick={() => handleEdit(project)}>
-                    <Edit3 className="mr-1 h-4 w-4" /> Edit
-                  </Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="destructive" size="sm">
-                        <Trash2 className="mr-1 h-4 w-4" /> Delete
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This action cannot be undone. This will permanently delete the project "{project.title}".
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDelete(project.id)} className="bg-destructive hover:bg-destructive/80">
-                          Yes, delete project
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              </Card>
-            ))}
-          </div>
-        )
+        <div className="space-y-4">
+          {projects.length === 0 && <p className="text-muted-foreground text-center py-4">No projects yet. Click "Add New Project" to start.</p>}
+          {projects.map(project => (
+            <Card key={project.id} className="flex items-center justify-between p-4">
+              <span className="font-medium">{project.title}</span>
+              <div className="space-x-2">
+                <Button variant="outline" size="sm" onClick={() => handleEdit(project)}><Edit3 className="mr-1 h-4 w-4" /> Edit</Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild><Button variant="destructive" size="sm"><Trash2 className="mr-1 h-4 w-4" /> Delete</Button></AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This action cannot be undone. This will permanently delete the project "{project.title}".</AlertDialogDescription></AlertDialogHeader>
+                    <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => handleDelete(project.id)} className="bg-destructive hover:bg-destructive/80">Yes, delete project</AlertDialogAction></AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </Card>
+          ))}
+        </div>
       )}
     </div>
   );
 }
 
+// Server Component to fetch initial data
+export default async function AdminPortfolioPage() {
+  const initialProjects = await getPortfolioItemsAction();
+  return <PortfolioAdminClientPage initialProjects={initialProjects} />;
+}

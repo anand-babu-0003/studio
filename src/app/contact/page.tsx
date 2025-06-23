@@ -1,42 +1,15 @@
 
-"use client"; 
-
 import { PageHeader } from '@/components/shared/page-header';
 import { ContactForm } from '@/components/contact/contact-form';
 import { ContactInfo } from '@/components/contact/contact-info';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wrapper';
-import type { AboutMeData } from '@/lib/types';
 import { getAboutMeDataAction } from '@/actions/getAboutMeDataAction';
 import { defaultAboutMeDataForClient } from '@/lib/data';
-import { useEffect, useState } from 'react';
-import FullScreenLoader from '@/components/shared/FullScreenLoader';
 
-export default function ContactPage() {
-  const [aboutMeData, setAboutMeData] = useState<AboutMeData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchPageData() {
-      setIsLoading(true);
-      try {
-        const data = await getAboutMeDataAction();
-        setAboutMeData(data || defaultAboutMeDataForClient);
-      } catch (error) {
-        console.error("Error fetching About Me data for Contact page:", error);
-        setAboutMeData(defaultAboutMeDataForClient); 
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    fetchPageData();
-  }, []);
-
-  if (isLoading || !aboutMeData) {
-    return <FullScreenLoader />;
-  }
-
-  const displayedData = aboutMeData; 
+export default async function ContactPage() {
+  const aboutMeData = await getAboutMeDataAction();
+  const displayedData = aboutMeData || defaultAboutMeDataForClient; 
 
   return (
     <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
@@ -66,4 +39,3 @@ export default function ContactPage() {
     </div>
   );
 }
-

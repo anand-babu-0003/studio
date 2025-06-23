@@ -13,30 +13,10 @@ import { Trash2, Mail, CalendarDays, Inbox } from 'lucide-react';
 import { format } from 'date-fns';
 import FullScreenLoader from '@/components/shared/FullScreenLoader';
 
-export default function AdminMessagesPage() {
-  const [messages, setMessages] = useState<ContactMessage[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+// Client Component to handle state and interactions
+function MessagesAdminClientPage({ initialMessages }: { initialMessages: ContactMessage[] }) {
+  const [messages, setMessages] = useState<ContactMessage[]>(initialMessages);
   const { toast } = useToast();
-
-  useEffect(() => {
-    async function fetchMessages() {
-      setIsLoading(true);
-      try {
-        const fetchedMessages = await getContactMessagesAction();
-        setMessages(fetchedMessages);
-      } catch (error) {
-        console.error("Failed to fetch messages:", error);
-        toast({
-          title: "Error",
-          description: "Could not load messages.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    fetchMessages();
-  }, [toast]);
 
   const handleDeleteMessage = async (messageId: string) => {
     const result = await deleteContactMessageAction(messageId);
@@ -47,10 +27,6 @@ export default function AdminMessagesPage() {
       toast({ title: "Error Deleting", description: result.message, variant: "destructive" });
     }
   };
-
-  if (isLoading) {
-    return <FullScreenLoader />;
-  }
 
   return (
     <div className="space-y-6">
@@ -112,3 +88,8 @@ export default function AdminMessagesPage() {
   );
 }
 
+// Parent Server Component to fetch initial data
+export default async function AdminMessagesPage() {
+  const initialMessages = await getContactMessagesAction();
+  return <MessagesAdminClientPage initialMessages={initialMessages} />;
+}

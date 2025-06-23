@@ -1,42 +1,16 @@
 
-"use client"; 
-
 import Image from 'next/image';
 import { PageHeader } from '@/components/shared/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Briefcase, GraduationCap } from 'lucide-react';
 import { ScrollAnimationWrapper } from '@/components/shared/scroll-animation-wrapper';
-import type { AboutMeData, Experience, Education } from '@/lib/types';
+import type { Experience, Education } from '@/lib/types';
 import { getAboutMeDataAction } from '@/actions/getAboutMeDataAction';
 import { defaultAboutMeDataForClient } from '@/lib/data';
-import { useEffect, useState } from 'react';
-import FullScreenLoader from '@/components/shared/FullScreenLoader';
 
-export default function AboutPage() {
-  const [aboutMeData, setAboutMeData] = useState<AboutMeData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchPageData() {
-      setIsLoading(true);
-      try {
-        const data = await getAboutMeDataAction();
-        setAboutMeData(data || defaultAboutMeDataForClient);
-      } catch (error) {
-        console.error("Error fetching About Me data for page:", error);
-        setAboutMeData(defaultAboutMeDataForClient); 
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    fetchPageData();
-  }, []);
-
-  if (isLoading || !aboutMeData) {
-    return <FullScreenLoader />;
-  }
-
-  const displayedData = aboutMeData; 
+export default async function AboutPage() {
+  const aboutMeData = await getAboutMeDataAction();
+  const displayedData = aboutMeData || defaultAboutMeDataForClient; 
 
   return (
     <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8">
@@ -132,4 +106,3 @@ export default function AboutPage() {
     </div>
   );
 }
-
