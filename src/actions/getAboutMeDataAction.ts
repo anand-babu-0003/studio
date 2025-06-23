@@ -1,6 +1,4 @@
 
-"use server";
-
 import { firestore } from '@/lib/firebaseConfig';
 import { doc, getDoc, Timestamp } from 'firebase/firestore'; // Added Timestamp
 import type { AboutMeData } from '@/lib/types';

@@ -12,6 +12,7 @@ import type { SiteSettings } from '@/lib/types';
 import { defaultSiteSettingsForClient } from '@/lib/data';
 import { AlertTriangle } from 'lucide-react';
 import FullScreenLoader from '@/components/shared/FullScreenLoader';
+import LiveAnnouncementBanner from '@/components/announcements/LiveAnnouncementBanner';
 
 import { firestore } from '@/lib/firebaseConfig';
 import { doc, onSnapshot } from 'firebase/firestore';
@@ -63,7 +64,16 @@ export default function RootLayout({
     const unsubscribe = onSnapshot(settingsDocRef,
       (docSnap) => {
         if (docSnap.exists()) {
-          setCurrentSiteSettings(docSnap.data() as SiteSettings);
+          const data = docSnap.data();
+          setCurrentSiteSettings({
+            siteName: data.siteName || defaultSiteSettingsForClient.siteName,
+            defaultMetaDescription: data.defaultMetaDescription || defaultSiteSettingsForClient.defaultMetaDescription,
+            defaultMetaKeywords: data.defaultMetaKeywords || defaultSiteSettingsForClient.defaultMetaKeywords,
+            siteOgImageUrl: data.siteOgImageUrl || defaultSiteSettingsForClient.siteOgImageUrl,
+            maintenanceMode: typeof data.maintenanceMode === 'boolean' ? data.maintenanceMode : defaultSiteSettingsForClient.maintenanceMode,
+            skillsPageMetaTitle: data.skillsPageMetaTitle || defaultSiteSettingsForClient.skillsPageMetaTitle,
+            skillsPageMetaDescription: data.skillsPageMetaDescription || defaultSiteSettingsForClient.skillsPageMetaDescription,
+          });
         } else {
           setCurrentSiteSettings(defaultSiteSettingsForClient);
         }
@@ -77,7 +87,7 @@ export default function RootLayout({
     );
 
     return () => unsubscribe();
-  }, []); // Empty dependency array ensures this runs only once.
+  }, []);
 
   // Effect for client-side mounting and event listeners
   useEffect(() => {
@@ -98,6 +108,7 @@ export default function RootLayout({
     };
   }, [isAdminRoute]);
 
+  // Effect for updating meta tags based on route and settings
   useEffect(() => {
     if (typeof document !== 'undefined' && currentSiteSettings && !isLayoutLoading) {
       const pathSegments = pathname.split('/').filter(Boolean);
@@ -105,11 +116,15 @@ export default function RootLayout({
       let formattedPageTitle = pageTitleSegment.replace(/-/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
       const siteNameBase = currentSiteSettings.siteName || defaultSiteSettingsForClient.siteName;
       let title = siteNameBase;
-
+      
+      const isSkillsPage = pathname === '/skills';
+      
       if (pathname !== '/') {
         if (isAdminRoute) {
           const adminPageTitle = formattedPageTitle || 'Dashboard';
           title = `Admin: ${adminPageTitle} | ${siteNameBase}`;
+        } else if (isSkillsPage && currentSiteSettings.skillsPageMetaTitle) {
+          title = `${currentSiteSettings.skillsPageMetaTitle} | ${siteNameBase}`;
         } else {
           title = `${formattedPageTitle} | ${siteNameBase}`;
         }
@@ -118,7 +133,9 @@ export default function RootLayout({
       updateMetaTag('og:title', title, true);
 
       // Other meta tags
-      const description = currentSiteSettings.defaultMetaDescription || defaultSiteSettingsForClient.defaultMetaDescription;
+      const description = isSkillsPage && currentSiteSettings.skillsPageMetaDescription 
+        ? currentSiteSettings.skillsPageMetaDescription 
+        : (currentSiteSettings.defaultMetaDescription || defaultSiteSettingsForClient.defaultMetaDescription);
       updateMetaTag('description', description);
       updateMetaTag('og:description', description, true);
       
@@ -146,30 +163,28 @@ export default function RootLayout({
         <meta property="og:type" content="website" />
       </head>
       <body className="font-body antialiased flex flex-col min-h-screen">
-        {isMounted && !isAdminRoute && !isLayoutLoading && (
+        {isMounted && !isAdminRoute && (
           <>
             <div className="light-orb light-orb-1" style={{transform: `translate(calc(${mousePosition.x}px - 30vw), calc(${mousePosition.y}px - 30vh))`}}/>
             <div className="light-orb light-orb-2" style={{transform: `translate(calc(${mousePosition.x}px - 25vw), calc(${mousePosition.y}px - 25vh))`, transitionDelay: '0.05s'}}/>
           </>
         )}
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          {currentSiteSettings.maintenanceMode && !isAdminRoute && (
-            <div data-maintenance-banner className="fixed top-0 left-0 right-0 z-[101] p-3 bg-destructive text-destructive-foreground shadow-md flex items-center justify-center gap-2">
-              <AlertTriangle className="h-5 w-5 flex-shrink-0" />
-              <p className="text-sm font-medium">The site is currently under maintenance. Some features may be unavailable.</p>
-            </div>
-          )}
-          {isLayoutLoading && !isAdminRoute && pathname !== '/admin/login' ? (
-             <FullScreenLoader />
-          ) : (
-            <>
-              {!isAdminRoute && <Navbar />}
-              <div className={`flex-grow ${currentSiteSettings.maintenanceMode && !isAdminRoute ? 'pt-12' : ''} ${!isAdminRoute && !currentSiteSettings.maintenanceMode ? 'pt-10' : 'pt-0'}`}>
-                {children}
+          {isLayoutLoading && !isAdminRoute && pathname !== '/admin/login' && <FullScreenLoader />}
+          <div style={{ visibility: isLayoutLoading && !isAdminRoute ? 'hidden' : 'visible', display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+            {!isAdminRoute && <LiveAnnouncementBanner />}
+            {currentSiteSettings.maintenanceMode && !isAdminRoute && (
+              <div data-maintenance-banner className="relative z-[60] p-3 bg-destructive text-destructive-foreground shadow-md flex items-center justify-center gap-2 text-center">
+                <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+                <p className="text-sm font-medium">The site is currently under maintenance. Some features may be unavailable.</p>
               </div>
-              {!isAdminRoute && <Footer />}
-            </>
-          )}
+            )}
+            {!isAdminRoute && <Navbar />}
+            <main className="flex-grow flex flex-col">
+              {children}
+            </main>
+            {!isAdminRoute && <Footer />}
+          </div>
           <Toaster />
         </ThemeProvider>
       </body>

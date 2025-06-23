@@ -13,11 +13,12 @@ interface FetchedAnnouncement extends Omit<Announcement, 'createdAt'> {
   createdAt: FirestoreTimestamp;
 }
 
-const AUTO_HIDE_DELAY = 5000; // Changed to 5 seconds
+const AUTO_HIDE_DELAY = 5000;
 
 export default function LiveAnnouncementBanner() {
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const [lastAnnouncementId, setLastAnnouncementId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!firestore) {
@@ -44,19 +45,14 @@ export default function LiveAnnouncementBanner() {
             isActive: data.isActive,
           };
           
-          if (!announcement || 
-              announcement.id !== newAnnouncement.id || 
-              announcement.message !== newAnnouncement.message ||
-              (announcement.createdAt && newAnnouncement.createdAt && announcement.createdAt.getTime() !== newAnnouncement.createdAt.getTime())
-            ) {
+          if (lastAnnouncementId !== newAnnouncement.id) {
             setAnnouncement(newAnnouncement);
+            setLastAnnouncementId(newAnnouncement.id);
             setIsVisible(true); 
           }
         } else {
-          if (announcement && announcement.id === doc.id) { 
-            setAnnouncement(null);
-            setIsVisible(false);
-          }
+          setAnnouncement(null);
+          setIsVisible(false);
         }
       } else {
         setAnnouncement(null);
@@ -69,7 +65,7 @@ export default function LiveAnnouncementBanner() {
     });
 
     return () => unsubscribe();
-  }, [announcement]); 
+  }, [lastAnnouncementId]);
 
   useEffect(() => {
     let timerId: NodeJS.Timeout | undefined;
@@ -98,7 +94,7 @@ export default function LiveAnnouncementBanner() {
   return (
     <div
       className={cn(
-        "fixed top-0 left-0 right-0 z-[100] p-3 bg-accent text-accent-foreground shadow-md transition-all duration-500 ease-in-out",
+        "relative z-[60] p-3 bg-accent text-accent-foreground shadow-md transition-all duration-500 ease-in-out",
         "flex items-center justify-between gap-4",
         isVisible ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"
       )}
@@ -121,4 +117,3 @@ export default function LiveAnnouncementBanner() {
     </div>
   );
 }
-
