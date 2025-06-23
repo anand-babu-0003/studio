@@ -51,31 +51,37 @@ export default function RootLayout({
   const [currentSiteSettings, setCurrentSiteSettings] = useState<SiteSettings>(defaultSiteSettingsForClient);
   const [isLayoutLoading, setIsLayoutLoading] = useState(true);
 
+  // Effect for Firestore listener (runs once)
   useEffect(() => {
-    setIsMounted(true);
-    let settingsUnsubscribe: (() => void) | undefined;
-
-    if (firestore) {
-      const settingsDocRef = doc(firestore, 'app_config', 'siteSettingsDoc');
-      settingsUnsubscribe = onSnapshot(settingsDocRef,
-        (docSnap) => {
-          if (docSnap.exists()) {
-            setCurrentSiteSettings(docSnap.data() as SiteSettings);
-          } else {
-            setCurrentSiteSettings(defaultSiteSettingsForClient);
-          }
-          setIsLayoutLoading(false);
-        },
-        (error) => {
-          console.error("Error listening to site settings:", error);
-          setCurrentSiteSettings(defaultSiteSettingsForClient);
-          setIsLayoutLoading(false);
-        }
-      );
-    } else {
+    if (!firestore) {
       setCurrentSiteSettings(defaultSiteSettingsForClient);
       setIsLayoutLoading(false);
+      return;
     }
+
+    const settingsDocRef = doc(firestore, 'app_config', 'siteSettingsDoc');
+    const unsubscribe = onSnapshot(settingsDocRef,
+      (docSnap) => {
+        if (docSnap.exists()) {
+          setCurrentSiteSettings(docSnap.data() as SiteSettings);
+        } else {
+          setCurrentSiteSettings(defaultSiteSettingsForClient);
+        }
+        setIsLayoutLoading(false);
+      },
+      (error) => {
+        console.error("Error listening to site settings:", error);
+        setCurrentSiteSettings(defaultSiteSettingsForClient);
+        setIsLayoutLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, []); // Empty dependency array ensures this runs only once.
+
+  // Effect for client-side mounting and event listeners
+  useEffect(() => {
+    setIsMounted(true);
 
     const handleMouseMove = (event: MouseEvent) => {
       setMousePosition({ x: event.clientX, y: event.clientY });
@@ -88,9 +94,6 @@ export default function RootLayout({
     return () => {
       if (!isAdminRoute) {
         window.removeEventListener('mousemove', handleMouseMove);
-      }
-      if (settingsUnsubscribe) {
-        settingsUnsubscribe();
       }
     };
   }, [isAdminRoute]);
