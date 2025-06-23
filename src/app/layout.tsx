@@ -12,7 +12,6 @@ import type { SiteSettings, AboutMeData } from '@/lib/types';
 import { getAboutMeDataAction } from '@/actions/getAboutMeDataAction';
 import { defaultSiteSettingsForClient, defaultAboutMeDataForClient } from '@/lib/data';
 import { AlertTriangle } from 'lucide-react';
-// import LiveAnnouncementBanner from '@/components/announcements/LiveAnnouncementBanner'; // Removed
 import FullScreenLoader from '@/components/shared/FullScreenLoader';
 
 import { firestore } from '@/lib/firebaseConfig';
@@ -90,12 +89,12 @@ export default function RootLayout({
             console.warn("Site settings document not found in Firestore for live listener. Using defaults.");
             setCurrentSiteSettings(defaultSiteSettingsForClient);
           }
-          if(isLayoutLoading) setIsLayoutLoading(false);
+          setIsLayoutLoading(false);
         },
         (error) => {
           console.error("Error listening to site settings:", error);
           setCurrentSiteSettings(defaultSiteSettingsForClient);
-           if(isLayoutLoading) setIsLayoutLoading(false);
+          setIsLayoutLoading(false);
         }
       );
     } else {
@@ -122,7 +121,6 @@ export default function RootLayout({
         settingsUnsubscribe();
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdminRoute]);
 
 
@@ -228,7 +226,6 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {/* {!isAdminRoute && <LiveAnnouncementBanner />} */}{/* Removed */}
           {currentSiteSettings.maintenanceMode && !isAdminRoute && (
             <div data-maintenance-banner className="fixed top-0 left-0 right-0 z-[101] p-3 bg-destructive text-destructive-foreground shadow-md flex items-center justify-center gap-2">
               <AlertTriangle className="h-5 w-5 flex-shrink-0" />
