@@ -83,6 +83,8 @@ export default function RootLayout({
               defaultMetaKeywords: data.defaultMetaKeywords || defaultSiteSettingsForClient.defaultMetaKeywords,
               siteOgImageUrl: data.siteOgImageUrl || defaultSiteSettingsForClient.siteOgImageUrl,
               maintenanceMode: typeof data.maintenanceMode === 'boolean' ? data.maintenanceMode : defaultSiteSettingsForClient.maintenanceMode,
+              skillsPageMetaTitle: data.skillsPageMetaTitle || defaultSiteSettingsForClient.skillsPageMetaTitle,
+              skillsPageMetaDescription: data.skillsPageMetaDescription || defaultSiteSettingsForClient.skillsPageMetaDescription
             });
           } else {
             console.warn("Site settings document not found in Firestore for live listener. Using defaults.");
@@ -121,7 +123,7 @@ export default function RootLayout({
       }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAdminRoute, isLayoutLoading]);
+  }, [isAdminRoute]);
 
 
   useEffect(() => {
