@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useEffect, useState, useMemo } from 'react'; 
@@ -21,7 +22,7 @@ import FullScreenLoader from '@/components/shared/FullScreenLoader';
 import { 
   skillCategories, 
   lucideIconsMap, 
-  commonSkillNames, // Use the expanded commonSkillNames
+  commonSkillNames,
   defaultSkillsDataForClient
 } from '@/lib/data';
 import type { Skill } from '@/lib/types';
@@ -40,7 +41,6 @@ const defaultFormValues: SkillAdminFormData = {
   name: commonSkillNames.length > 0 ? commonSkillNames[0] : '', // Default to first common skill or empty
   category: skillCategories[0], 
   proficiency: undefined, 
-  // iconName is no longer part of SkillAdminFormData
 };
 
 function SubmitButton() {
@@ -164,7 +164,6 @@ export default function AdminSkillsPage() {
       id: skill.id,
       name: skill.name || '',
       category: skill.category || skillCategories[0],
-      // iconName is no longer part of form data
       proficiency: skill.proficiency ?? undefined, 
     });
     setShowForm(true);
@@ -211,7 +210,7 @@ export default function AdminSkillsPage() {
                 <FormField control={form.control} name="name" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Skill Name</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value} name={field.name}>
                       <FormControl>
                         <SelectTrigger><SelectValue placeholder="Select a skill" /></SelectTrigger>
                       </FormControl>
@@ -230,7 +229,7 @@ export default function AdminSkillsPage() {
                 <FormField control={form.control} name="category" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value} name={field.name}>
                       <FormControl>
                         <SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger>
                       </FormControl>
@@ -241,8 +240,6 @@ export default function AdminSkillsPage() {
                     <FormMessage />
                   </FormItem>
                 )} />
-                
-                {/* Icon Selection Dropdown is REMOVED */}
                 
                 <FormField
                   control={form.control}
@@ -302,7 +299,6 @@ export default function AdminSkillsPage() {
                 </h2>
                 <div className="space-y-4">
                   {categorySkills.map(skill => {
-                    // Use skill.iconName (which is now derived and stored)
                     const IconComponent = lucideIconsMap[skill.iconName] || Package; 
                     return (
                       <Card key={skill.id} className="flex items-center justify-between p-4 hover:shadow-md transition-shadow">
