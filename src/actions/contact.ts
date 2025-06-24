@@ -58,8 +58,7 @@ export async function submitContactForm(
       submittedAt: serverTimestamp(), // Use Firestore server timestamp
     };
 
-    const docRef = await addDoc(messagesCollection, newMessageData);
-    console.log("New contact form submission saved with ID:", docRef.id);
+    await addDoc(messagesCollection, newMessageData);
 
     return {
       message: "Your message has been sent successfully! I'll get back to you soon.",

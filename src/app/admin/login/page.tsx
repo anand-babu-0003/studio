@@ -1,7 +1,9 @@
 
 "use client";
 
-import { useState, type FormEvent } from 'react';
+import { useEffect } from 'react';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import Link from 'next/link'; 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -10,38 +12,43 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { AlertCircle, LogIn, Home } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { loginAction, type LoginFormState } from '@/actions/admin/authActions';
 
-// VERY IMPORTANT: These credentials are hardcoded and visible in the client-side code.
-// This is highly insecure and NOT suitable for production.
-// For a real production application, use a secure authentication system (e.g., Firebase Auth, NextAuth.js).
-const ADMIN_EMAIL = "basumgarianand109@gmail.com";
-const ADMIN_PASSWORD = "00@Anand9705";
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+     <Button type="submit" className="w-full" disabled={pending}>
+      {pending ? (
+        <>
+          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Signing In...
+        </>
+      ) : (
+        <>
+          <LogIn className="mr-2 h-4 w-4" /> Sign In
+        </>
+      )}
+    </Button>
+  );
+}
+
+const initialState: LoginFormState = { message: '', status: 'idle' };
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [formState, formAction] = useActionState(loginAction, initialState);
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError('');
-    setIsLoading(true);
-
-    // Simulate a short delay
-    setTimeout(() => {
-      if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('isAdminLoggedIn', 'true');
-        }
-        router.replace('/admin/dashboard');
-      } else {
-        setError('Invalid email or password.');
+  useEffect(() => {
+    if (formState.status === 'success') {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('isAdminLoggedIn', 'true');
       }
-      setIsLoading(false);
-    }, 500);
-  };
+      router.replace('/admin/dashboard');
+    }
+  }, [formState, router]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
@@ -58,55 +65,42 @@ export default function AdminLoginPage() {
           <CardDescription>Please log in to continue.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* The prominent security warning alert has been removed for a cleaner production look. */}
-          {/* The underlying security issue of hardcoded credentials remains and MUST be addressed. */}
-          <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+           <Alert variant="default" className="border-yellow-500/50 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300">
+            <AlertCircle className="h-4 w-4 !text-yellow-500" />
+            <AlertTitle>Security Notice</AlertTitle>
+            <AlertDescription>
+              This is a basic auth system for a single-user panel. For multi-user or high-security needs, a dedicated provider like Firebase Auth is recommended.
+            </AlertDescription>
+          </Alert>
+          <form action={formAction} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
+                name="email"
                 type="email"
                 placeholder="admin@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
                 required
-                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
+                name="password"
                 type="password"
                 placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
                 required
-                disabled={isLoading}
               />
             </div>
-            {error && (
+            {formState.status === 'error' && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Login Failed</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
+                <AlertDescription>{formState.message}</AlertDescription>
               </Alert>
             )}
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Signing In...
-                </>
-              ) : (
-                <>
-                  <LogIn className="mr-2 h-4 w-4" /> Sign In
-                </>
-              )}
-            </Button>
+            <SubmitButton />
           </form>
         </CardContent>
          <CardFooter className="flex flex-col items-center text-center text-xs text-muted-foreground pt-6 gap-4">
@@ -116,7 +110,7 @@ export default function AdminLoginPage() {
               </Link>
             </Button>
           <p className="w-full">
-            This is a prototype login. Credentials are not secure.
+            Login credentials should be set as environment variables on the server.
           </p>
         </CardFooter>
       </Card>
