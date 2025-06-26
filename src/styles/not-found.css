@@ -7,8 +7,8 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: #ffffff !important; /* Solid white background */
-  color: #24292f;
+  background-color: hsl(var(--background)) !important;
+  color: hsl(var(--foreground));
   font-family: 'Arvo', serif;
   display: flex;
   flex-direction: column;
@@ -33,7 +33,7 @@
 .text-404-nf {
   font-size: 10rem; 
   font-weight: 700;
-  color: #333;
+  color: hsl(var(--primary));
   margin-bottom: 0px;
   line-height: 1;
   margin-top: -20px;
@@ -54,15 +54,13 @@
 .heading-nf {
   font-size: 2rem; 
   font-weight: 600;
-  color: #333333; 
+  color: hsl(var(--foreground)); 
   margin-top: 0; 
   margin-bottom: 15px;
 }
 
 .subtext-nf {
   font-size: 1.125rem;
-  color: #555555;
+  color: hsl(var(--muted-foreground));
   margin-bottom: 30px;
 }
-
-/* Removed .button-nf and .button-nf:hover as ShadCN Button will be used */
